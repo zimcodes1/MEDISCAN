@@ -2,3 +2,4 @@ backend/.env
 backend/db.sqlite3
 backend/Pipfile.lock
 frontend/Mediscan/package-lock.json
+.codex

@@ -98,7 +98,7 @@ export default function BenefitsSection() {
               </div>
             </div>
             <img
-              src="https://images.unsplash.com/photo-1576091160400-112122ee46ff?w=600&h=400&fit=crop"
+              src="/images/medium-shot-nurse-looking-radiography.jpg"
               alt="Healthcare radiology"
               className="rounded-xl shadow-lg"
             />

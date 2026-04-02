@@ -1,16 +1,29 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { login } from '../utils/auth';
+import { getApiErrorMessage } from '../utils/api';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Login logic will be implemented in Phase 1
-    console.log('Login attempt:', { email, password });
+    setError('');
+    setLoading(true);
+
+    try {
+      await login({ email, password });
+      navigate('/');
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Unable to sign in. Please check your details.'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,6 +48,11 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-700 text-sm">{error}</p>
+              </div>
+            )}
             {/* Email Field */}
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-gray-900">
@@ -87,9 +105,10 @@ export default function LoginPage() {
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 

@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, User, Phone, Lock, ArrowRight, Loader } from 'lucide-react';
+import {
+  mapOrganisationSignupToPayload,
+  mapRegistrationErrors,
+  registerOrganisation,
+} from '../utils/auth';
 
 export default function OrganisationSignupPage() {
   const navigate = useNavigate();
@@ -77,17 +82,14 @@ export default function OrganisationSignupPage() {
     setLoading(true);
     
     try {
-      // TODO: Call backend API
-      // const response = await axios.post('/api/auth/organisations/register/', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const payload = mapOrganisationSignupToPayload(formData);
+      const response = await registerOrganisation(payload);
+
       navigate('/verify-email', { 
-        state: { email: formData.workEmail } 
+        state: { email: formData.workEmail, organisationId: response.organisation_id } 
       });
     } catch (error) {
-      setErrors({ submit: 'Failed to create account. Please try again.' });
+      setErrors(mapRegistrationErrors(error));
     } finally {
       setLoading(false);
     }

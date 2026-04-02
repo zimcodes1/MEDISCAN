@@ -130,6 +130,7 @@ class OrganisationRegistrationSerializer(serializers.Serializer):
 
 class StaffTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom JWT token serializer for staff members that includes organization info."""
+    email = serializers.EmailField(required=False, allow_blank=True)
     
     @classmethod
     def get_token(cls, user):
@@ -141,7 +142,23 @@ class StaffTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['organisation_id'] = user.organisation.id if user.organisation else None
         return token
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Allow email-only login without requiring username field
+        if self.username_field in self.fields:
+            self.fields[self.username_field].required = False
+
     def validate(self, attrs):
+        if not attrs.get(self.username_field):
+            email = attrs.get('email')
+            if email:
+                user = User.objects.filter(email__iexact=email).first()
+                attrs[self.username_field] = user.get_username() if user else email
+            if not attrs.get(self.username_field):
+                raise serializers.ValidationError({
+                    self.username_field: 'Username or email is required.'
+                })
+
         data = super().validate(attrs)
         # Add user info to response
         data['user'] = {
