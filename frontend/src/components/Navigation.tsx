@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import Logo from './svgs/Logo';
 
 export default function Navigation() {
   const navigate = useNavigate();

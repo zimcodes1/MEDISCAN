@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Image, Users, Mail, ArrowRight, ArrowLeft, Check, Loader, Plus } from 'lucide-react';
+import { User, Image, Users, ArrowRight, ArrowLeft, Check, Loader, Plus } from 'lucide-react';
 
 type OnboardingStep = 1 | 2;
 

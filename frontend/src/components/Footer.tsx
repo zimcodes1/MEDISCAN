@@ -1,6 +1,6 @@
 import { Activity, Mail } from 'lucide-react';
 import LinkedIn from './svgs/LinkedIn';
-import Github from './svgs/Github';
+import Github from './svgs/GitHub';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

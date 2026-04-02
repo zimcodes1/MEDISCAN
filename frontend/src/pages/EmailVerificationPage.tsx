@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, ArrowRight, RotateCcw, CheckCircle } from 'lucide-react';
+import { Mail, RotateCcw, CheckCircle } from 'lucide-react';
 
 export default function EmailVerificationPage() {
   const navigate = useNavigate();
