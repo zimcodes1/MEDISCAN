@@ -148,8 +148,8 @@ STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Custom user model
-AUTH_USER_MODEL = 'accounts.CustomUser'
+# Custom user model (Staff member belongs to an Organization)
+AUTH_USER_MODEL = 'accounts.Staff'
 
 # Django REST Framework
 REST_FRAMEWORK = {
