@@ -17,7 +17,7 @@ function Step({ step, icon, title, description }: StepProps) {
 
 			<div className="relative space-y-4">
 				<div className="max-sm:flex justify-between">
-					<div className="w-16 max-sm:w-14 h-16  bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
+					<div className="w-16 max-sm:w-14 h-16 max-sm:h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
 						{step}
 					</div>
 					<div className="text-blue-600 mt-2">{icon}</div>
