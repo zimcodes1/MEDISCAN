@@ -12,8 +12,9 @@ export default function HeroSection() {
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
-                <Zap className="text-blue-600" size={18} />
-                <span className="text-blue-600 font-medium text-sm">AI-Powered Medical Imaging</span>
+                <i className='text-xl text-blue-600 animate-pulse'>•</i>
+                <Zap className="text-blue-600 animate-pulse" size={18} />
+                <span className="text-blue-600 font-medium text-sm">AI-Powered Medical Scan Analysis</span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
                 Faster Diagnosis,
@@ -44,7 +45,7 @@ export default function HeroSection() {
 
             {/* Trust Badge */}
             <div className="pt-4 text-sm text-gray-600">
-              <p>🔒 HIPAA-compliant • 🏥 Built for African healthcare • ✅ Clinician-reviewed</p>
+              <p><i className='text-blue-500 text-lg px-1'>•</i> HIPAA-compliant <i className='text-blue-500 text-lg px-1'>•</i> Built for African healthcare <i className='text-blue-500 text-lg px-1'>•</i> Clinician-reviewed</p>
             </div>
           </div>
 
@@ -52,7 +53,7 @@ export default function HeroSection() {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-2xl opacity-10 blur-3xl"></div>
             <img
-              src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=500&fit=crop"
+              src="/images/doctor-typing.png"
               alt="Medical X-ray analysis"
               className="relative rounded-2xl shadow-2xl w-full object-cover"
             />

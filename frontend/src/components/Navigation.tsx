@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Activity } from 'lucide-react';
+import Logo from './svgs/Logo';
 
 export default function Navigation() {
   const navigate = useNavigate();
@@ -9,10 +9,8 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Activity className="text-white" size={24} />
-            </div>
+          <div className="flex items-center justify-between gap-2 cursor-pointer" onClick={() => navigate('/')}>
+            <img src="/images/logo.png" alt="Mediscan Logo" width={50} />
             <span className="text-xl font-bold text-blue-600">MediScan NG</span>
           </div>
 
