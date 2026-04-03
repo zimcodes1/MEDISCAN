@@ -1,0 +1,53 @@
+export const pendingCases = [
+        {
+            id: 1,
+            name: "Elias Vance",
+            uid: "UID: RAD-9921-X",
+            modality: "Chest X-ray",
+            status: "Flagged",
+            statusColor: "#ffb95f",
+            confidence: "94%",
+            confidenceLabel: "Abnormality",
+            action: "Review Now",
+        },
+        {
+            id: 2,
+            name: "Sarah Connor",
+            uid: "UID: RAD-4042-M",
+            modality: "Hand X-ray",
+            status: "AI analyzing",
+            statusColor: "#7bd0ff",
+            confidence: "45%",
+            confidenceLabel: "Processing",
+            action: "Waiting...",
+        },
+        {
+            id: 3,
+            name: "Arthur Morgan",
+            uid: "UID: RAD-1899-K",
+            modality: "Chest X-ray",
+            status: "Ready",
+            statusColor: "#4ade80",
+            confidence: "99%",
+            confidenceLabel: "Clear",
+            action: "Open Report",
+        },
+        {
+            id: 4,
+            name: "Jules Winnfield",
+            uid: "UID: RAD-7700-B",
+            modality: "Hand X-ray",
+            status: "AI analyzing",
+            statusColor: "#7bd0ff",
+            confidence: "12%",
+            confidenceLabel: "Processing",
+            action: "Waiting...",
+        },
+    ];
+
+export const sessionHistory = [
+        { time: "09:42 AM", message: "Successfully processed Case #8821 (Pelvic CT)" },
+        { time: "09:15 AM", message: "Auto-flagged anomaly in Case #8921 (Chest)" },
+        { time: "08:50 AM", message: "Database sync completed. 124 records updated." },
+        { time: "08:00 AM", message: "System diagnostics: Optimal performance." },
+    ];
