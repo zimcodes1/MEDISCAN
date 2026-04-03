@@ -6,6 +6,7 @@ import EmailVerificationPage from './pages/EmailVerificationPage';
 import OrgOnboardingPage from './pages/OrgOnboardingPage';
 import StaffInviteAcceptancePage from './pages/StaffInviteAcceptancePage';
 import DashboardPage from './pages/DashboardPage';
+import CaseUploadPage from './pages/CaseUploadPage';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/onboarding" element={<OrgOnboardingPage />} />
         <Route path="/staff/accept-invite" element={<StaffInviteAcceptancePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/case-upload" element={<CaseUploadPage />} />
       </Routes>
     </Router>
   );

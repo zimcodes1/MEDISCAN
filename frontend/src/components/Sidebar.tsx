@@ -1,5 +1,6 @@
 import { LayoutDashboard, Upload, Brain, FileText, Settings, HelpCircle, Plus } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import Logo from "./svgs/Logo";
 
 export default function Sidebar() {
 	const location = useLocation();
@@ -20,12 +21,12 @@ export default function Sidebar() {
 		<aside className="w-64 bg-[#151b2d] h-screen flex flex-col fixed left-0 top-0">
 			{/* Logo */}
 			<div className=" px-3 py-5 flex gap-2 items-center">
-				<img src="/images/logo.png" alt="Mediscan Logo" width={40} />
+				<Logo size={32}/>
 				<h1 className="text-[#7bd0ff] text-xl font-bold tracking-wide">Mediscan</h1>
 			</div>
 
 			{/* New Case Button */}
-			<div className="px-4 mb-6">
+			<div className="px-4 mb-6 mt-4">
 				<button className="w-full bg-[#7bd0ff] text-[#0c1324] py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
 					<Plus size={20} />
 					New Case
