@@ -11,7 +11,7 @@ export default function HeroSection() {
 					{/* Left Content */}
 					<div className="space-y-8">
 						<div className="space-y-4">
-						<div className="inline-flex items-center gap-2 bg-[#191f31] border border-[#7bd0ff] px-4 py-2 rounded-full">
+						<div className="inline-flex items-center gap-2 bg-[#191f31] border border-[#7bd1ff61] px-4 py-2 rounded-full">
 							<i className="text-xl text-[#7bd0ff] animate-pulse">•</i>
 							<Zap className="text-[#7bd0ff] animate-pulse" size={18} />
 							<span className="text-[#7bd0ff] font-medium text-sm">
@@ -23,7 +23,7 @@ export default function HeroSection() {
 							<span className="text-[#7bd0ff]"> Better Care</span>
 							</h1>
 						<p className="text-lg text-[#dce1fb] leading-relaxed">
-								MediScan NG is an AI-powered decision-support tool that helps
+								Mediscan is an AI-powered decision-support tool that helps
 								clinicians analyze chest X-rays faster. Get preliminary findings
 								in seconds, with visual explanations to guide your clinical
 								judgment.
@@ -77,7 +77,7 @@ export default function HeroSection() {
 							/>
 						</span>
 						{/* Badge */}
-						<div className="absolute animate-bounce bottom-6 left-6 bg-[#191f31] border border-[#7bd0ff] rounded-lg shadow-lg px-4 py-3">
+						<div className="absolute animate-bounce bottom-6 left-6 bg-[#191f31] border border-[#7bd1ff69] rounded-lg shadow-lg px-4 py-3">
 							<p className="text-sm font-semibold text-[#dce1fb]">AI Analysis</p>
 							<p className="text-xs text-[#7bd0ff]">Ready in &lt; 5 seconds</p>
 						</div>

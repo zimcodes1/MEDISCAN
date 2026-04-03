@@ -125,19 +125,19 @@ export default function OrgOnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-[#0c1324] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-3xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-center mb-6">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <Users className="text-white" size={28} />
+            <div className="w-14 h-14 bg-linear-to-br from-[#7bd0ff] to-[#008abb] rounded-2xl flex items-center justify-center shadow-lg">
+              <Users className="text-[#0c1324]" size={28} />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 text-center mb-2">
+          <h1 className="text-4xl font-bold text-[#dce1fb] text-center mb-2">
             Finish Your Setup
           </h1>
-          <p className="text-lg text-gray-600 text-center">
+          <p className="text-lg text-[#dce1fb] text-center">
             {step === 1 ? 'Complete your organization profile' : 'Add your team members'}
           </p>
 
@@ -147,7 +147,7 @@ export default function OrgOnboardingPage() {
               <div
                 key={i}
                 className={`h-1 flex-1 rounded-full transition-all ${
-                  i <= step ? 'bg-blue-600' : 'bg-gray-300'
+                  i <= step ? 'bg-[#7bd0ff]' : 'bg-[#2e3447]'
                 }`}
               ></div>
             ))}
@@ -155,18 +155,18 @@ export default function OrgOnboardingPage() {
         </div>
 
         {/* Forms */}
-        <div className="bg-white rounded-3xl shadow-xl p-8">
+        <div className="bg-[#191f31] rounded-3xl border border-[#2e3447] p-8">
           {/* Step 1: Finish Profile */}
           {step === 1 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <User size={24} className="text-blue-600" />
+              <h2 className="text-2xl font-bold text-[#dce1fb] flex items-center gap-2">
+                <User size={24} className="text-[#7bd0ff]" />
                 Step 1: Finish Your Profile
               </h2>
 
               {/* Job Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-[#dce1fb] mb-2">
                   Your Job Title
                 </label>
                 <input
@@ -175,21 +175,21 @@ export default function OrgOnboardingPage() {
                   value={profileData.adminJobTitle}
                   onChange={handleProfileChange}
                   placeholder="e.g., Medical Director, IT Administrator"
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all placeholder-gray-400 ${
+                  className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
                     errors.adminJobTitle
-                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                      : 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                      ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
+                      : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
                   }`}
                 />
                 {errors.adminJobTitle && (
-                  <p className="text-red-600 text-sm mt-1">{errors.adminJobTitle}</p>
+                  <p className="text-[#ffb4ab] text-sm mt-1">{errors.adminJobTitle}</p>
                 )}
               </div>
 
               {/* Organisation Logo */}
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
-                  <Image size={16} className="text-blue-600" />
+                <label className="flex text-sm font-medium text-[#dce1fb] mb-2 items-center gap-2">
+                  <Image size={16} className="text-[#7bd0ff]" />
                   Organisation Logo (Optional)
                 </label>
                 <div className="relative">
@@ -203,18 +203,18 @@ export default function OrgOnboardingPage() {
                   />
                   <label
                     htmlFor="logo-input"
-                    className="block border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all"
+                    className="block border-2 border-dashed border-[#2e3447] rounded-xl p-8 text-center cursor-pointer hover:border-[#7bd0ff] hover:bg-[#7bd0ff] hover:bg-opacity-5 transition-all"
                   >
                     {profileData.organisationLogo ? (
                       <div className="space-y-2">
-                        <Check className="text-green-600 mx-auto" size={32} />
-                        <p className="font-medium text-gray-900">{profileData.organisationLogo.name}</p>
+                        <Check className="text-[#7bd0ff] mx-auto" size={32} />
+                        <p className="font-medium text-[#dce1fb]">{profileData.organisationLogo.name}</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <Image className="text-gray-400 mx-auto" size={32} />
-                        <p className="font-medium text-gray-900">Upload a logo</p>
-                        <p className="text-sm text-gray-600">PNG, JPG or GIF (max. 2MB)</p>
+                        <Image className="text-[#8c91a8] mx-auto" size={32} />
+                        <p className="font-medium text-[#dce1fb]">Upload a logo</p>
+                        <p className="text-sm text-[#8c91a8]">PNG, JPG or GIF (max. 2MB)</p>
                       </div>
                     )}
                   </label>
@@ -223,7 +223,7 @@ export default function OrgOnboardingPage() {
 
               {/* Number of Radiologists */}
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-[#dce1fb] mb-2">
                   Number of Radiologists (Optional)
                 </label>
                 <input
@@ -232,23 +232,26 @@ export default function OrgOnboardingPage() {
                   value={profileData.numberOfRadiologists}
                   onChange={handleProfileChange}
                   placeholder="e.g., 5"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all placeholder-gray-400"
+                  className="w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 border-[#2e3447] text-[#dce1fb] placeholder-[#8c91a8] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
                 />
-                <p className="text-xs text-gray-500 mt-2">Helps us size your account better</p>
+                <p className="text-xs text-[#8c91a8] mt-2">Helps us size your account better</p>
               </div>
 
               {/* Navigation Buttons */}
               <div className="flex gap-3 pt-6">
                 <button
                   onClick={() => navigate('/')}
-                  className="flex-1 px-6 py-3 rounded-xl border-2 border-gray-300 text-gray-900 hover:bg-gray-50 transition-all font-medium flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 rounded-xl border-2 border-[#2e3447] text-[#dce1fb] hover:bg-[#2e3447] transition-all font-medium flex items-center justify-center gap-2"
                 >
                   <ArrowLeft size={18} />
                   Back
                 </button>
                 <button
                   onClick={handleProceedToStep2}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold flex items-center justify-center gap-2"
+                  className="flex-1 text-[#0c1324] py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #7bd0ff 0%, #008abb 100%)'
+                  }}
                 >
                   Next
                   <ArrowRight size={18} />
@@ -260,26 +263,26 @@ export default function OrgOnboardingPage() {
           {/* Step 2: Add Staff */}
           {step === 2 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Users size={24} className="text-blue-600" />
+              <h2 className="text-2xl font-bold text-[#dce1fb] flex items-center gap-2">
+                <Users size={24} className="text-[#7bd0ff]" />
                 Step 2: Add Your Team
               </h2>
 
               {skipmessageShown && (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
-                  <Check className="text-green-600 flex-shrink-0 mt-0.5" size={20} />
-                  <p className="text-green-700 font-medium">You can add team members from the dashboard later</p>
+                <div className="border border-[#7bd0ff] rounded-xl p-4 flex items-start gap-3 bg-[#7bd0ff] bg-opacity-10">
+                  <Check className="text-[#7bd0ff] shrink-0 mt-0.5" size={20} />
+                  <p className="text-[#7bd0ff] font-medium">You can add team members from the dashboard later</p>
                 </div>
               )}
 
               {/* Add New Staff Form */}
-              <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
-                <h3 className="font-semibold text-gray-900">Invite a Team Member</h3>
+              <div className="bg-[#151b2d] rounded-2xl border border-[#2e3447] p-6 space-y-4">
+                <h3 className="font-semibold text-[#dce1fb]">Invite a Team Member</h3>
 
                 <div className="space-y-3">
                   {/* Full Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-1">
+                    <label className="block text-sm font-medium text-[#dce1fb] mb-1">
                       Full Name
                     </label>
                     <input
@@ -288,20 +291,20 @@ export default function OrgOnboardingPage() {
                       value={newStaff.fullName}
                       onChange={handleStaffChange}
                       placeholder="First & Last Name"
-                      className={`w-full px-4 py-2 rounded-lg border-2 transition-all placeholder-gray-400 text-sm ${
+                      className={`w-full px-4 py-2 bg-[#0c1324] rounded-lg border-2 text-[#dce1fb] placeholder-[#8c91a8] text-sm transition-all ${
                         errors.fullName
-                          ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'
+                          ? 'border-[#ffb4ab] focus:border-[#ffb4ab]'
+                          : 'border-[#2e3447] focus:border-[#7bd0ff]'
                       }`}
                     />
                     {errors.fullName && (
-                      <p className="text-red-600 text-xs mt-1">{errors.fullName}</p>
+                      <p className="text-[#ffb4ab] text-xs mt-1">{errors.fullName}</p>
                     )}
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-1">
+                    <label className="block text-sm font-medium text-[#dce1fb] mb-1">
                       Work Email
                     </label>
                     <input
@@ -310,27 +313,27 @@ export default function OrgOnboardingPage() {
                       value={newStaff.email}
                       onChange={handleStaffChange}
                       placeholder="colleague@hospital.com"
-                      className={`w-full px-4 py-2 rounded-lg border-2 transition-all placeholder-gray-400 text-sm ${
+                      className={`w-full px-4 py-2 bg-[#0c1324] rounded-lg border-2 text-[#dce1fb] placeholder-[#8c91a8] text-sm transition-all ${
                         errors.email
-                          ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'
+                          ? 'border-[#ffb4ab] focus:border-[#ffb4ab]'
+                          : 'border-[#2e3447] focus:border-[#7bd0ff]'
                       }`}
                     />
                     {errors.email && (
-                      <p className="text-red-600 text-xs mt-1">{errors.email}</p>
+                      <p className="text-[#ffb4ab] text-xs mt-1">{errors.email}</p>
                     )}
                   </div>
 
                   {/* Role */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-1">
+                    <label className="block text-sm font-medium text-[#dce1fb] mb-1">
                       Role
                     </label>
                     <select
                       name="role"
                       value={newStaff.role}
                       onChange={handleStaffChange}
-                      className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-blue-500 transition-all text-sm"
+                      className="w-full px-4 py-2 bg-[#0c1324] rounded-lg border-2 border-[#2e3447] focus:border-[#7bd0ff] text-[#dce1fb] text-sm"
                     >
                       <option value="radiologist">Radiologist</option>
                       <option value="clinician">Clinician</option>
@@ -340,7 +343,10 @@ export default function OrgOnboardingPage() {
                   {/* Add Button */}
                   <button
                     onClick={handleAddStaff}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm flex items-center justify-center gap-2"
+                    className="w-full text-[#0c1324] py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
+                    style={{
+                      background: 'linear-gradient(135deg, #7bd0ff 0%, #008abb 100%)'
+                    }}
                   >
                     <Plus size={16} />
                     Add Team Member
@@ -351,21 +357,21 @@ export default function OrgOnboardingPage() {
               {/* Staff List */}
               {staffList.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-[#dce1fb]">
                     Team Members ({staffList.length})
                   </h3>
                   {staffList.map((staff, index) => (
-                    <div key={index} className="bg-blue-50 rounded-xl p-4 flex items-center justify-between">
+                    <div key={index} className="bg-[#151b2d] rounded-xl border border-[#2e3447] p-4 flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">{staff.fullName}</p>
-                        <p className="text-sm text-gray-600">{staff.email}</p>
-                        <p className="text-xs text-blue-600 font-medium mt-1">
+                        <p className="font-medium text-[#dce1fb]">{staff.fullName}</p>
+                        <p className="text-sm text-[#8c91a8]">{staff.email}</p>
+                        <p className="text-xs text-[#7bd0ff] font-medium mt-1">
                           {staff.role === 'radiologist' ? '🔬 Radiologist' : '👨‍⚕️ Clinician'}
                         </p>
                       </div>
                       <button
                         onClick={() => handleRemoveStaff(index)}
-                        className="text-red-600 hover:text-red-700 font-medium text-sm"
+                        className="text-[#ffb4ab] hover:text-[#ff9999] font-medium text-sm"
                       >
                         Remove
                       </button>
@@ -378,7 +384,7 @@ export default function OrgOnboardingPage() {
               <div className="flex gap-3 pt-6">
                 <button
                   onClick={() => setStep(1)}
-                  className="flex-1 px-6 py-3 rounded-xl border-2 border-gray-300 text-gray-900 hover:bg-gray-50 transition-all font-medium flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 rounded-xl border-2 border-[#2e3447] text-[#dce1fb] hover:bg-[#2e3447] transition-all font-medium flex items-center justify-center gap-2"
                 >
                   <ArrowLeft size={18} />
                   Back
@@ -386,14 +392,18 @@ export default function OrgOnboardingPage() {
                 <button
                   onClick={handleSkip}
                   disabled={loading}
-                  className="px-6 py-3 rounded-xl border-2 border-gray-300 text-gray-900 hover:bg-gray-50 transition-all font-medium"
+                  className="px-6 py-3 rounded-xl border-2 border-[#2e3447] text-[#dce1fb] hover:bg-[#2e3447] transition-all font-medium"
                 >
                   Skip For Now
                 </button>
                 <button
                   onClick={handleCompleteOnboarding}
                   disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 text-[#0c1324] py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: loading ? '#7bd0ff' : 'linear-gradient(135deg, #7bd0ff 0%, #008abb 100%)',
+                    opacity: loading ? 0.5 : 1
+                  }}
                 >
                   {loading ? (
                     <>
