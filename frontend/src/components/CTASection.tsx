@@ -13,7 +13,7 @@ export default function CTASection() {
             Ready to Transform Your Diagnostic Workflow?
           </h2>
           <p className="text-xl text-[#0c1324] max-w-2xl mx-auto leading-relaxed">
-            Join healthcare providers across Nigeria who are using MediScan NG to deliver faster, more confident diagnoses.
+            Join healthcare providers across Nigeria who are using Mediscan NG to deliver faster, more confident diagnoses.
           </p>
         </div>
 

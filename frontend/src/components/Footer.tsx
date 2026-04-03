@@ -1,6 +1,7 @@
 import { Activity, Mail } from 'lucide-react';
 import LinkedIn from './svgs/LinkedIn';
 import Github from './svgs/GitHub';
+import Logo from './svgs/Logo';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -14,7 +15,7 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 bg-[#7bd0ff] rounded-lg flex items-center justify-center">
-                <Activity className="text-[#0c1324]" size={24} />
+                <Logo size={24} />
               </div>
               <span className="text-xl font-bold text-[#dce1fb]">MediScan NG</span>
             </div>

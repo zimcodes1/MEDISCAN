@@ -79,7 +79,7 @@ export default function BenefitsSection() {
         </div>
 
         {/* Context Section */}
-        <div className="bg-[#191f31] rounded-2xl border border-[#2e3447] p-12">
+        <div className="bg-[#191f31] rounded-2xl border border-[#2e3447] p-10 max-sm:p-5">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h3 className="text-3xl font-bold text-[#dce1fb] mb-6">

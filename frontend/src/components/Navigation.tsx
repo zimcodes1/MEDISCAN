@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import Logo from './svgs/Logo';
 
 export default function Navigation() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center justify-between gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src="/images/logo.png" alt="Mediscan Logo" width={50} />
+            <Logo size={32}/>
             <span className="text-xl font-bold text-[#7bd0ff]">Mediscan NG</span>
           </div>
 
