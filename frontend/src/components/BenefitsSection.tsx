@@ -9,9 +9,9 @@ interface BenefitProps {
 
 function BenefitCard({ icon, metric, title, description }: BenefitProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 border p-4 rounded-2xl border-[#2e3447] bg-[#191f31] backdrop-blur-2xl">
       <div className="flex items-start gap-4">
-        <div className="w-14 h-14 bg-[#2e3447] rounded-lg flex items-center justify-center text-[#7bd0ff] flex-shrink-0">
+        <div className="w-14 h-14 rounded-lg flex items-center justify-center text-[#7bd0ff] flex-shrink-0">
           {icon}
         </div>
         <div className="space-y-2">
@@ -19,7 +19,7 @@ function BenefitCard({ icon, metric, title, description }: BenefitProps) {
           <h3 className="text-2xl font-bold text-[#dce1fb]">{title}</h3>
         </div>
       </div>
-      <p className="text-[#dce1fb] leading-relaxed text-lg">{description}</p>
+      <p className="text-[#dce1fb] leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -57,7 +57,7 @@ export default function BenefitsSection() {
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Section Header */}
         <div className="text-center space-y-4">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#dce1fb]">
+          <h2 className="text-2xl md:text-4xl font-bold text-[#dce1fb]">
             Real Impact for African Healthcare
           </h2>
           <p className="text-lg text-[#dce1fb] max-w-2xl mx-auto">

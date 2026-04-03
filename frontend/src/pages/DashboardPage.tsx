@@ -1,191 +1,225 @@
+import {
+	Activity,
+	AlertTriangle,
+	CheckCircle2,
+	ChevronRight,
+	ImageIcon,
+} from "lucide-react";
+import { ActivityLog } from "../components/dashboard/ActivityLogs";
+import SystemStats from "../components/dashboard/SystemStats";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
-import { AlertTriangle, CheckCircle, RefreshCw, TrendingUp } from "lucide-react";
-import { pendingCases, sessionHistory } from "../utils/DummyData";
+import StatCard from "../components/dashboard/StatCard";
+import ScanRow, {type ScanQueueItem} from "../components/dashboard/ScanRow";
+
+//Dummy Data
+
+const SCAN_QUEUE: ScanQueueItem[] = [
+	{
+		id: "SCN-00841",
+		patientName: "Emeka Okafor",
+		patientCode: "PAT-3312",
+		modality: "Chest X-Ray",
+		projection: "PA",
+		uploadedBy: "Dr. Nwosu",
+		uploadedAt: "09:14 AM",
+		priority: "urgent",
+		status: "flagged",
+		confidence: 94,
+		prediction: "Pneumonia",
+	},
+	{
+		id: "SCN-00842",
+		patientName: "Aisha Bello",
+		patientCode: "PAT-1190",
+		modality: "Chest X-Ray",
+		projection: "AP",
+		uploadedBy: "Dr. Adeyemi",
+		uploadedAt: "09:31 AM",
+		priority: "urgent",
+		status: "processing",
+		confidence: null,
+		prediction: null,
+	},
+	{
+		id: "SCN-00843",
+		patientName: "Chidi Eze",
+		patientCode: "PAT-4457",
+		modality: "Chest X-Ray",
+		projection: "PA",
+		uploadedBy: "Dr. Nwosu",
+		uploadedAt: "09:45 AM",
+		priority: "routine",
+		status: "ready",
+		confidence: 71,
+		prediction: "Pneumonia",
+	},
+	{
+		id: "SCN-00844",
+		patientName: "Fatima Garba",
+		patientCode: "PAT-2280",
+		modality: "Chest X-Ray",
+		projection: "Lateral",
+		uploadedBy: "Dr. Ibrahim",
+		uploadedAt: "10:02 AM",
+		priority: "routine",
+		status: "ready",
+		confidence: 12,
+		prediction: "Normal",
+	},
+	{
+		id: "SCN-00845",
+		patientName: "Oluwaseun Adeyemi",
+		patientCode: "PAT-5591",
+		modality: "Chest X-Ray",
+		projection: "PA",
+		uploadedBy: "Dr. Adeyemi",
+		uploadedAt: "10:18 AM",
+		priority: "routine",
+		status: "reviewed",
+		confidence: 88,
+		prediction: "Pneumonia",
+	},
+];
+
+//Main Dashboard Page
 
 export default function DashboardPage() {
+	const pending = SCAN_QUEUE.filter((s) => s.status !== "reviewed");
+	const urgent = SCAN_QUEUE.filter(
+		(s) => s.priority === "urgent" && s.status !== "reviewed",
+	);
+	const flagged = SCAN_QUEUE.filter((s) => s.status === "flagged");
+	const reviewed = SCAN_QUEUE.filter((s) => s.status === "reviewed");
+
 	return (
-		<div className="flex bg-[#0c1324] min-h-screen">
+		<div className="flex bg-[#0c1324] min-h-screen font-sans">
 			<Sidebar />
-			
-			<div className="ml-64 flex-1">
+
+			<div className="w-8/10 ml-[20%] flex-1 flex flex-col">
 				<TopBar />
-				
-				<main className="pt-20 p-8">
-					{/* Header Section */}
-					<div className="mb-8">
-						<h1 className="text-4xl font-bold text-[#dce1fb] mb-2">Diagnostic Pipeline</h1>
-						<p className="text-[#dce1fb]/70">Real-time AI surveillance across active radiology streams.</p>
-					</div>
 
-					{/* Status Cards */}
-					<div className="grid grid-cols-2 gap-6 mb-8">
-						<div className="bg-[#191f31] p-6 rounded-xl">
-							<div className="flex items-center justify-between mb-2">
-								<span className="text-[#dce1fb]/70 text-sm uppercase tracking-wide">Queue Status</span>
-							</div>
-							<div className="flex items-baseline gap-2">
-								<span className="text-4xl font-bold text-[#7bd0ff]">24</span>
-								<span className="text-[#dce1fb] text-lg">Active</span>
-							</div>
+				<main className="pt-16 flex-1">
+					<div className="p-8">
+						{/* Page Header */}
+						<div className="mb-7">
+							<h1 className="text-2xl font-bold text-[#dce1fb] tracking-tight">
+								Good morning, Dr. Nwosu
+							</h1>
+							<p className="text-[#dce1fb]/45 text-sm mt-1">
+								{new Date().toLocaleDateString("en-NG", {
+									weekday: "long",
+									day: "numeric",
+									month: "long",
+									year: "numeric",
+								})}
+								{" · "}Lagos University Teaching Hospital
+							</p>
 						</div>
 
-						<div className="bg-[#191f31] p-6 rounded-xl">
-							<div className="flex items-center justify-between mb-2">
-								<span className="text-[#dce1fb]/70 text-sm uppercase tracking-wide">Priority Flags</span>
-							</div>
-							<div className="flex items-baseline gap-2">
-								<span className="text-4xl font-bold text-[#ffb95f]">03</span>
-								<span className="text-[#dce1fb] text-lg">Critical</span>
-							</div>
+						{/* Disclaimer Banner */}
+						<div className="mb-7 flex items-start gap-3 bg-[#ffb95f]/8 border border-[#ffb95f]/20 rounded-xl px-4 py-3">
+							<AlertTriangle
+								size={15}
+								className="text-[#ffb95f] flex-shrink-0 mt-0.5"
+							/>
+							<p className="text-[#ffb95f]/80 text-xs leading-relaxed">
+								<span className="font-semibold text-[#ffb95f]">
+									AI Decision Support Only.
+								</span>{" "}
+								All outputs are preliminary findings and must be reviewed and
+								verified by a qualified clinician before any clinical action is
+								taken. MediScan NG does not constitute a medical diagnosis.
+							</p>
 						</div>
-					</div>
 
-					{/* Main Content Grid */}
-					<div className="grid grid-cols-3 gap-6">
-						{/* Pending Analysis - Takes 2 columns */}
-						<div className="col-span-2 bg-[#151b2d] rounded-xl p-6">
-							<div className="flex items-center justify-between mb-6">
-								<h2 className="text-xl font-bold text-[#dce1fb]">Pending Analysis</h2>
-								<div className="flex gap-4">
-									<button className="text-[#dce1fb] text-sm hover:text-[#7bd0ff] transition-colors">
-										All Scans
+						{/* Stat Cards */}
+						<div className="grid grid-cols-4 gap-4 mb-7">
+							<StatCard
+								label="Pending Review"
+								value={pending.length}
+								sub="In your queue"
+								icon={<ImageIcon size={18} />}
+								accent="blue"
+							/>
+							<StatCard
+								label="Urgent"
+								value={urgent.length}
+								sub="High priority"
+								icon={<AlertTriangle size={18} />}
+								accent="amber"
+							/>
+							<StatCard
+								label="AI Flagged"
+								value={flagged.length}
+								sub="Possible findings"
+								icon={<Activity size={18} />}
+								accent="red"
+							/>
+							<StatCard
+								label="Reviewed Today"
+								value={reviewed.length}
+								sub="Signed off"
+								icon={<CheckCircle2 size={18} />}
+								accent="green"
+							/>
+						</div>
+
+						{/* Main Content */}
+						<div className="grid grid-cols-3 gap-6">
+							{/* Scan Queue — 2 cols */}
+							<div className="col-span-2 bg-[#0f1520] rounded-xl border border-[#1e2740] overflow-hidden">
+								<div className="flex items-center justify-between px-6 py-4 border-b border-[#1e2740]">
+									<div>
+										<h2 className="text-[#dce1fb] text-sm font-semibold">
+											Scan Queue
+										</h2>
+										<p className="text-[#dce1fb]/35 text-xs mt-0.5">
+											{pending.length} pending · {urgent.length} urgent
+										</p>
+									</div>
+									<div className="flex items-center gap-3">
+										<button className="text-[#dce1fb]/40 text-xs hover:text-[#dce1fb] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#1e2740]">
+											All
+										</button>
+										<button className="text-[#f08080] text-xs font-medium bg-[#f08080]/10 border border-[#f08080]/20 px-3 py-1.5 rounded-lg">
+											Urgent first
+										</button>
+									</div>
+								</div>
+
+								{/* Table Head */}
+								<div className="grid grid-cols-12 gap-3 px-4 py-2.5 text-[#dce1fb]/25 text-[10px] uppercase tracking-widest border-b border-[#1e2740]">
+									<div className="col-span-3">Patient</div>
+									<div className="col-span-2">Projection</div>
+									<div className="col-span-2">Uploaded by</div>
+									<div className="col-span-2">Status</div>
+									<div className="col-span-2">AI Finding</div>
+									<div className="col-span-1" />
+								</div>
+
+								{/* Rows */}
+								<div className="p-3 space-y-1.5">
+									{SCAN_QUEUE.map((scan) => (
+										<ScanRow key={scan.id} scan={scan} />
+									))}
+								</div>
+
+								<div className="px-6 py-3 border-t border-[#1e2740] flex justify-between items-center">
+									<p className="text-[#dce1fb]/25 text-xs">
+										Showing {SCAN_QUEUE.length} scans
+									</p>
+									<button className="text-[#7bd0ff] text-xs hover:underline flex items-center gap-1">
+										View full queue <ChevronRight size={12} />
 									</button>
-									<button className="text-[#7bd0ff] text-sm font-semibold">
-										High Priority
-									</button>
 								</div>
 							</div>
 
-							{/* Table Header */}
-							<div className="grid grid-cols-12 gap-4 text-[#dce1fb]/50 text-xs uppercase tracking-wide mb-4 px-4">
-								<div className="col-span-3">Patient Entity</div>
-								<div className="col-span-2">Modality</div>
-								<div className="col-span-2">AI Pulse</div>
-								<div className="col-span-3">Confidence</div>
-								<div className="col-span-2">Action</div>
+							{/* Right column */}
+							<div className="space-y-4">
+								<SystemStats />
+								<ActivityLog />
 							</div>
-
-							{/* Cases List */}
-							<div className="space-y-2">
-								{pendingCases.map((case_) => (
-									<div
-										key={case_.id}
-										className="bg-[#191f31] rounded-lg p-4 grid grid-cols-12 gap-4 items-center border-l-2"
-										style={{ borderLeftColor: case_.statusColor }}
-									>
-										<div className="col-span-3">
-											<p className="text-[#dce1fb] font-semibold">{case_.name}</p>
-											<p className="text-[#dce1fb]/50 text-xs">{case_.uid}</p>
-										</div>
-										<div className="col-span-2">
-											<span className="bg-[#2e3447] text-[#dce1fb] px-3 py-1 rounded text-xs">
-												{case_.modality}
-											</span>
-										</div>
-										<div className="col-span-2">
-											<div className="flex items-center gap-2">
-												{case_.status === "Flagged" && <AlertTriangle size={16} style={{ color: case_.statusColor }} />}
-												{case_.status === "Ready" && <CheckCircle size={16} style={{ color: case_.statusColor }} />}
-												{case_.status === "AI analyzing" && <RefreshCw size={16} style={{ color: case_.statusColor }} className="animate-spin" />}
-												<span style={{ color: case_.statusColor }} className="text-sm font-medium">
-													{case_.status}
-												</span>
-											</div>
-										</div>
-										<div className="col-span-3">
-											<div className="flex items-center gap-2">
-												<span className="text-[#dce1fb] text-sm">{case_.confidenceLabel}</span>
-												<div className="flex-1 bg-[#2e3447] h-1 rounded-full overflow-hidden">
-													<div
-														className="h-full rounded-full"
-														style={{
-															width: case_.confidence,
-															backgroundColor: case_.statusColor,
-														}}
-													/>
-												</div>
-												<span className="text-[#dce1fb]/70 text-xs">{case_.confidence}</span>
-											</div>
-										</div>
-										<div className="col-span-2">
-											<button className="text-[#7bd0ff] text-sm hover:underline">
-												{case_.action}
-											</button>
-										</div>
-									</div>
-								))}
-							</div>
-						</div>
-
-						{/* Right Sidebar */}
-						<div className="space-y-6">
-							{/* Live Neural Mapping Card */}
-							<div className="bg-[#151b2d] rounded-xl p-6">
-								<div className="bg-[#191f31] rounded-lg p-4 mb-4">
-									<img
-										src="/images/neural-map.png"
-										alt="Neural mapping"
-										className="w-full h-48 object-cover rounded"
-									/>
-								</div>
-								<div className="flex items-center gap-2 mb-3">
-									<div className="w-2 h-2 bg-[#ffb95f] rounded-full animate-pulse" />
-									<span className="text-[#ffb95f] text-xs uppercase tracking-wide">Live Neural Mapping</span>
-								</div>
-								<h3 className="text-[#dce1fb] font-bold text-lg mb-4">Patient RAD-9921-X</h3>
-								<div className="space-y-2 mb-4">
-									<div className="flex justify-between text-sm">
-										<span className="text-[#dce1fb]/70">Anomaly detected:</span>
-										<span className="text-[#dce1fb]">Left Hilar Region</span>
-									</div>
-									<div className="flex justify-between text-sm">
-										<span className="text-[#dce1fb]/70">Pattern Match:</span>
-										<span className="text-[#dce1fb]">Consolidation A-type</span>
-									</div>
-								</div>
-								<button className="w-full bg-[#2e3447] text-[#7bd0ff] py-2 rounded-lg hover:bg-[#191f31] transition-colors">
-									Load Full 3D Map
-								</button>
-							</div>
-
-							{/* System Efficiency */}
-							<div className="bg-[#151b2d] rounded-xl p-6">
-								<div className="flex items-center justify-between mb-4">
-									<h3 className="text-[#dce1fb] font-bold">System Efficiency</h3>
-									<TrendingUp size={18} className="text-[#7bd0ff]" />
-								</div>
-								<div className="space-y-3">
-									<div className="flex justify-between items-center">
-										<span className="text-[#dce1fb]/70 text-sm">Avg Analysis Time</span>
-										<span className="text-[#dce1fb] font-semibold">42.4s</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-[#dce1fb]/70 text-sm">AI Confidence Mean</span>
-										<span className="text-[#dce1fb] font-semibold">96.8%</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-[#dce1fb]/70 text-sm">Human Validation Rate</span>
-										<span className="text-[#dce1fb] font-semibold">100%</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					{/* Session History */}
-					<div className="mt-6 bg-[#151b2d] rounded-xl p-6">
-						<div className="flex items-center justify-between mb-4">
-							<h2 className="text-xl font-bold text-[#dce1fb]">Session History</h2>
-							<button className="text-[#7bd0ff] text-sm hover:underline">Export Logs</button>
-						</div>
-						<div className="grid grid-cols-4 gap-4">
-							{sessionHistory.map((log, index) => (
-								<div key={index} className="bg-[#191f31] rounded-lg p-4">
-									<p className="text-[#dce1fb]/50 text-xs mb-2">{log.time}</p>
-									<p className="text-[#dce1fb] text-sm">{log.message}</p>
-								</div>
-							))}
 						</div>
 					</div>
 				</main>

@@ -53,7 +53,7 @@ export default function ScanDetailsForm({
 
 	return (
 		<div className="bg-[#151b2d] rounded-xl p-6 space-y-6">
-			<h2 className="text-xl font-bold text-[#dce1fb]">Scan Details</h2>
+			<h2 className="text-lg font-bold text-[#dce1fb]">Scan Details</h2>
 
 			{/* Scan Type */}
 			<div>

@@ -15,13 +15,16 @@ export default function TopBar() {
 
 			{/* Right Section */}
 			<div className="flex items-center gap-4">
-				<button className="text-[#dce1fb] hover:text-[#7bd0ff] transition-colors">
-					<Bell size={20} />
+				<button className="relative text-[#dce1fb]/50 hover:text-[#dce1fb] transition-colors">
+					<Bell size={18} />
+					<span className="absolute -top-1 -right-1 w-4 h-4 bg-[#f08080] rounded-full text-[9px] text-white flex items-center justify-center font-bold">
+						3
+					</span>
 				</button>
 				<button className="text-[#dce1fb] hover:text-[#7bd0ff] transition-colors">
 					<HelpCircle size={20} />
 				</button>
-				
+
 				{/* User Profile */}
 				<div className="flex items-center gap-3 ml-4">
 					<div className="text-right">

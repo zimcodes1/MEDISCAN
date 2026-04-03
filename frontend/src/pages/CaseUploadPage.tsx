@@ -59,7 +59,7 @@ export default function CaseUploadPage() {
 				<main className="pt-16 p-8">
 					{/* Header */}
 					<div className="mb-8 mt-5">
-						<h1 className="text-4xl font-bold text-[#dce1fb] mb-2">New Diagnostic Case</h1>
+						<h1 className="text-2xl font-bold text-[#dce1fb] mb-2">New Diagnostic Case</h1>
 						<p className="text-[#dce1fb]/70">Upload and assign chest X-ray scans for AI-assisted analysis.</p>
 					</div>
 
@@ -106,7 +106,7 @@ export default function CaseUploadPage() {
 								<button
 									onClick={handleSubmit}
 									disabled={!isFormValid}
-									className="w-full bg-[#7bd0ff] text-[#0c1324] py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+									className="w-full bg-[#7bd0ff] text-[#0c1324] py-4 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									<Upload size={20} />
 									Upload & Queue for Analysis

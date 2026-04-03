@@ -66,7 +66,7 @@ export default function PatientReportPage() {
 				<main className="pt-16 p-8">
 					{/* Header */}
 					<div className="mb-8 mt-5">
-						<h1 className="text-4xl font-bold text-[#dce1fb] mb-2">Radiologist Report</h1>
+						<h1 className="text-2xl font-bold text-[#dce1fb] mb-2">Radiologist Report</h1>
 						<p className="text-[#dce1fb]/70">
 							{isSubmitted ? "View submitted report" : "Complete structured diagnostic report"}
 						</p>

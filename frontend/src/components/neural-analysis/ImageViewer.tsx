@@ -29,7 +29,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 				<div className="flex gap-2">
 					<button
 						onClick={() => setViewMode("original")}
-						className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+						className={`px-4 py-2 rounded-lg text-sm transition-colors ${
 							viewMode === "original"
 								? "bg-[#7bd0ff] text-[#0c1324]"
 								: "bg-[#191f31] text-[#dce1fb] hover:bg-[#2e3447]"
@@ -39,7 +39,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 					</button>
 					<button
 						onClick={() => setViewMode("heatmap")}
-						className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+						className={`px-4 py-2 rounded-lg text-sm transition-colors ${
 							viewMode === "heatmap"
 								? "bg-[#7bd0ff] text-[#0c1324]"
 								: "bg-[#191f31] text-[#dce1fb] hover:bg-[#2e3447]"
@@ -49,7 +49,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 					</button>
 					<button
 						onClick={() => setViewMode("sidebyside")}
-						className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+						className={`px-4 py-2 rounded-lg text-sm transition-colors ${
 							viewMode === "sidebyside"
 								? "bg-[#7bd0ff] text-[#0c1324]"
 								: "bg-[#191f31] text-[#dce1fb] hover:bg-[#2e3447]"
@@ -60,7 +60,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 				</div>
 
 				{/* Zoom & Download Controls */}
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-2 ml-2">
 					<button
 						onClick={handleZoomOut}
 						disabled={zoom <= 50}
@@ -68,7 +68,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 					>
 						<ZoomOut size={18} />
 					</button>
-					<span className="text-[#dce1fb] text-sm font-semibold min-w-[3rem] text-center">
+					<span className="text-[#dce1fb] text-sm min-w-[3rem] text-center">
 						{zoom}%
 					</span>
 					<button

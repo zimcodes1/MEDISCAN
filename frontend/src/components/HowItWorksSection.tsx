@@ -54,7 +54,7 @@ export default function HowItWorksSection() {
 			<div className="max-w-7xl mx-auto space-y-12">
 				{/* Section Header */}
 				<div className="text-center space-y-4">
-					<h2 className="text-4xl md:text-5xl font-bold text-[#dce1fb]">
+					<h2 className="text-2xl md:text-4xl font-bold text-[#dce1fb]">
 						How It Works
 					</h2>
 					<p className="text-lg text-[#dce1fb] max-w-2xl mx-auto">

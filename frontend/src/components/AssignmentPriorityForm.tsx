@@ -23,7 +23,7 @@ export default function AssignmentPriorityForm({
 
 	return (
 		<div className="bg-[#151b2d] rounded-xl p-6 space-y-6">
-			<h2 className="text-xl font-bold text-[#dce1fb]">Assignment & Priority</h2>
+			<h2 className="text-lg font-bold text-[#dce1fb]">Assignment & Priority</h2>
 
 			{/* Uploaded By */}
 			<div>
@@ -62,7 +62,7 @@ export default function AssignmentPriorityForm({
 				<div className="grid grid-cols-2 gap-3">
 					<button
 						onClick={() => onPriorityChange("routine")}
-						className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
+						className={`flex items-center justify-center gap-2 p-2 rounded-lg border-2 transition-all ${
 							priority === "routine"
 								? "border-[#7bd0ff] bg-[#191f31]"
 								: "border-[#2e3447] bg-transparent hover:border-[#7bd0ff]/50"
@@ -76,7 +76,7 @@ export default function AssignmentPriorityForm({
 
 					<button
 						onClick={() => onPriorityChange("urgent")}
-						className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
+						className={`flex items-center justify-center gap-2 p-2 rounded-lg border-2 transition-all ${
 							priority === "urgent"
 								? "border-[#ffb95f] bg-[#191f31]"
 								: "border-[#2e3447] bg-transparent hover:border-[#ffb95f]/50"

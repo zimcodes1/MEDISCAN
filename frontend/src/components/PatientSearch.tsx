@@ -39,7 +39,7 @@ export default function PatientSearch({ selectedPatient, onPatientSelect, onClea
 
 	return (
 		<div className="bg-[#151b2d] rounded-xl p-6">
-			<h2 className="text-xl font-bold text-[#dce1fb] mb-4">Patient</h2>
+			<h2 className="text-lg font-bold text-[#dce1fb] mb-4">Patient</h2>
 
 			{!selectedPatient ? (
 				<div className="relative">
