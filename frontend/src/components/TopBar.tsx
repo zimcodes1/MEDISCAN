@@ -2,7 +2,7 @@ import { Search, Bell, HelpCircle } from "lucide-react";
 
 export default function TopBar() {
 	return (
-		<header className="h-16 bg-[#0c1324] border-b border-[#191f31] flex items-center justify-between px-6 fixed top-0 left-64 right-0 z-10">
+		<header className="h-16 bg-[#0c1324] border-b border-[#191f31] flex items-center justify-between px-6 fixed top-0 w-8/10 right-0 z-10">
 			{/* Search Bar */}
 			<div className="flex items-center gap-3 flex-1 max-w-md">
 				<Search size={18} className="text-[#dce1fb]" />
