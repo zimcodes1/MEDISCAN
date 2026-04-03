@@ -1,4 +1,4 @@
-import { Activity, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import LinkedIn from './svgs/LinkedIn';
 import Github from './svgs/GitHub';
 import Logo from './svgs/Logo';

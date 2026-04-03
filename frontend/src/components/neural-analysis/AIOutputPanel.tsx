@@ -3,7 +3,6 @@ import {
 	CheckCircle,
 	Clock,
 	User,
-	Paperclip,
 } from "lucide-react";
 
 interface AIOutputPanelProps {

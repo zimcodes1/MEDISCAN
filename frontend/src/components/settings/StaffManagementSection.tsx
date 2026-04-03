@@ -1,4 +1,4 @@
-import { Plus, Mail, Edit, Ban, CheckCircle, Trash2, X } from "lucide-react";
+import { Plus, Mail, Ban, CheckCircle, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
 interface StaffMember {

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import SettingsSidebar from "../components/settings/SettingsSidebar";
 import MyProfileSection from "../components/settings/MyProfileSection";
