@@ -8,12 +8,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon, title, description }: FeatureCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-8 space-y-4 border border-gray-100">
-      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+    <div className="bg-[#191f31] rounded-xl p-8 space-y-4 border border-[#2e3447]">
+      <div className="w-12 h-12 bg-[#2e3447] rounded-lg flex items-center justify-center text-[#7bd0ff]">
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-      <p className="text-gray-600 leading-relaxed">{description}</p>
+      <h3 className="text-xl font-bold text-[#dce1fb]">{title}</h3>
+      <p className="text-[#dce1fb] leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -43,14 +43,14 @@ export default function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0c1324]">
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Section Header */}
         <div className="text-center space-y-4">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+          <h2 className="text-4xl md:text-5xl font-bold text-[#dce1fb]">
             Powerful Features for Modern Healthcare
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-[#dce1fb] max-w-2xl mx-auto">
             Everything you need to provide faster, more confident diagnoses
           </p>
         </div>

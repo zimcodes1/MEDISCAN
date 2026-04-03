@@ -10,20 +10,15 @@ interface StepProps {
 function Step({ step, icon, title, description }: StepProps) {
 	return (
 		<div className="relative">
-			{/* Connector Line */}
-			{step < 3 && (
-				<div className="absolute top-20 left-[3.5rem] w-0.5 h-16 bg-gradient-to-b from-blue-400 to-blue-200 hidden md:block" />
-			)}
-
-			<div className="relative space-y-4">
-				<div className="max-sm:flex justify-between">
-					<div className="w-16 max-sm:w-14 h-16 max-sm:h-14 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
+			<div className="relative space-y-4 p-5 rounded-2xl border border-[#2e3447] bg-[#191f31]">
+				<div className="flex justify-between">
+					<div className="w-16 max-sm:w-14 h-16 max-sm:h-14 bg-[#7bd0ff] text-[#0c1324] rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">
 						{step}
 					</div>
-					<div className="text-blue-600 mt-2">{icon}</div>
+					<div className="text-[#7bd0ff] mt-2">{icon}</div>
 				</div>
-				<h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-				<p className="text-gray-600 leading-relaxed text-lg">{description}</p>
+				<h3 className="text-2xl font-bold text-[#dce1fb]">{title}</h3>
+				<p className="text-[#dce1fb] leading-relaxed text-lg">{description}</p>
 			</div>
 		</div>
 	);
@@ -55,14 +50,14 @@ export default function HowItWorksSection() {
 	];
 
 	return (
-		<section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+		<section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0c1324]">
 			<div className="max-w-7xl mx-auto space-y-12">
 				{/* Section Header */}
 				<div className="text-center space-y-4">
-					<h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+					<h2 className="text-4xl md:text-5xl font-bold text-[#dce1fb]">
 						How It Works
 					</h2>
-					<p className="text-lg text-gray-600 max-w-2xl mx-auto">
+					<p className="text-lg text-[#dce1fb] max-w-2xl mx-auto">
 						Three simple steps to get AI-powered diagnostic support
 					</p>
 				</div>
@@ -81,29 +76,29 @@ export default function HowItWorksSection() {
 				</div>
 
 				{/* Demo Section */}
-				<div className="mt-16 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl overflow-hidden">
+				<div className="mt-16 bg-gradient-to-r from-[#191f31] to-[#151b2d] rounded-2xl overflow-hidden">
 					<div className="grid md:grid-cols-2 gap-8 items-center p-12 max-sm:p-8">
 						<div className="space-y-4">
-							<h3 className="text-3xl font-bold text-gray-900 mb-6">
+							<h3 className="text-3xl font-bold text-[#dce1fb] mb-6">
 								See It In Action
 							</h3>
-							<p className="text-lg text-gray-700 leading-relaxed">
+							<p className="text-lg text-[#dce1fb] leading-relaxed">
 								Our AI analyzes chest X-rays with 94% accuracy, producing
 								detailed heatmaps that highlight areas of concern. Perfect for
 								radiologist review and clinician reference.
 							</p>
 							<div className="flex gap-4 pt-4">
 								<div className="flex-1">
-									<p className="text-sm text-gray-600">Accuracy</p>
-									<p className="text-2xl font-bold text-blue-600">94%</p>
+									<p className="text-sm text-[#dce1fb]">Accuracy</p>
+									<p className="text-2xl font-bold text-[#7bd0ff]">94%</p>
 								</div>
 								<div className="flex-1">
-									<p className="text-sm text-gray-600">Response Time</p>
-									<p className="text-2xl font-bold text-blue-600">&lt; 5s</p>
+									<p className="text-sm text-[#dce1fb]">Response Time</p>
+									<p className="text-2xl font-bold text-[#7bd0ff]">&lt; 5s</p>
 								</div>
 								<div className="flex-1">
-									<p className="text-sm text-gray-600">Sensitivity</p>
-									<p className="text-2xl font-bold text-blue-600">90%+</p>
+									<p className="text-sm text-[#dce1fb]">Sensitivity</p>
+									<p className="text-2xl font-bold text-[#7bd0ff]">90%+</p>
 								</div>
 							</div>
 						</div>
