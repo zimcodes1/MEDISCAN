@@ -7,6 +7,7 @@ import OrgOnboardingPage from './pages/OrgOnboardingPage';
 import StaffInviteAcceptancePage from './pages/StaffInviteAcceptancePage';
 import DashboardPage from './pages/DashboardPage';
 import CaseUploadPage from './pages/CaseUploadPage';
+import NeuralAnalysisPage from './pages/NeuralAnalysisPage';
 
 function App() {
   return (
@@ -20,6 +21,8 @@ function App() {
         <Route path="/staff/accept-invite" element={<StaffInviteAcceptancePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/case-upload" element={<CaseUploadPage />} />
+        <Route path="/neural-analysis" element={<NeuralAnalysisPage />} />
+
       </Routes>
     </Router>
   );
