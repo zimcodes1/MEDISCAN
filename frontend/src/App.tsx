@@ -8,6 +8,8 @@ import StaffInviteAcceptancePage from './pages/StaffInviteAcceptancePage';
 import DashboardPage from './pages/DashboardPage';
 import CaseUploadPage from './pages/CaseUploadPage';
 import NeuralAnalysisPage from './pages/NeuralAnalysisPage';
+import PatientReportPage from './pages/PatientReportPage';
+import PatientReportViewPage from './pages/PatientReportViewPage';
 
 function App() {
   return (
@@ -22,7 +24,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/case-upload" element={<CaseUploadPage />} />
         <Route path="/neural-analysis" element={<NeuralAnalysisPage />} />
-
+        <Route path="/patient-reports" element={<PatientReportPage />} />
+        <Route path="/patient-reports/:reportId" element={<PatientReportViewPage />} />
       </Routes>
     </Router>
   );
