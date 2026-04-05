@@ -34,20 +34,20 @@ export default function NeuralAnalysisPage() {
 		<div className="flex bg-[#0c1324] min-h-screen">
 			<Sidebar />
 
-			<div className="ml-64 flex-1">
+			<div className="w-full lg:ml-[20%] flex-1">
 				<TopBar />
 
-				<main className="pt-16 p-8">
+				<main className="pt-16 p-4 sm:p-6 lg:p-8">
 					{/* Header */}
-					<div className="mb-8 mt-5">
-						<h1 className="text-2xl font-bold text-[#dce1fb] mb-2">Neural Analysis</h1>
-						<p className="text-[#dce1fb]/70">AI-assisted diagnostic output for radiologist review.</p>
+					<div className="mb-6 sm:mb-8 mt-3 sm:mt-5">
+						<h1 className="text-xl sm:text-2xl font-bold text-[#dce1fb] mb-2">Neural Analysis</h1>
+						<p className="text-sm sm:text-base text-[#dce1fb]/70">AI-assisted diagnostic output for radiologist review.</p>
 					</div>
 
 					{/* Two Column Layout */}
-					<div className="grid grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+					<div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 h-auto xl:h-[calc(100vh-12rem)]">
 						{/* Left Column - Image Viewer (2/3 width) */}
-						<div className="col-span-2">
+						<div className="xl:col-span-2 min-h-[400px] sm:min-h-[500px]">
 							<ImageViewer
 								originalImageUrl={scanData.originalImageUrl}
 								heatmapImageUrl={scanData.heatmapImageUrl}
@@ -55,7 +55,7 @@ export default function NeuralAnalysisPage() {
 						</div>
 
 						{/* Right Column - AI Output Panel (1/3 width) */}
-						<div className="overflow-y-auto hide-scrollbar p-5 bg-[#151b2d] rounded-2xl">
+						<div className="overflow-y-auto hide-scrollbar p-4 sm:p-5 bg-[#151b2d] rounded-xl sm:rounded-2xl">
 							<AIOutputPanel
 								prediction={scanData.prediction}
 								confidence={scanData.confidence}

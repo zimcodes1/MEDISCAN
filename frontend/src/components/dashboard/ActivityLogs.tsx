@@ -27,20 +27,20 @@ const ACTIVITY_LOG: ActivityLogItem[] = [
 
 export function ActivityLog() {
 	return (
-		<div className="bg-[#0f1520] rounded-xl p-5 border border-[#1e2740]">
-			<div className="flex items-center justify-between mb-4">
+		<div className="bg-[#0f1520] rounded-lg sm:rounded-xl p-4 sm:p-5 border border-[#1e2740]">
+			<div className="flex items-center justify-between mb-3 sm:mb-4">
 				<h3 className="text-[#dce1fb] text-sm font-semibold">Activity Log</h3>
 				<Clock size={14} className="text-[#dce1fb]/30" />
 			</div>
-			<div className="space-y-3">
+			<div className="space-y-2.5 sm:space-y-3">
 				{ACTIVITY_LOG.map((item, i) => {
 					const cfg = ACTIVITY_ICON[item.type];
 					return (
-						<div key={i} className="flex items-start gap-3">
+						<div key={i} className="flex items-start gap-2 sm:gap-3">
 							<div className={`mt-0.5 flex-shrink-0 ${cfg.color}`}>{cfg.icon}</div>
 							<div className="flex-1 min-w-0">
-								<p className="text-[#dce1fb]/70 text-xs leading-snug">{item.message}</p>
-								<p className="text-[#dce1fb]/25 text-[10px] mt-0.5">{item.time}</p>
+								<p className="text-[#dce1fb]/70 text-[11px] sm:text-xs leading-snug">{item.message}</p>
+								<p className="text-[#dce1fb]/25 text-[9px] sm:text-[10px] mt-0.5">{item.time}</p>
 							</div>
 						</div>
 					);

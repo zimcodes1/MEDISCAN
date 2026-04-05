@@ -93,7 +93,7 @@ export default function SettingsPage() {
 			<div className="flex-1">
 				<TopBar />
 
-				<main className="w-8/10 ml-[20%] pt-16 p-8 mt-5">
+				<main className="lg:w-4/5 lg:ml-[20%] pt-16 p-4 lg:p-8 mt-5">
 					<div className="flex gap-6">
 						{/* Content Area */}
 						<div className="flex-1">

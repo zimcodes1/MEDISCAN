@@ -60,14 +60,14 @@ export default function PatientReportPage() {
 		<div className="flex bg-[#0c1324] min-h-screen">
 			<Sidebar />
 
-			<div className="ml-64 flex-1">
+			<div className="w-full lg:ml-[20%] flex-1">
 				<TopBar />
 
-				<main className="pt-16 p-8">
+				<main className="pt-16 p-4 sm:p-6 lg:p-8">
 					{/* Header */}
-					<div className="mb-8 mt-5">
-						<h1 className="text-2xl font-bold text-[#dce1fb] mb-2">Radiologist Report</h1>
-						<p className="text-[#dce1fb]/70">
+					<div className="mb-6 sm:mb-8 mt-3 sm:mt-5">
+						<h1 className="text-xl sm:text-2xl font-bold text-[#dce1fb] mb-2">Radiologist Report</h1>
+						<p className="text-sm sm:text-base text-[#dce1fb]/70">
 							{isSubmitted ? "View submitted report" : "Complete structured diagnostic report"}
 						</p>
 					</div>
@@ -84,7 +84,7 @@ export default function PatientReportPage() {
 					/>
 
 					{/* Report Form */}
-					<div className="space-y-6">
+					<div className="space-y-4 sm:space-y-6">
 						<FindingsBlock
 							lungFields={lungFields}
 							affectedSide={affectedSide}
