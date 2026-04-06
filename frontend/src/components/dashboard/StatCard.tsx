@@ -35,13 +35,13 @@ const ACCENT = {
 export default function StatCard({ label, value, sub, icon, accent }: StatCardProps) {
 	const a = ACCENT[accent];
 	return (
-		<div className={`bg-[#111827] border ${a.border} rounded-xl p-5 flex items-start justify-between`}>
-			<div>
-				<p className="text-[#dce1fb]/50 text-xs uppercase tracking-widest mb-2">{label}</p>
-				<p className={`text-3xl font-bold ${a.text} leading-none mb-1`}>{value}</p>
-				{sub && <p className="text-[#dce1fb]/40 text-xs mt-1">{sub}</p>}
+		<div className={`bg-[#111827] border ${a.border} rounded-lg sm:rounded-xl p-4 sm:p-5 flex items-start justify-between`}>
+			<div className="flex-1 min-w-0">
+				<p className="text-[#dce1fb]/50 text-[10px] sm:text-xs uppercase tracking-widest mb-1.5 sm:mb-2">{label}</p>
+				<p className={`text-2xl sm:text-3xl font-bold ${a.text} leading-none mb-1`}>{value}</p>
+				{sub && <p className="text-[#dce1fb]/40 text-[10px] sm:text-xs mt-1">{sub}</p>}
 			</div>
-			<div className={`${a.iconBg} p-2.5 rounded-lg ${a.text}`}>{icon}</div>
+			<div className={`${a.iconBg} p-2 sm:p-2.5 rounded-lg ${a.text} flex-shrink-0`}>{icon}</div>
 		</div>
 	);
 }

@@ -53,14 +53,14 @@ export default function CaseUploadPage() {
 		<div className="flex bg-[#0c1324] min-h-screen">
 			<Sidebar />
 
-			<div className="ml-64 flex-1">
+			<div className="w-full lg:ml-[20%] flex-1">
 				<TopBar />
 
-				<main className="pt-16 p-8">
+				<main className="pt-16 p-4 sm:p-6 lg:p-8">
 					{/* Header */}
-					<div className="mb-8 mt-5">
-						<h1 className="text-2xl font-bold text-[#dce1fb] mb-2">New Diagnostic Case</h1>
-						<p className="text-[#dce1fb]/70">Upload and assign chest X-ray scans for AI-assisted analysis.</p>
+					<div className="mb-6 sm:mb-8 mt-3 sm:mt-5">
+						<h1 className="text-xl sm:text-2xl font-bold text-[#dce1fb] mb-2">New Diagnostic Case</h1>
+						<p className="text-sm sm:text-base text-[#dce1fb]/70">Upload and assign chest X-ray scans for AI-assisted analysis.</p>
 					</div>
 
 					{uploadSuccess ? (
@@ -69,9 +69,9 @@ export default function CaseUploadPage() {
 							onUploadAnother={handleReset}
 						/>
 					) : (
-						<div className="grid grid-cols-3 gap-6">
+						<div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
 							{/* Left Column */}
-							<div className="col-span-2 space-y-6">
+							<div className="xl:col-span-2 space-y-4 sm:space-y-6">
 								<PatientSearch
 									selectedPatient={selectedPatient}
 									onPatientSelect={setSelectedPatient}
@@ -93,7 +93,7 @@ export default function CaseUploadPage() {
 							</div>
 
 							{/* Right Column */}
-							<div className="space-y-6">
+							<div className="space-y-4 sm:space-y-6">
 								<AssignmentPriorityForm
 									uploadedBy="Dr. S. Chen"
 									assignedRadiologist={assignedRadiologist}
@@ -106,9 +106,9 @@ export default function CaseUploadPage() {
 								<button
 									onClick={handleSubmit}
 									disabled={!isFormValid}
-									className="w-full bg-[#7bd0ff] text-[#0c1324] py-4 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+									className="w-full bg-[#7bd0ff] text-[#0c1324] py-3 sm:py-4 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
 								>
-									<Upload size={20} />
+									<Upload size={18} className="sm:w-5 sm:h-5" />
 									Upload & Queue for Analysis
 								</button>
 							</div>
