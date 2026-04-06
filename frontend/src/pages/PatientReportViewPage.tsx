@@ -75,33 +75,33 @@ export default function PatientReportViewPage() {
 		<div className="flex bg-[#0c1324] min-h-screen">
 			<Sidebar />
 
-			<div className="ml-64 flex-1">
-				<TopBar />
+		<div className="w-full lg:ml-[20%] flex-1">
+			<TopBar />
 
-				<main className="pt-16 p-8">
-					{/* Page Header with Actions */}
-					<div className="flex items-center justify-between mb-8 mt-5">
-						<div>
-							<h1 className="text-4xl font-bold text-[#dce1fb] mb-2">Diagnostic Report</h1>
-							<p className="text-[#dce1fb]/70">Read-only view · Signed and submitted</p>
-						</div>
-						<div className="flex gap-3">
-							<button
-								onClick={handlePrint}
-								className="flex items-center gap-2 bg-[#2e3447] text-[#7bd0ff] px-6 py-3 rounded-lg font-semibold hover:bg-[#191f31] transition-colors"
-							>
-								<Printer size={18} />
-								Print
-							</button>
-							<button
-								onClick={handleExportPDF}
-								className="flex items-center gap-2 bg-[#7bd0ff] text-[#0c1324] px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-							>
-								<Download size={18} />
-								Export PDF
-							</button>
-						</div>
+			<main className="pt-20 p-4 sm:p-6 lg:p-8">
+				{/* Page Header with Actions */}
+				<div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-8 mt-5">
+					<div>
+						<h1 className="text-4xl font-bold text-[#dce1fb] mb-2">Diagnostic Report</h1>
+						<p className="text-[#dce1fb]/70">Read-only view · Signed and submitted</p>
 					</div>
+					<div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+						<button
+							onClick={handlePrint}
+							className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#2e3447] text-[#7bd0ff] px-6 py-3 rounded-lg font-semibold hover:bg-[#191f31] transition-colors"
+						>
+							<Printer size={18} />
+							Print
+						</button>
+						<button
+							onClick={handleExportPDF}
+							className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#7bd0ff] text-[#0c1324] px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+						>
+							<Download size={18} />
+							Export PDF
+						</button>
+					</div>
+				</div>
 
 					{/* Report Content */}
 					<div className="max-w-5xl">
@@ -115,7 +115,7 @@ export default function PatientReportViewPage() {
 
 						{/* Patient Information */}
 						<ReportSection title="Patient Information">
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<ReportField label="Full Name" value={reportData.patientName} />
 								<ReportField label="Patient ID" value={reportData.patientId} />
 								<ReportField label="Date of Birth" value={reportData.dateOfBirth} />
@@ -126,7 +126,7 @@ export default function PatientReportViewPage() {
 
 						{/* Scan Information */}
 						<ReportSection title="Scan Information">
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<ReportField label="Scan Date" value={reportData.scanDate} />
 								<ReportField label="Scan Type" value={reportData.scanType} />
 								<ReportField label="Projection" value={reportData.projection} />
@@ -190,12 +190,12 @@ export default function PatientReportViewPage() {
 						{/* Impression */}
 						<ReportSection title="Impression">
 							<div className="space-y-4">
-								<div className="grid grid-cols-2 gap-4">
-									<ReportField label="Primary Impression" value={reportData.primaryImpression} />
-									<ReportField label="Secondary Findings" value={reportData.secondaryFindings} />
-								</div>
-								<ReportField
-									label="Clinical Impression"
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<ReportField label="Primary Impression" value={reportData.primaryImpression} />
+								<ReportField label="Secondary Findings" value={reportData.secondaryFindings} />
+							</div>
+							<ReportField
+								label="Clinical Impression"
 									value={
 										<p className="text-[#dce1fb] leading-relaxed mt-2">
 											{reportData.impressionNarrative}
@@ -209,7 +209,7 @@ export default function PatientReportViewPage() {
 						{/* Recommendation */}
 						<ReportSection title="Recommendation">
 							<div className="space-y-4">
-								<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 									<ReportField label="Recommended Action" value={reportData.recommendedAction} />
 									<ReportField label="Follow-up Timeframe" value={reportData.followUpTimeframe} />
 								</div>

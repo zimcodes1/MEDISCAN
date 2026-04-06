@@ -24,12 +24,12 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 	return (
 		<div className="bg-[#151b2d] rounded-xl p-4 sm:p-6 h-full flex flex-col">
 			{/* Controls Header */}
-			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
+			<div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-0 mb-4">
 				{/* View Mode Toggle */}
-				<div className="flex gap-2 w-full sm:w-auto overflow-x-auto">
+				<div className="flex w-full gap-2 overflow-hidden">
 					<button
 						onClick={() => setViewMode("original")}
-						className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors whitespace-nowrap ${
+						className={`flex-1 text-center px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors whitespace-nowrap ${
 							viewMode === "original"
 								? "bg-[#7bd0ff] text-[#0c1324]"
 								: "bg-[#191f31] text-[#dce1fb] hover:bg-[#2e3447]"
@@ -39,7 +39,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 					</button>
 					<button
 						onClick={() => setViewMode("heatmap")}
-						className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors whitespace-nowrap ${
+						className={`flex-1 text-center px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors whitespace-nowrap ${
 							viewMode === "heatmap"
 								? "bg-[#7bd0ff] text-[#0c1324]"
 								: "bg-[#191f31] text-[#dce1fb] hover:bg-[#2e3447]"
@@ -49,7 +49,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 					</button>
 					<button
 						onClick={() => setViewMode("sidebyside")}
-						className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors whitespace-nowrap ${
+						className={`flex-1 text-center px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors whitespace-nowrap ${
 							viewMode === "sidebyside"
 								? "bg-[#7bd0ff] text-[#0c1324]"
 								: "bg-[#191f31] text-[#dce1fb] hover:bg-[#2e3447]"
@@ -60,7 +60,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 				</div>
 
 				{/* Zoom & Download Controls */}
-				<div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+				<div className="w-full flex items-center justify-between px-4">
 					<button
 						onClick={handleZoomOut}
 						disabled={zoom <= 50}
@@ -92,7 +92,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 			</div>
 
 			{/* Image Display Area */}
-			<div className="flex-1 bg-[#0c1324] rounded-lg overflow-hidden flex items-center justify-center p-2 sm:p-4">
+			<div className="w-full flex-1 bg-[#0c1324] rounded-lg overflow-hidden flex items-center justify-center p-2 sm:p-4">
 				{viewMode === "original" && (
 					<img
 						src={originalImageUrl}
@@ -127,7 +127,6 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 								className="max-w-full max-h-full object-contain transition-transform"
 							/>
 						</div>
-						<div className="w-full sm:w-px h-px sm:h-3/4 bg-[#2e3447]" />
 						<div className="flex-1 flex items-center justify-center w-full h-1/2 sm:h-full">
 							<img
 								src={heatmapImageUrl}
