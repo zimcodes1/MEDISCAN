@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Zap } from "lucide-react";
+import { ArrowRight, Zap, X } from "lucide-react";
 
 export default function HeroSection() {
 	const navigate = useNavigate();
@@ -11,18 +11,18 @@ export default function HeroSection() {
 					{/* Left Content */}
 					<div className="space-y-8">
 						<div className="space-y-4">
-						<div className="inline-flex items-center gap-2 bg-[#191f31] border border-[#7bd1ff61] px-4 py-2 rounded-full">
-							<i className="text-xl text-[#7bd0ff] animate-pulse">•</i>
-							<Zap className="text-[#7bd0ff] animate-pulse" size={18} />
-							<span className="text-[#7bd0ff] font-medium text-sm">
+							<div className="inline-flex items-center gap-2 bg-[#191f31] border border-[#7bd1ff61] px-4 py-2 rounded-full">
+								<i className="text-xl text-[#7bd0ff] animate-pulse">•</i>
+								<Zap className="text-[#7bd0ff] animate-pulse" size={18} />
+								<span className="text-[#7bd0ff] font-medium text-sm">
 									AI-Powered Medical Scan Analysis
 								</span>
 							</div>
-						<h1 className="roboto text-5xl md:text-6xl font-bold text-[#dce1fb] leading-tight">
-							Faster Diagnosis,
-							<span className="text-[#7bd0ff]"> Better Care</span>
+							<h1 className="font-[Satoshi] text-5xl md:text-6xl font-bold text-[#dce1fb] leading-tight">
+								Faster Diagnosis,
+								<span className="text-[#7bd0ff]"> Better Care</span>
 							</h1>
-						<p className="text-lg text-[#dce1fb] leading-relaxed">
+							<p className="text-lg text-[#dce1fb] leading-relaxed">
 								Mediscan is an AI-powered decision-support tool that helps
 								clinicians analyze chest X-rays faster. Get preliminary findings
 								in seconds, with visual explanations to guide your clinical
@@ -55,12 +55,12 @@ export default function HeroSection() {
 						</div>
 
 						{/* Trust Badge */}
-					<div className="pt-4 text-sm text-[#dce1fb]">
-						<p>
-							<i className="text-[#7bd0ff] text-lg px-1">•</i> HIPAA-compliant{" "}
-							<i className="text-[#7bd0ff] text-lg px-1">•</i> Built for
-							African healthcare{" "}
-							<i className="text-[#7bd0ff] text-lg px-1">•</i>{" "}
+						<div className="pt-4 text-sm text-[#dce1fb]">
+							<p>
+								<i className="text-[#7bd0ff] text-lg px-1">•</i> HIPAA-compliant{" "}
+								<i className="text-[#7bd0ff] text-lg px-1">•</i> Built for
+								African healthcare{" "}
+								<i className="text-[#7bd0ff] text-lg px-1">•</i>{" "}
 								Clinician-reviewed
 							</p>
 						</div>
@@ -77,7 +77,7 @@ export default function HeroSection() {
 							/>
 						</span>
 						{/* Badge */}
-						<div className="absolute animate-bounce bottom-6 left-6 bg-[#191f31] border border-[#7bd1ff69] rounded-lg shadow-lg px-4 py-3">
+						<div className="absolute text-center animate-bounce bottom-6 left-6 bg-[#191f31] border border-[#7bd1ff69] rounded-lg shadow-lg px-4 py-3">
 							<p className="text-sm font-semibold text-[#dce1fb]">AI Analysis</p>
 							<p className="text-xs text-[#7bd0ff]">Ready in &lt; 5 seconds</p>
 						</div>

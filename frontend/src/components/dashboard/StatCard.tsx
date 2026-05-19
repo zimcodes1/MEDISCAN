@@ -35,7 +35,7 @@ const ACCENT = {
 export default function StatCard({ label, value, sub, icon, accent }: StatCardProps) {
 	const a = ACCENT[accent];
 	return (
-		<div className={`bg-[#111827] border ${a.border} rounded-xl p-5 flex items-start justify-between`}>
+		<div className={`bg-[#151b2d] border border-blue-300/40 rounded-xl p-5 flex items-start justify-between`}>
 			<div>
 				<p className="text-[#dce1fb]/50 text-xs uppercase tracking-widest mb-2">{label}</p>
 				<p className={`text-3xl font-bold ${a.text} leading-none mb-1`}>{value}</p>

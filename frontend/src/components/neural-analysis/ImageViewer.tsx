@@ -22,7 +22,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 	};
 
 	return (
-		<div className="bg-[#151b2d] rounded-xl p-6 h-full flex flex-col">
+		<div className="bg-[#151b2d] rounded-xl p-6 h-120 flex flex-col">
 			{/* Controls Header */}
 			<div className="flex items-center justify-between mb-4">
 				{/* View Mode Toggle */}

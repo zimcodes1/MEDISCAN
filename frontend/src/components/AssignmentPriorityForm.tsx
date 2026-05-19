@@ -2,28 +2,18 @@ import { Clock, AlertTriangle } from "lucide-react";
 
 interface AssignmentPriorityFormProps {
 	uploadedBy: string;
-	assignedRadiologist: string;
 	priority: "routine" | "urgent";
-	onAssignedRadiologistChange: (value: string) => void;
 	onPriorityChange: (value: "routine" | "urgent") => void;
 }
 
 export default function AssignmentPriorityForm({
 	uploadedBy,
-	assignedRadiologist,
 	priority,
-	onAssignedRadiologistChange,
 	onPriorityChange,
 }: AssignmentPriorityFormProps) {
-	const radiologists = [
-		{ id: "1", name: "Dr. S. Chen" },
-		{ id: "2", name: "Dr. A. Patel" },
-		{ id: "3", name: "Dr. M. Johnson" },
-	];
-
 	return (
 		<div className="bg-[#151b2d] rounded-xl p-6 space-y-6">
-			<h2 className="text-lg font-bold text-[#dce1fb]">Assignment & Priority</h2>
+			<h2 className="text-lg font-bold text-[#dce1fb]">Priority</h2>
 
 			{/* Uploaded By */}
 			<div>
@@ -33,25 +23,6 @@ export default function AssignmentPriorityForm({
 				<div className="bg-[#191f31] text-[#dce1fb]/70 px-4 py-3 rounded-lg">
 					{uploadedBy}
 				</div>
-			</div>
-
-			{/* Assign to Radiologist */}
-			<div>
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
-					Assign to Radiologist
-				</label>
-				<select
-					value={assignedRadiologist}
-					onChange={(e) => onAssignedRadiologistChange(e.target.value)}
-					className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
-				>
-					<option value="">Select radiologist...</option>
-					{radiologists.map((rad) => (
-						<option key={rad.id} value={rad.id}>
-							{rad.name}
-						</option>
-					))}
-				</select>
 			</div>
 
 			{/* Priority */}

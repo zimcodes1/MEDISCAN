@@ -1,8 +1,8 @@
 import { FileCheck, Save } from "lucide-react";
 
 interface SubmissionFooterProps {
-	radiologistName: string;
-	radiologistCredentials: string;
+	clinicianName: string;
+	clinicianCredentials: string;
 	confirmationChecked: boolean;
 	onConfirmationChange: (checked: boolean) => void;
 	onSaveDraft: () => void;
@@ -13,8 +13,8 @@ interface SubmissionFooterProps {
 }
 
 export default function SubmissionFooter({
-	radiologistName,
-	radiologistCredentials,
+	clinicianName,
+	clinicianCredentials,
 	confirmationChecked,
 	onConfirmationChange,
 	onSaveDraft,
@@ -25,13 +25,13 @@ export default function SubmissionFooter({
 }: SubmissionFooterProps) {
 	return (
 		<div className="bg-[#151b2d] rounded-xl p-6">
-			{/* Radiologist Info */}
+			{/* Clinician Info */}
 			<div className="mb-6">
 				<div className="flex items-center justify-between mb-4">
 					<div>
-						<p className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-1">Reporting Radiologist</p>
+						<p className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-1">Reporting Clinician</p>
 						<p className="text-[#dce1fb] font-semibold text-lg">
-							{radiologistName}, {radiologistCredentials}
+							{clinicianName}, {clinicianCredentials}
 						</p>
 					</div>
 					{isSubmitted && submittedDate && (

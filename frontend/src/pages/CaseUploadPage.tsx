@@ -96,9 +96,7 @@ export default function CaseUploadPage() {
 							<div className="space-y-6">
 								<AssignmentPriorityForm
 									uploadedBy="Dr. S. Chen"
-									assignedRadiologist={assignedRadiologist}
 									priority={priority}
-									onAssignedRadiologistChange={setAssignedRadiologist}
 									onPriorityChange={setPriority}
 								/>
 

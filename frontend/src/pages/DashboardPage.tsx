@@ -4,6 +4,7 @@ import {
 	CheckCircle2,
 	ChevronRight,
 	ImageIcon,
+	Info,
 } from "lucide-react";
 import { ActivityLog } from "../components/dashboard/ActivityLogs";
 import SystemStats from "../components/dashboard/SystemStats";
@@ -169,7 +170,7 @@ export default function DashboardPage() {
 						<div className="grid grid-cols-3 gap-6">
 							{/* Scan Queue — 2 cols */}
 							<div className="col-span-2 bg-[#0f1520] rounded-xl border border-[#1e2740] overflow-hidden">
-								<div className="flex items-center justify-between px-6 py-4 border-b border-[#1e2740]">
+								<div className="overflow-scroll hide-scrollbar flex items-center justify-between px-6 py-4 border-b border-[#1e2740]">
 									<div>
 										<h2 className="text-[#dce1fb] text-sm font-semibold">
 											Scan Queue
@@ -177,6 +178,7 @@ export default function DashboardPage() {
 										<p className="text-[#dce1fb]/35 text-xs mt-0.5">
 											{pending.length} pending · {urgent.length} urgent
 										</p>
+										<span className="text-sm text-gray-300 flex items-center"><Info className="px-1"></Info><p>Click on a scan to view details</p></span>
 									</div>
 									<div className="flex items-center gap-3">
 										<button className="text-[#dce1fb]/40 text-xs hover:text-[#dce1fb] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#1e2740]">
@@ -194,8 +196,7 @@ export default function DashboardPage() {
 									<div className="col-span-2">Projection</div>
 									<div className="col-span-2">Uploaded by</div>
 									<div className="col-span-2">Status</div>
-									<div className="col-span-2">AI Finding</div>
-									<div className="col-span-1" />
+									<div className="col-span-3 text-center">AI Finding</div>
 								</div>
 
 								{/* Rows */}

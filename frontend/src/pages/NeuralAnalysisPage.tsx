@@ -6,8 +6,8 @@ import AIOutputPanel from "../components/neural-analysis/AIOutputPanel";
 export default function NeuralAnalysisPage() {
 	// Mock data - would come from API/route params
 	const scanData = {
-		originalImageUrl: "/images/chest-xray-sample.jpg",
-		heatmapImageUrl: "/images/chest-xray-heatmap.jpg",
+		originalImageUrl: "/images/chest-scan.jpeg",
+		heatmapImageUrl: "/images/chest-scan-heatmap.jpg",
 		prediction: "pneumonia" as const,
 		confidence: 94,
 		gradCamSummary: "Model attention concentrated in right lower lobe, consistent with consolidation pattern. Secondary focus detected in left mid-zone.",
@@ -45,7 +45,7 @@ export default function NeuralAnalysisPage() {
 					</div>
 
 					{/* Two Column Layout */}
-					<div className="grid grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+					<div className="grid grid-cols-3 gap-6 h-screen">
 						{/* Left Column - Image Viewer (2/3 width) */}
 						<div className="col-span-2">
 							<ImageViewer

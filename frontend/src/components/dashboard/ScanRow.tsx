@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, ChevronRight, Hourglass, RefreshCw, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Hourglass, RefreshCw, ShieldCheck } from "lucide-react";
 
 type ScanStatus = "flagged" | "processing" | "ready" | "reviewed";
 type Priority = "urgent" | "routine";
@@ -57,7 +57,7 @@ function ConfidencePill({ confidence, prediction }: { confidence: number; predic
     return (
         <div className="flex items-center gap-2">
             <span className="text-[#dce1fb] text-xs tabular-nums w-8">{confidence}%</span>
-            <div className="flex-1 h-1 bg-[#1e2740] rounded-full overflow-hidden min-w-[60px]">
+            <div className="flex-1 h-1 bg-[#1e2740] rounded-full overflow-hidden min-w-[40px]">
                 <div
                     className="h-full rounded-full transition-all"
                     style={{ width: `${confidence}%`, backgroundColor: color }}
@@ -119,7 +119,7 @@ export default function ScanRow({ scan }: ScanRowProps) {
             </div>
 
             {/* Confidence */}
-            <div className="col-span-2">
+            <div className="col-span-3 flex justify-center">
                 {scan.confidence !== null && scan.prediction ? (
                     <ConfidencePill confidence={scan.confidence} prediction={scan.prediction} />
                 ) : (
@@ -127,20 +127,6 @@ export default function ScanRow({ scan }: ScanRowProps) {
                         <Hourglass size={12} />
                         Pending
                     </div>
-                )}
-            </div>
-
-            {/* Action */}
-            <div className="col-span-1 flex justify-end">
-                {!isReviewed && scan.status !== "processing" ? (
-                    <button className="flex items-center gap-1 text-[#7bd0ff] text-xs hover:text-white hover:bg-[#7bd0ff]/15 px-2.5 py-1.5 rounded-lg transition-all">
-                        {scan.status === "ready" || scan.status === "flagged" ? "Review" : "View"}
-                        <ChevronRight size={12} />
-                    </button>
-                ) : (
-                    <button className="text-[#dce1fb]/20 text-xs px-2.5 py-1.5 rounded-lg cursor-default">
-                        —
-                    </button>
                 )}
             </div>
         </div>
