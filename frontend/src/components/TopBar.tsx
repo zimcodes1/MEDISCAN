@@ -28,14 +28,17 @@ export default function TopBar() {
 				{/* User Profile */}
 				<div className="flex items-center gap-3 ml-4">
 					<div className="text-right">
-						<p className="text-[#dce1fb] text-sm font-semibold">Dr. S. Chen</p>
+						<p className="text-[#dce1fb] text-sm font-semibold">Dr. Nwosu</p>
 						<p className="text-[#dce1fb]/70 text-xs">RADIOLOGY AI SPECIALIST</p>
 					</div>
-					<img
-						src="/images/doctor-avatar.jpg"
-						alt="Dr. S. Chen"
-						className="w-10 h-10 rounded-full object-cover"
-					/>
+
+					<span className="flex overflow-hidden items-start border-2 border-amber-600 w-10 h-10 rounded-full object-cover">
+						<img
+							src="/images/doctor.jpg"
+							alt="Dr. Nwosu"
+
+						/>
+					</span>
 				</div>
 			</div>
 		</header>

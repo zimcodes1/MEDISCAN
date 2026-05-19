@@ -56,7 +56,13 @@ export default function MyProfileSection({ initialData, onSave }: MyProfileSecti
 					<div className="flex items-center gap-4">
 						<div className="w-20 h-20 bg-[#191f31] rounded-full overflow-hidden flex items-center justify-center">
 							{profilePhoto ? (
-								<img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+								<span className="flex overflow-hidden items-start border-3 border-amber-600 w-full h-full rounded-full object-cover">
+									<img
+										src={profilePhoto}
+										alt="Dr. S. Chen"
+
+									/>
+								</span>
 							) : (
 								<span className="text-[#dce1fb]/50 text-2xl">
 									{fullName.charAt(0).toUpperCase()}
@@ -131,7 +137,7 @@ export default function MyProfileSection({ initialData, onSave }: MyProfileSecti
 				{/* Password Section */}
 				<div className="pt-6 border-t border-[#2e3447]">
 					<h3 className="text-[#dce1fb] font-semibold mb-4">Change Password</h3>
-					
+
 					<div className="space-y-4">
 						<div>
 							<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">

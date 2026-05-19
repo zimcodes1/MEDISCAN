@@ -15,7 +15,7 @@ export default function NeuralAnalysisPage() {
 		scanId: "RAD-9921-X",
 		dateUploaded: "2024-01-15",
 		projection: "PA (Posteroanterior)",
-		uploadedBy: "Dr. M. Johnson",
+		uploadedBy: "Dr. Nwosu",
 		assignedRadiologist: "Dr. S. Chen",
 		reportStatus: "pending" as const,
 		priority: "urgent" as const,

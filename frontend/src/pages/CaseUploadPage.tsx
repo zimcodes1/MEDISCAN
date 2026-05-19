@@ -95,7 +95,7 @@ export default function CaseUploadPage() {
 							{/* Right Column */}
 							<div className="space-y-6">
 								<AssignmentPriorityForm
-									uploadedBy="Dr. S. Chen"
+									uploadedBy="Dr. Nwosu"
 									priority={priority}
 									onPriorityChange={setPriority}
 								/>

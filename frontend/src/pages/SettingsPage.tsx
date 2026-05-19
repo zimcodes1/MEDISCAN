@@ -17,11 +17,11 @@ export default function SettingsPage() {
 
 	// Mock data
 	const profileData = {
-		fullName: "Dr. Sarah Chen",
+		fullName: "Dr. Nwosu",
 		jobTitle: "Consultant Radiologist",
 		email: "s.chen@hospital.com",
 		phoneNumber: "+234 801 234 5678",
-		profilePhoto: "/images/doctor-avatar.jpg",
+		profilePhoto: "/images/doctor.jpg",
 	};
 
 	const orgData = {
