@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Zap, X } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 
 export default function HeroSection() {
 	const navigate = useNavigate();
