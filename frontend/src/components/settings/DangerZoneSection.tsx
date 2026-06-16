@@ -28,54 +28,54 @@ export default function DangerZoneSection() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold text-[#ffb4ab] mb-2">Danger Zone</h2>
-				<p className="text-[#dce1fb]/70">Irreversible actions that affect your entire organisation</p>
+				<h2 className="text-3xl font-extrabold text-rose-500 tracking-tight font-display mb-2">Danger Zone</h2>
+				<p className="text-brand-text-muted text-sm">Irreversible actions that affect your entire organisation</p>
 			</div>
 
-			<div className="bg-[#151b2d] border-2 border-[#ffb4ab]/30 rounded-xl p-6 space-y-6">
+			<div className="glass-panel border-rose-500/25 bg-rose-500/[0.01] rounded-2xl p-6 space-y-6 relative overflow-hidden group">
 				{/* Export All Data */}
-				<div className="flex items-start justify-between p-4 bg-[#191f31] rounded-lg">
+				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-brand-card/25 border border-brand-border/40 rounded-xl transition-all duration-300 gap-4">
 					<div className="flex-1">
 						<div className="flex items-center gap-2 mb-2">
-							<Download size={20} className="text-[#7bd0ff]" />
-							<h3 className="text-[#dce1fb] font-semibold">Export All Data</h3>
+							<Download size={20} className="text-brand-primary" />
+							<h3 className="text-brand-text font-semibold text-sm">Export All Data</h3>
 						</div>
-						<p className="text-[#dce1fb]/70 text-sm">
+						<p className="text-brand-text-muted text-xs font-medium mt-0.5">
 							Download a complete archive of all patient records, scans, and reports. This process may
 							take up to 24 hours. You'll receive a download link via email.
 						</p>
-						<p className="text-[#dce1fb]/50 text-xs mt-2">
+						<p className="text-brand-text-muted/60 text-[10px] font-semibold mt-1">
 							Required for NDPR compliance and data portability
 						</p>
 					</div>
 					<button
 						onClick={handleExportData}
 						disabled={isExporting}
-						className="ml-4 flex items-center gap-2 bg-[#2e3447] text-[#7bd0ff] px-4 py-2 rounded-lg font-semibold hover:bg-[#191f31] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+						className="sm:ml-4 flex items-center justify-center gap-2 bg-brand-card text-brand-primary border border-brand-border/60 hover:bg-brand-card/85 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer"
 					>
 						{isExporting ? "Exporting..." : "Export Data"}
 					</button>
 				</div>
 
 				{/* Deactivate Organisation */}
-				<div className="flex items-start justify-between p-4 bg-[#ffb4ab]/5 border border-[#ffb4ab]/30 rounded-lg">
+				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-rose-500/[0.03] border border-rose-500/20 rounded-xl transition-all duration-300 gap-4">
 					<div className="flex-1">
 						<div className="flex items-center gap-2 mb-2">
-							<XCircle size={20} className="text-[#ffb4ab]" />
-							<h3 className="text-[#ffb4ab] font-semibold">Deactivate Organisation Account</h3>
+							<XCircle size={20} className="text-rose-500" />
+							<h3 className="text-rose-500 font-semibold text-sm">Deactivate Organisation Account</h3>
 						</div>
-						<p className="text-[#dce1fb]/70 text-sm">
+						<p className="text-brand-text-muted text-xs font-medium mt-0.5">
 							Permanently suspend all staff access and stop all billing. This action can be reversed by
 							contacting support within 30 days. After 30 days, all data will be permanently deleted.
 						</p>
-						<div className="flex items-center gap-2 mt-3 text-[#ffb4ab] text-xs">
-							<AlertTriangle size={14} />
-							<span className="font-semibold">This action requires confirmation</span>
+						<div className="flex items-center gap-2 mt-2 text-rose-500/80 text-[10px] font-semibold">
+							<AlertTriangle size={12} />
+							<span>This action requires confirmation</span>
 						</div>
 					</div>
 					<button
 						onClick={() => setShowDeactivateModal(true)}
-						className="ml-4 flex items-center gap-2 bg-[#ffb4ab]/10 text-[#ffb4ab] px-4 py-2 rounded-lg font-semibold hover:bg-[#ffb4ab]/20 transition-colors border border-[#ffb4ab]/30 whitespace-nowrap"
+						className="sm:ml-4 flex items-center justify-center gap-2 bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 whitespace-nowrap cursor-pointer"
 					>
 						Deactivate Account
 					</button>
@@ -84,20 +84,20 @@ export default function DangerZoneSection() {
 
 			{/* Deactivation Confirmation Modal */}
 			{showDeactivateModal && (
-				<div className="fixed inset-0 bg-[#0c1324]/90 z-50 flex items-center justify-center p-4">
-					<div className="bg-[#151b2d] rounded-xl p-6 max-w-md w-full border-2 border-[#ffb4ab]/30">
+				<div className="fixed inset-0 bg-brand-bg/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+					<div className="glass-panel border-rose-500/30 bg-brand-card rounded-2xl p-6 max-w-md w-full relative overflow-hidden shadow-2xl">
 						<div className="flex items-center gap-3 mb-4">
-							<AlertTriangle size={32} className="text-[#ffb4ab]" />
-							<h3 className="text-xl font-bold text-[#ffb4ab]">Confirm Deactivation</h3>
+							<AlertTriangle size={32} className="text-rose-500" />
+							<h3 className="text-xl font-extrabold text-rose-500 tracking-tight font-display">Confirm Deactivation</h3>
 						</div>
 
-						<p className="text-[#dce1fb] mb-4">
+						<p className="text-brand-text text-sm mb-4 leading-relaxed font-medium">
 							This will immediately suspend access for all staff members and stop billing. Your data will
 							be retained for 30 days in case you change your mind.
 						</p>
 
-						<p className="text-[#dce1fb]/70 text-sm mb-4">
-							Type <span className="font-mono font-semibold text-[#dce1fb]">{orgName}</span> to confirm:
+						<p className="text-brand-text-muted text-xs font-medium mb-4">
+							Type <span className="font-mono font-bold text-brand-text bg-brand-bg/80 px-2 py-0.5 rounded border border-brand-border/40">{orgName}</span> to confirm:
 						</p>
 
 						<input
@@ -105,7 +105,7 @@ export default function DangerZoneSection() {
 							value={confirmationText}
 							onChange={(e) => setConfirmationText(e.target.value)}
 							placeholder="Type organisation name"
-							className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#ffb4ab]/50 transition-all mb-6"
+							className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-rose-500/50 focus:bg-brand-card transition-all duration-300 placeholder-brand-text-muted/40 mb-6"
 						/>
 
 						<div className="flex gap-3">
@@ -114,16 +114,16 @@ export default function DangerZoneSection() {
 									setShowDeactivateModal(false);
 									setConfirmationText("");
 								}}
-								className="flex-1 bg-[#2e3447] text-[#dce1fb] py-3 rounded-lg font-semibold hover:bg-[#191f31] transition-colors"
+								className="flex-1 bg-brand-card text-brand-text-muted border border-brand-border/60 hover:text-brand-text hover:bg-brand-card-hover py-3 rounded-xl font-bold text-sm transition-all duration-300 cursor-pointer"
 							>
 								Cancel
 							</button>
 							<button
 								onClick={handleDeactivate}
 								disabled={confirmationText !== orgName}
-								className="flex-1 bg-[#ffb4ab] text-[#0c1324] py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+								className="flex-1 bg-rose-600 text-brand-text py-3 rounded-xl font-bold text-sm hover:bg-rose-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] active:scale-95 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
 							>
-								Deactivate Account
+								Deactivate
 							</button>
 						</div>
 					</div>

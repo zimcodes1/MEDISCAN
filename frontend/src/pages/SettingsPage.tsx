@@ -83,7 +83,7 @@ export default function SettingsPage() {
 	};
 
 	return (
-		<div className="flex bg-[#0c1324] min-h-screen">
+		<div className="flex bg-brand-bg min-h-screen">
 			{/* Settings Sidebar */}
 			<SettingsSidebar
 				activeSection={activeSection}

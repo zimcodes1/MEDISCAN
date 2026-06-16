@@ -95,10 +95,10 @@ export default function SettingsSidebar({
 							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border-l-2 ${
 								isActive
 									? isDanger
-										? "bg-[#ffb4ab]/10 text-[#ffb4ab] border-[#ffb4ab]"
+										? "bg-rose-500/10 text-rose-500 border-rose-500"
 										: "bg-brand-primary/10 text-brand-primary border-brand-primary font-semibold"
 									: isDanger
-										? "text-[#ffb4ab]/70 hover:bg-[#ffb4ab]/5 border-transparent"
+										? "text-rose-400/70 hover:bg-rose-500/5 border-transparent"
 										: "text-brand-text-muted hover:text-brand-text hover:bg-brand-card/45 border-transparent"
 							}`}
 						>

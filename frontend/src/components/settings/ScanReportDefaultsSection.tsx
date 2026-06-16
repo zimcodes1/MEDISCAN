@@ -27,68 +27,70 @@ export default function ScanReportDefaultsSection({
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold text-[#dce1fb] mb-2">Scan & Report Defaults</h2>
-				<p className="text-[#dce1fb]/70">Set organisation-wide defaults for scans and reports</p>
+				<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Scan & Report Defaults</h2>
+				<p className="text-brand-text-muted text-sm">Set organisation-wide defaults for scans and reports</p>
 			</div>
 
-			<div className="bg-[#151b2d] rounded-xl p-6 space-y-6">
+			<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
 				{/* Default Scan Priority */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-3">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3 font-display">
 						Default Scan Priority
 					</label>
 					<div className="grid grid-cols-2 gap-3">
 						<button
+							type="button"
 							onClick={() => setDefaultPriority("routine")}
-							className={`p-4 rounded-lg border-2 transition-all ${
+							className={`p-4 rounded-xl border text-xs font-bold transition-all duration-300 cursor-pointer ${
 								defaultPriority === "routine"
-									? "border-[#7bd0ff] bg-[#191f31] text-[#7bd0ff]"
-									: "border-[#2e3447] bg-transparent text-[#dce1fb] hover:border-[#7bd0ff]/50"
+									? "border-brand-primary bg-brand-primary/10 text-brand-primary font-extrabold shadow-[0_0_15px_rgba(0,210,255,0.08)]"
+									: "border-brand-border/60 bg-brand-card/30 text-brand-text hover:border-brand-primary/45"
 							}`}
 						>
 							Routine
 						</button>
 						<button
+							type="button"
 							onClick={() => setDefaultPriority("urgent")}
-							className={`p-4 rounded-lg border-2 transition-all ${
+							className={`p-4 rounded-xl border text-xs font-bold transition-all duration-300 cursor-pointer ${
 								defaultPriority === "urgent"
-									? "border-[#ffb95f] bg-[#191f31] text-[#ffb95f]"
-									: "border-[#2e3447] bg-transparent text-[#dce1fb] hover:border-[#ffb95f]/50"
+									? "border-amber-500 bg-amber-500/10 text-amber-500 font-extrabold shadow-[0_0_15px_rgba(245,158,11,0.08)]"
+									: "border-brand-border/60 bg-brand-card/30 text-brand-text hover:border-amber-500/45"
 							}`}
 						>
 							Urgent
 						</button>
 					</div>
-					<p className="text-[#dce1fb]/50 text-xs mt-2">
+					<p className="text-brand-text-muted/65 text-[10px] font-semibold mt-2">
 						Staff can override this when uploading individual scans
 					</p>
 				</div>
 
 				{/* Default Report Disclaimer */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Default Report Disclaimer Text
 					</label>
 					<textarea
 						value={disclaimerText}
 						onChange={(e) => setDisclaimerText(e.target.value)}
 						rows={6}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all resize-none"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 resize-none"
 					/>
-					<p className="text-[#dce1fb]/50 text-xs mt-2">
+					<p className="text-brand-text-muted/65 text-[10px] font-semibold mt-2">
 						This text appears on all PDF reports. Customize to match your organisation's requirements.
 					</p>
 				</div>
 
 				{/* Auto-assign Scans */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Auto-assign Scans To
 					</label>
 					<select
 						value={autoAssignTo}
 						onChange={(e) => setAutoAssignTo(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					>
 						<option value="manual">Manual Assignment</option>
 						{radiologists.map((rad) => (
@@ -97,7 +99,7 @@ export default function ScanReportDefaultsSection({
 							</option>
 						))}
 					</select>
-					<p className="text-[#dce1fb]/50 text-xs mt-2">
+					<p className="text-brand-text-muted/65 text-[10px] font-semibold mt-2">
 						Automatically assign all new scans to a specific radiologist, or require manual assignment
 					</p>
 				</div>
@@ -105,9 +107,9 @@ export default function ScanReportDefaultsSection({
 				{/* Save Button */}
 				<button
 					onClick={handleSave}
-					className="w-full flex items-center justify-center gap-2 bg-[#7bd0ff] text-[#0c1324] py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+					className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3.5 rounded-xl font-extrabold text-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer"
 				>
-					<Save size={18} />
+					<Save size={16} />
 					Save Defaults
 				</button>
 			</div>

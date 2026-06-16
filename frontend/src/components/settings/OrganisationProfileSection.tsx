@@ -44,59 +44,59 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold text-[#dce1fb] mb-2">Organisation Profile</h2>
-				<p className="text-[#dce1fb]/70">Manage your organisation's information and branding</p>
+				<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Organisation Profile</h2>
+				<p className="text-brand-text-muted text-sm">Manage your organisation's information and branding</p>
 			</div>
 
-			<div className="bg-[#151b2d] rounded-xl p-6 space-y-6">
+			<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
 				{/* Organisation Logo */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-3">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3 font-display">
 						Organisation Logo
 					</label>
 					<div className="flex items-center gap-4">
-						<div className="w-20 h-20 bg-[#191f31] rounded-lg overflow-hidden flex items-center justify-center">
+						<div className="w-20 h-20 bg-brand-card border border-brand-border/40 rounded-xl overflow-hidden flex items-center justify-center shadow-inner">
 							{logo ? (
 								<img src={logo} alt="Organisation logo" className="w-full h-full object-contain" />
 							) : (
-								<span className="text-[#dce1fb]/50 text-xs text-center px-2">No logo</span>
+								<span className="text-brand-text-muted text-xs text-center px-2">No logo</span>
 							)}
 						</div>
 						<label className="cursor-pointer">
 							<input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-							<span className="flex items-center gap-2 bg-[#2e3447] text-[#7bd0ff] px-4 py-2 rounded-lg hover:bg-[#191f31] transition-colors">
-								<Upload size={16} />
+							<span className="flex items-center gap-2 bg-brand-card text-brand-primary border border-brand-border/60 hover:bg-brand-card/85 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300">
+								<Upload size={14} />
 								Upload Logo
 							</span>
 						</label>
 					</div>
-					<p className="text-[#dce1fb]/50 text-xs mt-2">
+					<p className="text-brand-text-muted/65 text-[10px] font-semibold mt-2">
 						Shown in report PDFs and dashboard header
 					</p>
 				</div>
 
 				{/* Organisation Name */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Organisation Name
 					</label>
 					<input
 						type="text"
 						value={orgName}
 						onChange={(e) => setOrgName(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					/>
 				</div>
 
 				{/* Organisation Type */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Organisation Type
 					</label>
 					<select
 						value={orgType}
 						onChange={(e) => setOrgType(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					>
 						<option value="hospital">Hospital</option>
 						<option value="diagnostic-centre">Diagnostic Centre</option>
@@ -107,13 +107,13 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 
 				{/* State */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						State
 					</label>
 					<select
 						value={state}
 						onChange={(e) => setState(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					>
 						<option value="">Select state...</option>
 						{nigerianStates.map((s) => (
@@ -126,29 +126,29 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 
 				{/* Phone Number */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Phone Number
 					</label>
 					<input
 						type="tel"
 						value={phoneNumber}
 						onChange={(e) => setPhoneNumber(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					/>
 				</div>
 
 				{/* Organisation ID (Read-only) */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Organisation ID
 					</label>
 					<input
 						type="text"
 						value={initialData.orgId}
 						readOnly
-						className="w-full bg-[#191f31] text-[#dce1fb]/50 px-4 py-3 rounded-lg cursor-not-allowed"
+						className="w-full bg-brand-card/30 text-brand-text-muted/65 px-4 py-3 rounded-xl border border-brand-border/40 cursor-not-allowed"
 					/>
-					<p className="text-[#dce1fb]/50 text-xs mt-1">
+					<p className="text-brand-text-muted/60 text-[10px] font-semibold mt-1">
 						System-generated ID used for support
 					</p>
 				</div>
@@ -156,9 +156,9 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 				{/* Save Button */}
 				<button
 					onClick={handleSave}
-					className="w-full flex items-center justify-center gap-2 bg-[#7bd0ff] text-[#0c1324] py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+					className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3.5 rounded-xl font-extrabold text-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer"
 				>
-					<Save size={18} />
+					<Save size={16} />
 					Save Changes
 				</button>
 			</div>

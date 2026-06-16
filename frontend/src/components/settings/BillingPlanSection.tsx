@@ -21,104 +21,106 @@ export default function BillingPlanSection({ planData, onSave }: BillingPlanSect
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold text-[#dce1fb] mb-2">Billing & Plan</h2>
-				<p className="text-[#dce1fb]/70">Manage your subscription and billing information</p>
+				<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Billing & Plan</h2>
+				<p className="text-brand-text-muted text-sm">Manage your subscription and billing information</p>
 			</div>
 
 			{/* Current Plan */}
-			<div className="bg-[#151b2d] rounded-xl p-6">
-				<div className="flex items-center justify-between mb-6">
+			<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
 					<div>
-						<p className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">Current Plan</p>
+						<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">Current Plan</p>
 						<div className="flex items-center gap-3">
-							<span className="text-2xl font-bold text-[#7bd0ff]">{planData.currentPlan}</span>
-							<span className="bg-[#7bd0ff]/10 text-[#7bd0ff] px-3 py-1 rounded-full text-sm font-semibold">
+							<span className="text-2xl font-bold text-brand-primary tracking-tight font-display">{planData.currentPlan}</span>
+							<span className="bg-brand-primary/10 border border-brand-primary/20 text-brand-primary px-3 py-1 rounded-full text-xs font-semibold">
 								Active
 							</span>
 						</div>
-						<p className="text-[#dce1fb] mt-1">{planData.planPrice}</p>
+						<p className="text-brand-text font-semibold text-sm mt-1">{planData.planPrice}</p>
 					</div>
-					<button className="flex items-center gap-2 bg-[#7bd0ff] text-[#0c1324] px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
-						<TrendingUp size={18} />
+					<button className="flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg px-5 py-2.5 rounded-xl text-xs font-extrabold hover:shadow-[0_0_20px_rgba(0,210,255,0.2)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer">
+						<TrendingUp size={14} />
 						Upgrade Plan
 					</button>
 				</div>
 
 				{/* Usage Stats */}
-				<div className="pt-6 border-t border-[#2e3447]">
-					<div className="flex items-center justify-between mb-2">
-						<p className="text-[#dce1fb]/70 text-sm">Scans Used This Month</p>
-						<p className="text-[#dce1fb] font-semibold">
+				<div className="pt-6 border-t border-brand-border/30">
+					<div className="flex items-center justify-between mb-2 text-xs font-semibold">
+						<p className="text-brand-text-muted">Scans Used This Month</p>
+						<p className="text-brand-text font-bold">
 							{planData.scansUsed} / {planData.scansLimit}
 						</p>
 					</div>
-					<div className="w-full bg-[#2e3447] h-3 rounded-full overflow-hidden">
+					<div className="w-full bg-brand-bg/80 h-3 rounded-full overflow-hidden border border-brand-border/30 p-0.5">
 						<div
-							className={`h-full transition-all ${
+							className={`h-full rounded-full transition-all duration-500 ${
 								usagePercentage >= 90
-									? "bg-[#ffb4ab]"
+									? "bg-gradient-to-r from-rose-500 to-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]"
 									: usagePercentage >= 70
-									? "bg-[#ffb95f]"
-									: "bg-[#7bd0ff]"
+									? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+									: "bg-gradient-to-r from-brand-primary to-brand-secondary shadow-[0_0_10px_rgba(0,210,255,0.4)]"
 							}`}
 							style={{ width: `${usagePercentage}%` }}
 						/>
 					</div>
 					{usagePercentage >= 90 && (
-						<p className="text-[#ffb4ab] text-xs mt-2">
+						<p className="text-rose-400 text-[10px] font-bold uppercase tracking-wider mt-2.5 animate-pulse">
 							⚠ You're approaching your monthly scan limit. Consider upgrading your plan.
 						</p>
 					)}
 				</div>
 
 				{/* Renewal Date */}
-				<div className="pt-6 border-t border-[#2e3447] mt-6">
-					<div className="flex items-center justify-between">
-						<p className="text-[#dce1fb]/70 text-sm">Next Renewal Date</p>
-						<p className="text-[#dce1fb] font-semibold">{planData.renewalDate}</p>
+				<div className="pt-6 border-t border-brand-border/30 mt-6">
+					<div className="flex items-center justify-between text-xs font-semibold">
+						<p className="text-brand-text-muted">Next Renewal Date</p>
+						<p className="text-brand-text font-bold">{planData.renewalDate}</p>
 					</div>
 				</div>
 			</div>
 
 			{/* Billing Contact */}
-			<div className="bg-[#151b2d] rounded-xl p-6">
-				<h3 className="text-[#dce1fb] font-semibold mb-4">Billing Contact</h3>
+			<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+				<h3 className="text-brand-text font-bold text-sm mb-4 font-display">Billing Contact</h3>
 				<div className="space-y-4">
 					<div>
-						<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+						<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 							Billing Email
 						</label>
 						<input
 							type="email"
 							value={billingEmail}
 							onChange={(e) => setBillingEmail(e.target.value)}
-							className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+							className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 						/>
-						<p className="text-[#dce1fb]/50 text-xs mt-1">
+						<p className="text-brand-text-muted/60 text-[10px] font-semibold mt-1">
 							Invoices and billing notifications will be sent to this email
 						</p>
 					</div>
 
 					<button
 						onClick={() => onSave(billingEmail)}
-						className="w-full flex items-center justify-center gap-2 bg-[#7bd0ff] text-[#0c1324] py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+						className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3.5 rounded-xl font-extrabold text-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer"
 					>
-						<Save size={18} />
+						<Save size={16} />
 						Update Billing Email
 					</button>
 				</div>
 			</div>
 
 			{/* Payment Method (Read-only for MVP) */}
-			<div className="bg-[#151b2d] rounded-xl p-6">
+			<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
 				<div className="flex items-center gap-3 mb-4">
-					<CreditCard size={24} className="text-[#7bd0ff]" />
+					<div className="p-2 bg-brand-primary/10 border border-brand-primary/20 text-brand-primary rounded-xl shrink-0">
+						<CreditCard size={20} />
+					</div>
 					<div>
-						<h3 className="text-[#dce1fb] font-semibold">Payment Method</h3>
-						<p className="text-[#dce1fb]/70 text-sm">Bank transfer · Contact support to update</p>
+						<h3 className="text-brand-text font-bold text-sm font-display">Payment Method</h3>
+						<p className="text-brand-text-muted text-xs font-medium mt-0.5">Bank transfer · Contact support to update</p>
 					</div>
 				</div>
-				<p className="text-[#dce1fb]/50 text-xs">
+				<p className="text-brand-text-muted/70 text-[11px] leading-relaxed font-medium pt-3 border-t border-brand-border/30">
 					For MVP, payment processing is handled manually. Contact support@mediscan.ng to update your
 					payment method or discuss custom enterprise plans.
 				</p>

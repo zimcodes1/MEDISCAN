@@ -43,36 +43,34 @@ export default function MyProfileSection({ initialData, onSave }: MyProfileSecti
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold text-[#dce1fb] mb-2">My Profile</h2>
-				<p className="text-[#dce1fb]/70">Manage your personal information and account settings</p>
+				<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">My Profile</h2>
+				<p className="text-brand-text-muted text-sm">Manage your personal information and account settings</p>
 			</div>
 
-			<div className="bg-[#151b2d] rounded-xl p-6 space-y-6">
+			<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
 				{/* Profile Photo */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-3">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3 font-display">
 						Profile Photo
 					</label>
 					<div className="flex items-center gap-4">
-						<div className="w-20 h-20 bg-[#191f31] rounded-full overflow-hidden flex items-center justify-center">
+						<div className="w-20 h-20 bg-brand-card border border-brand-border/40 rounded-full overflow-hidden flex items-center justify-center shadow-inner">
 							{profilePhoto ? (
-								<span className="flex overflow-hidden items-start border-3 border-amber-600 w-full h-full rounded-full object-cover">
-									<img
-										src={profilePhoto}
-										alt="Dr. S. Chen"
-
-									/>
-								</span>
+								<img
+									src={profilePhoto}
+									alt={fullName}
+									className="w-full h-full object-cover"
+								/>
 							) : (
-								<span className="text-[#dce1fb]/50 text-2xl">
+								<span className="text-brand-primary font-bold text-2xl font-display">
 									{fullName.charAt(0).toUpperCase()}
 								</span>
 							)}
 						</div>
 						<label className="cursor-pointer">
 							<input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-							<span className="flex items-center gap-2 bg-[#2e3447] text-[#7bd0ff] px-4 py-2 rounded-lg hover:bg-[#191f31] transition-colors">
-								<Upload size={16} />
+							<span className="flex items-center gap-2 bg-brand-card text-brand-primary border border-brand-border/60 hover:bg-brand-card/85 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300">
+								<Upload size={14} />
 								Upload Photo
 							</span>
 						</label>
@@ -81,66 +79,66 @@ export default function MyProfileSection({ initialData, onSave }: MyProfileSecti
 
 				{/* Full Name */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Full Name
 					</label>
 					<input
 						type="text"
 						value={fullName}
 						onChange={(e) => setFullName(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					/>
 				</div>
 
 				{/* Job Title */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Job Title
 					</label>
 					<input
 						type="text"
 						value={jobTitle}
 						onChange={(e) => setJobTitle(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					/>
 				</div>
 
 				{/* Email */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Email Address
 					</label>
 					<input
 						type="email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					/>
-					<p className="text-[#dce1fb]/50 text-xs mt-1">
+					<p className="text-brand-text-muted/60 text-[10px] font-semibold mt-1">
 						Changing your email will require re-verification
 					</p>
 				</div>
 
 				{/* Phone Number */}
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Phone Number
 					</label>
 					<input
 						type="tel"
 						value={phoneNumber}
 						onChange={(e) => setPhoneNumber(e.target.value)}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 					/>
 				</div>
 
 				{/* Password Section */}
-				<div className="pt-6 border-t border-[#2e3447]">
-					<h3 className="text-[#dce1fb] font-semibold mb-4">Change Password</h3>
+				<div className="pt-6 border-t border-brand-border/30">
+					<h3 className="text-brand-text font-bold text-sm mb-4 font-display">Change Password</h3>
 
 					<div className="space-y-4">
 						<div>
-							<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+							<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 								Current Password *
 							</label>
 							<input
@@ -148,12 +146,12 @@ export default function MyProfileSection({ initialData, onSave }: MyProfileSecti
 								value={currentPassword}
 								onChange={(e) => setCurrentPassword(e.target.value)}
 								placeholder="Required to save any changes"
-								className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+								className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 placeholder-brand-text-muted/40"
 							/>
 						</div>
 
 						<div>
-							<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+							<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 								New Password (Optional)
 							</label>
 							<input
@@ -161,19 +159,19 @@ export default function MyProfileSection({ initialData, onSave }: MyProfileSecti
 								value={newPassword}
 								onChange={(e) => setNewPassword(e.target.value)}
 								placeholder="Leave blank to keep current password"
-								className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+								className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 placeholder-brand-text-muted/40"
 							/>
 						</div>
 
 						<div>
-							<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+							<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 								Confirm New Password
 							</label>
 							<input
 								type="password"
 								value={confirmPassword}
 								onChange={(e) => setConfirmPassword(e.target.value)}
-								className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+								className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 							/>
 						</div>
 					</div>
@@ -182,9 +180,9 @@ export default function MyProfileSection({ initialData, onSave }: MyProfileSecti
 				{/* Save Button */}
 				<button
 					onClick={handleSave}
-					className="w-full flex items-center justify-center gap-2 bg-[#7bd0ff] text-[#0c1324] py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+					className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3.5 rounded-xl font-extrabold text-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer"
 				>
-					<Save size={18} />
+					<Save size={16} />
 					Save Changes
 				</button>
 			</div>

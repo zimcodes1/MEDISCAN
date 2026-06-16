@@ -62,93 +62,93 @@ export default function StaffManagementSection() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-2xl font-bold text-[#dce1fb] mb-2">Staff Management</h2>
-					<p className="text-[#dce1fb]/70">Manage team members and their access levels</p>
+					<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Staff Management</h2>
+					<p className="text-brand-text-muted text-sm">Manage team members and their access levels</p>
 				</div>
 				<button
 					onClick={() => setShowAddPanel(true)}
-					className="flex items-center gap-2 bg-[#7bd0ff] text-[#0c1324] px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+					className="flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg px-4 py-2.5 rounded-xl text-xs font-extrabold hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer"
 				>
-					<Plus size={18} />
+					<Plus size={15} />
 					Add Staff Member
 				</button>
 			</div>
 
 			{/* Staff Table */}
-			<div className="bg-[#151b2d] rounded-xl overflow-hidden">
+			<div className="glass-panel rounded-2xl overflow-hidden border border-brand-border/40 relative">
 				<table className="w-full">
-					<thead className="bg-[#191f31]">
+					<thead className="bg-brand-card/65 border-b border-brand-border/40">
 						<tr>
-							<th className="text-left text-[#dce1fb]/70 text-xs uppercase tracking-wide px-6 py-4">
+							<th className="text-left text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-6 py-4 font-display">
 								Name
 							</th>
-							<th className="text-left text-[#dce1fb]/70 text-xs uppercase tracking-wide px-6 py-4">
+							<th className="text-left text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-6 py-4 font-display">
 								Role
 							</th>
-							<th className="text-left text-[#dce1fb]/70 text-xs uppercase tracking-wide px-6 py-4">
+							<th className="text-left text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-6 py-4 font-display">
 								Email
 							</th>
-							<th className="text-left text-[#dce1fb]/70 text-xs uppercase tracking-wide px-6 py-4">
+							<th className="text-left text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-6 py-4 font-display">
 								Status
 							</th>
-							<th className="text-right text-[#dce1fb]/70 text-xs uppercase tracking-wide px-6 py-4">
+							<th className="text-right text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-6 py-4 font-display">
 								Actions
 							</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody className="divide-y divide-brand-border/30">
 						{staff.map((member) => (
-							<tr key={member.id} className="border-t border-[#191f31]">
-								<td className="px-6 py-4 text-[#dce1fb] font-semibold">{member.name}</td>
+							<tr key={member.id} className="hover:bg-brand-card/20 transition-all duration-200">
+								<td className="px-6 py-4 text-brand-text font-semibold text-sm">{member.name}</td>
 								<td className="px-6 py-4">
 									<select
 										value={member.role.toLowerCase()}
 										onChange={(e) => handleChangeRole(member.id, e.target.value)}
-										className="bg-[#191f31] text-[#dce1fb] px-3 py-1 rounded text-sm outline-none focus:ring-2 focus:ring-[#7bd0ff]/50"
+										className="bg-brand-card/60 text-brand-text text-xs px-3 py-1.5 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 									>
 										<option value="radiologist">Radiologist</option>
 										<option value="clinician">Clinician</option>
 										<option value="org-admin">Org Admin</option>
 									</select>
 								</td>
-								<td className="px-6 py-4 text-[#dce1fb]/70">{member.email}</td>
+								<td className="px-6 py-4 text-brand-text-muted text-xs font-medium">{member.email}</td>
 								<td className="px-6 py-4">
 									<span
-										className={`px-3 py-1 rounded-full text-xs font-semibold ${
+										className={`px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider border ${
 											member.status === "active"
-												? "bg-[#4ade80]/10 text-[#4ade80]"
+												? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
 												: member.status === "invited"
-												? "bg-[#7bd0ff]/10 text-[#7bd0ff]"
-												: "bg-[#ffb4ab]/10 text-[#ffb4ab]"
+												? "bg-brand-primary/5 border-brand-primary/20 text-brand-primary"
+												: "bg-rose-500/5 border-rose-500/20 text-rose-400"
 										}`}
 									>
-										{member.status.charAt(0).toUpperCase() + member.status.slice(1)}
+										{member.status}
 									</span>
 								</td>
 								<td className="px-6 py-4">
-									<div className="flex items-center justify-end gap-2">
+									<div className="flex items-center justify-end gap-1.5">
 										{member.status === "invited" && (
 											<button
 												onClick={() => handleResendInvite(member.id)}
-												className="p-2 text-[#7bd0ff] hover:bg-[#191f31] rounded transition-colors"
+												className="p-2 text-brand-primary hover:bg-brand-card hover:text-brand-primary rounded-lg transition-colors cursor-pointer"
 												title="Resend invite"
 											>
-												<Mail size={16} />
+												<Mail size={14} />
 											</button>
 										)}
 										<button
 											onClick={() => handleToggleSuspend(member.id)}
-											className="p-2 text-[#ffb95f] hover:bg-[#191f31] rounded transition-colors"
+											className="p-2 text-amber-500 hover:bg-brand-card hover:text-amber-500 rounded-lg transition-colors cursor-pointer"
 											title={member.status === "suspended" ? "Reactivate" : "Suspend"}
 										>
-											{member.status === "suspended" ? <CheckCircle size={16} /> : <Ban size={16} />}
+											{member.status === "suspended" ? <CheckCircle size={14} /> : <Ban size={14} />}
 										</button>
 										<button
 											onClick={() => handleRemove(member.id)}
-											className="p-2 text-[#ffb4ab] hover:bg-[#191f31] rounded transition-colors"
+											className="p-2 text-rose-400 hover:bg-brand-card hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
 											title="Remove"
 										>
-											<Trash2 size={16} />
+											<Trash2 size={14} />
 										</button>
 									</div>
 								</td>
@@ -160,51 +160,51 @@ export default function StaffManagementSection() {
 
 			{/* Add Staff Slide-over Panel */}
 			{showAddPanel && (
-				<div className="fixed inset-0 bg-[#0c1324]/80 z-50 flex items-center justify-end">
-					<div className="bg-[#151b2d] w-full max-w-md h-full p-6 overflow-y-auto">
+				<div className="fixed inset-0 bg-brand-bg/85 backdrop-blur-sm z-50 flex items-center justify-end">
+					<div className="glass-panel w-full max-w-md h-full p-6 overflow-y-auto flex flex-col border-l border-brand-border/60">
 						<div className="flex items-center justify-between mb-6">
-							<h3 className="text-xl font-bold text-[#dce1fb]">Add Staff Member</h3>
+							<h3 className="text-xl font-extrabold text-brand-text font-display tracking-tight">Add Staff Member</h3>
 							<button
 								onClick={() => setShowAddPanel(false)}
-								className="text-[#dce1fb]/70 hover:text-[#dce1fb] transition-colors"
+								className="text-brand-text-muted hover:text-brand-text hover:bg-brand-card/45 p-1.5 rounded-lg transition-colors cursor-pointer"
 							>
-								<X size={24} />
+								<X size={20} />
 							</button>
 						</div>
 
 						<div className="space-y-6">
 							<div>
-								<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+								<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 									Full Name
 								</label>
 								<input
 									type="text"
 									value={newStaffName}
 									onChange={(e) => setNewStaffName(e.target.value)}
-									className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+									className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 								/>
 							</div>
 
 							<div>
-								<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+								<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 									Work Email
 								</label>
 								<input
 									type="email"
 									value={newStaffEmail}
 									onChange={(e) => setNewStaffEmail(e.target.value)}
-									className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+									className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 								/>
 							</div>
 
 							<div>
-								<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+								<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 									Role
 								</label>
 								<select
 									value={newStaffRole}
 									onChange={(e) => setNewStaffRole(e.target.value)}
-									className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+									className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 								>
 									<option value="radiologist">Radiologist</option>
 									<option value="clinician">Clinician</option>
@@ -214,7 +214,7 @@ export default function StaffManagementSection() {
 							<button
 								onClick={handleAddStaff}
 								disabled={!newStaffName || !newStaffEmail}
-								className="w-full bg-[#7bd0ff] text-[#0c1324] py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+								className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3.5 rounded-xl font-extrabold text-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.2)] hover:opacity-95 active:scale-95 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
 							>
 								Send Invite
 							</button>
