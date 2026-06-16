@@ -35,7 +35,7 @@ export default function NeuralAnalysisPage() {
 				</div>
 
 				{/* Right Column - AI Output Panel (1/3 width) */}
-				<div className="col-span-3 xl:col-span-1 glass-panel rounded-2xl p-6 overflow-y-auto max-h-[600px] xl:max-h-[520px] hide-scrollbar">
+				<div className="col-span-3 xl:col-span-1 glass-panel rounded-2xl p-4 sm:p-6 overflow-y-auto max-h-[600px] xl:max-h-[520px] hide-scrollbar">
 					<AIOutputPanel
 						prediction={scanData.prediction}
 						confidence={scanData.confidence}

@@ -22,7 +22,7 @@ export default function ImageViewer({ originalImageUrl, heatmapImageUrl }: Image
 	};
 
 	return (
-		<div className="glass-panel rounded-2xl p-6 h-[520px] flex flex-col relative overflow-hidden group">
+		<div className="glass-panel rounded-2xl p-4 sm:p-6 h-[520px] flex flex-col relative overflow-hidden group">
 			{/* Controls Header */}
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
 				{/* View Mode Toggle */}
