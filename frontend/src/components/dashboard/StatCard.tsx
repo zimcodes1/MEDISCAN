@@ -36,7 +36,7 @@ const ACCENT = {
 export default function StatCard({ label, value, sub, icon, accent }: StatCardProps) {
 	const a = ACCENT[accent];
 	return (
-		<div className="glass-panel glass-panel-hover rounded-2xl p-6 flex items-start justify-between relative overflow-hidden group">
+		<div className="glass-panel glass-panel-hover rounded-2xl p-4 sm:p-6 flex items-start justify-between relative overflow-hidden group">
 			{/* Color-matched background glow */}
 			<div className={`absolute -bottom-8 -right-8 w-24 h-24 rounded-full blur-2xl pointer-events-none opacity-10 group-hover:opacity-20 transition-all duration-500 ${a.bg}`} />
 			
