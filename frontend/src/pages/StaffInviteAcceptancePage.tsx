@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { User, Lock, ArrowRight, Loader } from 'lucide-react';
 
 export default function StaffInviteAcceptancePage() {
+  	// Set Page Title
+	useEffect(() => {
+		document.title = "Accept Invitation - Mediscan AI";
+	}, []);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('token');

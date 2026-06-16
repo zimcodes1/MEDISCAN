@@ -25,7 +25,7 @@ export default function Sidebar() {
 					<Logo size={24}/>
 				</div>
 				<h1 className="text-brand-text text-lg font-bold tracking-tight font-display">
-					MediScan<span className="text-brand-primary font-extrabold ml-0.5">NG</span>
+					Mediscan
 				</h1>
 			</div>
 

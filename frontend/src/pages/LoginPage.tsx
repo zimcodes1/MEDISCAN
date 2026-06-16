@@ -1,10 +1,15 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, StopCircle } from 'lucide-react';
 import { login } from '../utils/auth';
 import { getApiErrorMessage } from '../utils/api';
 
 export default function LoginPage() {
+  	// Set Page Title
+	useEffect(() => {
+		document.title = "Login - Mediscan AI";
+	}, []);
+
   const navigate = useNavigate();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');

@@ -2,26 +2,14 @@ import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import ImageViewer from "../components/neural-analysis/ImageViewer";
 import AIOutputPanel from "../components/neural-analysis/AIOutputPanel";
+import { scanData } from "../utils/DummyData";
+import { useEffect } from "react";
 
 export default function NeuralAnalysisPage() {
-	// Mock data - would come from API/route params
-	const scanData = {
-		originalImageUrl: "/images/chest-scan.jpeg",
-		heatmapImageUrl: "/images/chest-scan-heatmap.jpg",
-		prediction: "pneumonia" as const,
-		confidence: 94,
-		gradCamSummary: "Model attention concentrated in right lower lobe, consistent with consolidation pattern. Secondary focus detected in left mid-zone.",
-		patientName: "Elias Vance",
-		scanId: "RAD-9921-X",
-		dateUploaded: "2024-01-15",
-		projection: "PA (Posteroanterior)",
-		uploadedBy: "Dr. Nwosu",
-		assignedRadiologist: "Dr. S. Chen",
-		reportStatus: "pending" as const,
-		priority: "urgent" as const,
-		preAnalysisNotes: "Patient presenting with persistent cough and fever for 5 days. Suspected lower respiratory tract infection.",
-	};
-
+		// Set Page Title
+		useEffect(() => {
+			document.title = "Analysis - Mediscan AI";
+		}, []);
 	const handleWriteReport = () => {
 		// Navigate to report writing page
 		window.location.href = "/patient-reports/write";

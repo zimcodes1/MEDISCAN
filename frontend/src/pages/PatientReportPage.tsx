@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import ContextBar from "../components/patient-reports/ContextBar";
@@ -7,23 +7,13 @@ import ImpressionBlock from "../components/patient-reports/ImpressionBlock";
 import RecommendationBlock from "../components/patient-reports/RecommendationBlock";
 import AIAgreementBlock from "../components/patient-reports/AIAgreementBlock";
 import SubmissionFooter from "../components/patient-reports/SubmissionFooter";
+import { contextData } from "../utils/DummyData";
 
 export default function PatientReportPage() {
-	// Context data (from scan - updated for multi-condition v2 scope)
-	const contextData = {
-		patientName: "Elias Vance",
-		age: 45,
-		sex: "Male",
-		scanDate: "2024-01-15",
-		projection: "PA",
-		aiFindings: [
-			{ condition: "Pneumonia", prediction: "detected" as const, confidence: 94, isExperimental: false },
-			{ condition: "Tuberculosis", prediction: "normal" as const, confidence: 98, isExperimental: false },
-			{ condition: "Cardiomegaly", prediction: "normal" as const, confidence: 97, isExperimental: false },
-			{ condition: "Lung Nodule/Mass", prediction: "detected" as const, confidence: 88, isExperimental: false },
-			{ condition: "Rib Fracture", prediction: "normal" as const, confidence: 95, isExperimental: true }
-		]
-	};
+		// Set Page Title
+	useEffect(() => {
+		document.title = "Report - Mediscan AI";
+	}, []);
 
 	// Form state
 	const [lungFields, setLungFields] = useState<string[]>([]);

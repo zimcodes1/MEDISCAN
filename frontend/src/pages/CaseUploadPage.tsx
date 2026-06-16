@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import PatientSearch from "../components/PatientSearch";
@@ -6,16 +6,14 @@ import ScanDetailsForm from "../components/ScanDetailsForm";
 import AssignmentPriorityForm from "../components/AssignmentPriorityForm";
 import UploadSuccessState from "../components/UploadSuccessState";
 import { Upload } from "lucide-react";
-
-interface Patient {
-	id: string;
-	name: string;
-	hospitalId: string;
-	age: number;
-	sex: string;
-}
+import type { Patient } from "../utils/types";
 
 export default function CaseUploadPage() {
+		// Set Page Title
+		useEffect(() => {
+			document.title = "New Upload - Mediscan AI";
+		}, []);
+
 	const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 	const [scanType, setScanType] = useState("chest-xray");
 	const [imageFile, setImageFile] = useState<File | null>(null);

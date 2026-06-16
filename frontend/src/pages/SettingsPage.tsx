@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TopBar from "../components/TopBar";
 import SettingsSidebar from "../components/settings/SettingsSidebar";
 import MyProfileSection from "../components/settings/MyProfileSection";
@@ -8,59 +8,23 @@ import NotificationsSection from "../components/settings/NotificationsSection";
 import ScanReportDefaultsSection from "../components/settings/ScanReportDefaultsSection";
 import BillingPlanSection from "../components/settings/BillingPlanSection";
 import DangerZoneSection from "../components/settings/DangerZoneSection";
+import {
+	billingData,
+	defaultsData,
+	notificationSettings,
+	orgData,
+	profileData,
+	radiologists,
+	userRole,
+} from "../utils/DummyData";
 
 export default function SettingsPage() {
-	// Mock user role - would come from auth context
-	const userRole: "org-admin" | "radiologist" | "clinician" = "org-admin";
+	// Set Page Title
+	useEffect(() => {
+		document.title = "Settings - Mediscan AI";
+	}, []);
 
 	const [activeSection, setActiveSection] = useState("profile");
-
-	// Mock data
-	const profileData = {
-		fullName: "Dr. Nwosu",
-		jobTitle: "Consultant Radiologist",
-		email: "s.chen@hospital.com",
-		phoneNumber: "+234 801 234 5678",
-		profilePhoto: "/images/doctor.jpg",
-	};
-
-	const orgData = {
-		orgName: "Lagos General Hospital",
-		orgType: "hospital",
-		state: "Lagos",
-		phoneNumber: "+234 800 123 4567",
-		logo: "/images/hospital-logo.png",
-		orgId: "ORG-2024-LGH-001",
-	};
-
-	const notificationSettings = {
-		scanResultReady: true,
-		scanAssigned: true,
-		reportSubmitted: true,
-		newStaffJoined: false,
-		inAppSound: true,
-	};
-
-	const defaultsData = {
-		defaultPriority: "routine" as const,
-		disclaimerText:
-			"This report is generated using AI-assisted diagnostic tools and has been reviewed and signed by a qualified radiologist. The findings and recommendations contained herein are for clinical decision support purposes only and should be interpreted in conjunction with the patient's clinical presentation and other diagnostic findings.",
-		autoAssignTo: "manual",
-	};
-
-	const radiologists = [
-		{ id: "1", name: "Dr. S. Chen" },
-		{ id: "2", name: "Dr. A. Patel" },
-	];
-
-	const billingData = {
-		currentPlan: "Professional",
-		planPrice: "₦40,000/month",
-		scansUsed: 342,
-		scansLimit: 500,
-		renewalDate: "February 15, 2024",
-		billingEmail: "billing@hospital.com",
-	};
 
 	const handleSaveProfile = (data: any) => {
 		console.log("Saving profile:", data);

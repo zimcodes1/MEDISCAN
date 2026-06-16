@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Image, Users, ArrowRight, ArrowLeft, Check, Loader, Plus } from 'lucide-react';
 
@@ -11,6 +11,11 @@ interface StaffMember {
 }
 
 export default function OrgOnboardingPage() {
+  	// Set Page Title
+	useEffect(() => {
+		document.title = "Fill in your info - Mediscan AI";
+	}, []);
+
   const navigate = useNavigate();
   const [step, setStep] = useState<OnboardingStep>(1);
   const [loading, setLoading] = useState(false);

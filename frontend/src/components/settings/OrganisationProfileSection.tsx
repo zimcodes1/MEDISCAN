@@ -1,5 +1,6 @@
 import { Upload, Save } from "lucide-react";
 import { useState } from "react";
+import { NigerianStates as nigerianStates } from "../../utils/DummyData";
 
 interface OrganisationProfileSectionProps {
 	initialData: {
@@ -19,13 +20,6 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 	const [state, setState] = useState(initialData.state);
 	const [phoneNumber, setPhoneNumber] = useState(initialData.phoneNumber);
 	const [logo, setLogo] = useState(initialData.logo);
-
-	const nigerianStates = [
-		"Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", "Cross River",
-		"Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT", "Gombe", "Imo", "Jigawa", "Kaduna", "Kano",
-		"Katsina", "Kebbi", "Kogi", "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun",
-		"Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
-	];
 
 	const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files && e.target.files[0]) {
@@ -55,11 +49,11 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 						Organisation Logo
 					</label>
 					<div className="flex items-center gap-4">
-						<div className="w-20 h-20 bg-brand-card border border-brand-border/40 rounded-xl overflow-hidden flex items-center justify-center shadow-inner">
+						<div className="w-20 h-20 bg-brand-card border border-brand-border/80 rounded-xl overflow-hidden flex items-center justify-center shadow-inner">
 							{logo ? (
 								<img src={logo} alt="Organisation logo" className="w-full h-full object-contain" />
 							) : (
-								<span className="text-brand-text-muted text-xs text-center px-2">No logo</span>
+								<span className="text-brand-primary  text-2xl font-bold text-center px-2">{orgName.slice(0,1).toLocaleUpperCase()}</span>
 							)}
 						</div>
 						<label className="cursor-pointer">

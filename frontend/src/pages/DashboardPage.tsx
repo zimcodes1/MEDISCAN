@@ -11,82 +11,18 @@ import SystemStats from "../components/dashboard/SystemStats";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import StatCard from "../components/dashboard/StatCard";
-import ScanRow, {type ScanQueueItem} from "../components/dashboard/ScanRow";
-
-//Dummy Data
-
-const SCAN_QUEUE: ScanQueueItem[] = [
-	{
-		id: "SCN-00841",
-		patientName: "Emeka Okafor",
-		patientCode: "PAT-3312",
-		modality: "Chest X-Ray",
-		projection: "PA",
-		uploadedBy: "Dr. Nwosu",
-		uploadedAt: "09:14 AM",
-		priority: "urgent",
-		status: "flagged",
-		confidence: 94,
-		prediction: "Pneumonia",
-	},
-	{
-		id: "SCN-00842",
-		patientName: "Aisha Bello",
-		patientCode: "PAT-1190",
-		modality: "Chest X-Ray",
-		projection: "AP",
-		uploadedBy: "Dr. Adeyemi",
-		uploadedAt: "09:31 AM",
-		priority: "urgent",
-		status: "processing",
-		confidence: null,
-		prediction: null,
-	},
-	{
-		id: "SCN-00843",
-		patientName: "Chidi Eze",
-		patientCode: "PAT-4457",
-		modality: "Chest X-Ray",
-		projection: "PA",
-		uploadedBy: "Dr. Nwosu",
-		uploadedAt: "09:45 AM",
-		priority: "routine",
-		status: "ready",
-		confidence: 71,
-		prediction: "Pneumonia",
-	},
-	{
-		id: "SCN-00844",
-		patientName: "Fatima Garba",
-		patientCode: "PAT-2280",
-		modality: "Chest X-Ray",
-		projection: "Lateral",
-		uploadedBy: "Dr. Ibrahim",
-		uploadedAt: "10:02 AM",
-		priority: "routine",
-		status: "ready",
-		confidence: 12,
-		prediction: "Normal",
-	},
-	{
-		id: "SCN-00845",
-		patientName: "Oluwaseun Adeyemi",
-		patientCode: "PAT-5591",
-		modality: "Chest X-Ray",
-		projection: "PA",
-		uploadedBy: "Dr. Adeyemi",
-		uploadedAt: "10:18 AM",
-		priority: "routine",
-		status: "reviewed",
-		confidence: 88,
-		prediction: "Pneumonia",
-	},
-];
-
+import ScanRow from "../components/dashboard/ScanRow";
+import { SCAN_QUEUE } from "../utils/DummyData";
+import { useEffect } from "react";
 
 //Main Dashboard Page
 
 export default function DashboardPage() {
+	// Set Page Title
+	useEffect(() => {
+		document.title = "Dashboard - Mediscan AI";
+	}, []);
+
 	const pending = SCAN_QUEUE.filter((s) => s.status !== "reviewed");
 	const urgent = SCAN_QUEUE.filter(
 		(s) => s.priority === "urgent" && s.status !== "reviewed",
@@ -123,8 +59,11 @@ export default function DashboardPage() {
 						<div className="flex items-center gap-2.5 bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2.5 text-amber-500 text-xs">
 							<AlertTriangle size={14} className="shrink-0" />
 							<p className="leading-snug">
-								<span className="font-bold uppercase tracking-wider mr-1">AI Support Notice:</span>
-								All findings are preliminary clinical decision-support data and must be verified by a clinician.
+								<span className="font-bold uppercase tracking-wider mr-1">
+									AI Support Notice:
+								</span>
+								All findings are preliminary clinical decision-support data and
+								must be verified by a clinician.
 							</p>
 						</div>
 
@@ -226,4 +165,3 @@ export default function DashboardPage() {
 		</div>
 	);
 }
-

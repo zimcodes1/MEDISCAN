@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import ReportHeader from "../components/patient-reports/ReportHeader";
@@ -5,65 +6,12 @@ import ReportSection from "../components/patient-reports/ReportSection";
 import ReportField from "../components/patient-reports/ReportField";
 import ReportDisclaimer from "../components/patient-reports/ReportDisclaimer";
 import { Download, Printer, AlertTriangle, CheckCircle } from "lucide-react";
-
+import { reportData } from "../utils/DummyData";
 export default function PatientReportViewPage() {
-	// Mock report data - would come from API
-	const reportData = {
-		// Header
-		orgName: "Lagos General Hospital",
-		orgLogo: "/images/hospital-logo.png",
-		reportId: "RPT-2024-001234",
-		reportDate: "January 15, 2024 14:32",
-
-		// Patient Info
-		patientName: "Elias Vance",
-		patientId: "RAD-9921-X",
-		dateOfBirth: "March 12, 1979",
-		sex: "Male",
-		age: 45,
-
-		// Scan Info
-		scanDate: "January 15, 2024",
-		scanType: "Chest X-Ray",
-		projection: "PA (Posteroanterior)",
-		scanId: "SCN-2024-9921",
-
-		// AI Summary (Multi-condition Panel)
-		aiFindings: [
-			{ condition: "Pneumonia", prediction: "detected" as const, confidence: 94, isExperimental: false },
-			{ condition: "Tuberculosis", prediction: "normal" as const, confidence: 98, isExperimental: false },
-			{ condition: "Cardiomegaly", prediction: "normal" as const, confidence: 97, isExperimental: false },
-			{ condition: "Lung Nodule/Mass", prediction: "detected" as const, confidence: 88, isExperimental: false },
-			{ condition: "Rib Fracture", prediction: "normal" as const, confidence: 95, isExperimental: true }
-		],
-
-		// Findings
-		lungFields: ["Consolidation present", "Increased opacity", "Possible nodule right mid-zone"],
-		affectedSide: "Right",
-		severity: "Moderate",
-		detailedFindings:
-			"Right lower lobe demonstrates increased opacity with air bronchograms consistent with consolidation. In addition, there is a round, well-circumscribed nodular opacity (approximately 1.5 cm) in the right mid-zone. Left lung field appears clear. No pleural effusion or pneumothorax identified. Cardiac silhouette is within normal limits.",
-
-		// Impression
-		primaryImpression: "Pneumonia (Bacterial) and Lung Nodule (Right Mid-Zone)",
-		secondaryFindings: "Recommend CT chest for lung nodule evaluation",
-		impressionNarrative:
-			"The radiographic findings are consistent with right lower lobe pneumonia, likely bacterial in origin. The pattern of consolidation with air bronchograms supports this diagnosis. Additionally, a possible lung nodule is noted in the right mid-zone. Follow-up chest CT is recommended to further characterize the nodule.",
-
-		// Recommendation
-		recommendedAction: "Chest CT follow-up & Follow-up X-ray",
-		followUpTimeframe: "Immediate for CT / 7 days for X-ray",
-		additionalNotes:
-			"Recommend clinical correlation with patient symptoms and laboratory findings. Obtain chest CT to evaluate the right mid-zone nodule. Follow-up chest X-ray in 7 days to assess response of the consolidative process to antibiotic therapy.",
-
-		// Agreement
-		aiAgreement: "Agree",
-
-		// Signature
-		radiologistName: "Dr. Sarah Chen",
-		radiologistTitle: "MD, FRCR - Consultant Radiologist",
-		submissionTimestamp: "January 15, 2024 at 14:32",
-	};
+	// Set Page Title
+	useEffect(() => {
+		document.title = "View Result - Mediscan AI";
+	}, []);
 
 	const handleExportPDF = () => {
 		// Call backend API to generate PDF
@@ -86,8 +34,12 @@ export default function PatientReportViewPage() {
 					{/* Page Header with Actions */}
 					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 mt-5 print:hidden">
 						<div>
-							<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Diagnostic Report</h1>
-							<p className="text-brand-text-muted text-sm">Read-only view · Signed and submitted</p>
+							<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">
+								Diagnostic Report
+							</h1>
+							<p className="text-brand-text-muted text-sm">
+								Read-only view · Signed and submitted
+							</p>
 						</div>
 						<div className="flex gap-3 w-full sm:w-auto">
 							<button
@@ -121,7 +73,10 @@ export default function PatientReportViewPage() {
 						<ReportSection title="Patient Information">
 							<div className="grid grid-cols-2 md:grid-cols-5 gap-4">
 								<div className="col-span-2">
-									<ReportField label="Full Name" value={reportData.patientName} />
+									<ReportField
+										label="Full Name"
+										value={reportData.patientName}
+									/>
 								</div>
 								<ReportField label="Patient ID" value={reportData.patientId} />
 								<ReportField label="Sex" value={reportData.sex} />
@@ -144,11 +99,11 @@ export default function PatientReportViewPage() {
 							<p className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-4 font-display print:text-amber-600">
 								Multi-Condition Diagnostic Panel Findings
 							</p>
-							
+
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 print:grid-cols-1 print:gap-3">
 								{reportData.aiFindings.map((finding, idx) => (
-									<div 
-										key={idx} 
+									<div
+										key={idx}
 										className={`p-4 rounded-xl border flex flex-col justify-between gap-3 print:bg-white print:border-gray-200 print:text-black ${
 											finding.prediction === "detected"
 												? "bg-rose-500/5 border-rose-500/20 text-rose-400"
@@ -158,9 +113,15 @@ export default function PatientReportViewPage() {
 										<div className="flex items-start justify-between gap-2">
 											<div className="flex items-center gap-2">
 												{finding.prediction === "detected" ? (
-													<AlertTriangle size={16} className="shrink-0 text-rose-400 print:text-red-500" />
+													<AlertTriangle
+														size={16}
+														className="shrink-0 text-rose-400 print:text-red-500"
+													/>
 												) : (
-													<CheckCircle size={16} className="shrink-0 text-emerald-400 print:text-green-600" />
+													<CheckCircle
+														size={16}
+														className="shrink-0 text-emerald-400 print:text-green-600"
+													/>
 												)}
 												<span className="font-extrabold text-sm text-brand-text print:text-black tracking-tight font-display">
 													{finding.condition}
@@ -171,21 +132,27 @@ export default function PatientReportViewPage() {
 													</span>
 												)}
 											</div>
-											<span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
-												finding.prediction === "detected"
-													? "bg-rose-500/10 text-rose-400 print:bg-red-100 print:text-red-600"
-													: "bg-emerald-500/10 text-emerald-400 print:bg-green-100 print:text-green-700"
-											}`}>
-												{finding.prediction === "detected" ? "Detected" : "Normal"}
+											<span
+												className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
+													finding.prediction === "detected"
+														? "bg-rose-500/10 text-rose-400 print:bg-red-100 print:text-red-600"
+														: "bg-emerald-500/10 text-emerald-400 print:bg-green-100 print:text-green-700"
+												}`}
+											>
+												{finding.prediction === "detected"
+													? "Detected"
+													: "Normal"}
 											</span>
 										</div>
 
 										{/* Specific notice for Lung Nodule/Mass findings */}
-										{finding.condition === "Lung Nodule/Mass" && finding.prediction === "detected" && (
-											<p className="text-rose-400/90 print:text-red-600 text-[10px] font-bold leading-normal bg-rose-500/10 border border-rose-500/20 p-2 rounded-lg -mt-1 print:bg-red-50 print:border-red-100">
-												Possible nodule/mass — not a cancer diagnosis. CT follow-up recommended.
-											</p>
-										)}
+										{finding.condition === "Lung Nodule/Mass" &&
+											finding.prediction === "detected" && (
+												<p className="text-rose-400/90 print:text-red-600 text-[10px] font-bold leading-normal bg-rose-500/10 border border-rose-500/20 p-2 rounded-lg -mt-1 print:bg-red-50 print:border-red-100">
+													Possible nodule/mass — not a cancer diagnosis. CT
+													follow-up recommended.
+												</p>
+											)}
 
 										{/* Confidence score indicator */}
 										<div className="print:hidden">
@@ -194,7 +161,7 @@ export default function PatientReportViewPage() {
 												<span>{finding.confidence}%</span>
 											</div>
 											<div className="w-full bg-brand-bg/60 h-1.5 rounded-full overflow-hidden border border-brand-border/20">
-												<div 
+												<div
 													className={`h-full rounded-full transition-all duration-500 ${
 														finding.prediction === "detected"
 															? "bg-gradient-to-r from-rose-500 to-amber-500"
@@ -212,7 +179,10 @@ export default function PatientReportViewPage() {
 							</div>
 
 							<p className="text-amber-500/80 print:text-gray-500 text-[10px] font-bold leading-relaxed border-t border-amber-500/10 print:border-gray-200 pt-3 mt-4">
-								* NOTE: The findings above represent automated pre-analysis results generated by independent, specialized deep learning models. The official radiologist diagnosis, narrative impression, and clinical recommendations are detailed below.
+								* NOTE: The findings above represent automated pre-analysis
+								results generated by independent, specialized deep learning
+								models. The official radiologist diagnosis, narrative
+								impression, and clinical recommendations are detailed below.
 							</p>
 						</ReportSection>
 
@@ -220,7 +190,9 @@ export default function PatientReportViewPage() {
 						<ReportSection title="Radiologist Findings">
 							<div className="space-y-5">
 								<div>
-									<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2.5 font-display">Identified Anomalies</p>
+									<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2.5 font-display">
+										Identified Anomalies
+									</p>
 									<div className="flex flex-wrap gap-2">
 										{reportData.lungFields.map((field, index) => (
 											<span
@@ -232,12 +204,18 @@ export default function PatientReportViewPage() {
 										))}
 									</div>
 								</div>
-								
+
 								<div className="grid grid-cols-2 gap-4 border-t border-brand-border/30 pt-4">
-									<ReportField label="Affected Side" value={reportData.affectedSide} />
-									<ReportField label="Severity Status" value={reportData.severity} />
+									<ReportField
+										label="Affected Side"
+										value={reportData.affectedSide}
+									/>
+									<ReportField
+										label="Severity Status"
+										value={reportData.severity}
+									/>
 								</div>
-								
+
 								<ReportField
 									label="Detailed Findings"
 									value={reportData.detailedFindings}
@@ -250,8 +228,14 @@ export default function PatientReportViewPage() {
 						<ReportSection title="Radiologist Impression">
 							<div className="space-y-4">
 								<div className="grid grid-cols-2 gap-4">
-									<ReportField label="Primary Impression" value={reportData.primaryImpression} />
-									<ReportField label="Secondary Findings" value={reportData.secondaryFindings} />
+									<ReportField
+										label="Primary Impression"
+										value={reportData.primaryImpression}
+									/>
+									<ReportField
+										label="Secondary Findings"
+										value={reportData.secondaryFindings}
+									/>
 								</div>
 								<ReportField
 									label="Clinical Impression Narrative"
@@ -265,8 +249,14 @@ export default function PatientReportViewPage() {
 						<ReportSection title="Clinical Recommendation">
 							<div className="space-y-4">
 								<div className="grid grid-cols-2 gap-4">
-									<ReportField label="Recommended Action" value={reportData.recommendedAction} />
-									<ReportField label="Follow-up Timeframe" value={reportData.followUpTimeframe} />
+									<ReportField
+										label="Recommended Action"
+										value={reportData.recommendedAction}
+									/>
+									<ReportField
+										label="Follow-up Timeframe"
+										value={reportData.followUpTimeframe}
+									/>
 								</div>
 								<ReportField
 									label="Additional Notes"
@@ -283,16 +273,24 @@ export default function PatientReportViewPage() {
 									<p className="text-brand-text print:text-black font-extrabold text-base tracking-tight font-display">
 										{reportData.radiologistName}
 									</p>
-									<p className="text-brand-text-muted text-xs font-semibold mt-0.5">{reportData.radiologistTitle}</p>
+									<p className="text-brand-text-muted text-xs font-semibold mt-0.5">
+										{reportData.radiologistTitle}
+									</p>
 								</div>
 								<div className="sm:text-right">
-									<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider">Submitted</p>
-									<p className="text-brand-text print:text-black font-bold text-xs mt-0.5">{reportData.submissionTimestamp}</p>
+									<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider">
+										Submitted
+									</p>
+									<p className="text-brand-text print:text-black font-bold text-xs mt-0.5">
+										{reportData.submissionTimestamp}
+									</p>
 								</div>
 							</div>
 							<div className="mt-4 pt-3 border-t border-brand-border/30 flex items-center gap-2 text-emerald-400 print:text-green-700">
 								<CheckCircle size={15} />
-								<span className="text-[10px] font-extrabold uppercase tracking-wider">Digitally Signed & Verified</span>
+								<span className="text-[10px] font-extrabold uppercase tracking-wider">
+									Digitally Signed & Verified
+								</span>
 							</div>
 						</ReportSection>
 

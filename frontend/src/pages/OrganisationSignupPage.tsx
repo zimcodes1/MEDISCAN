@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, User, Phone, Lock, ArrowRight, Loader } from 'lucide-react';
 import {
@@ -6,8 +6,12 @@ import {
   mapRegistrationErrors,
   registerOrganisation,
 } from '../utils/auth';
-
+import { NigerianStates as states } from '../utils/DummyData';
 export default function OrganisationSignupPage() {
+    // Set Page Title
+    useEffect(() => {
+      document.title = "Register Your Organization - Mediscan AI";
+    }, []);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -22,13 +26,6 @@ export default function OrganisationSignupPage() {
     confirmPassword: '',
     phoneNumber: '',
   });
-
-  const states = [
-    'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Borno', 'Cross River',
-    'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe', 'Imo', 'Jigawa', 'Kaduna',
-    'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun',
-    'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'
-  ];
 
   const orgTypes = [
     { value: 'hospital', label: 'Hospital' },
