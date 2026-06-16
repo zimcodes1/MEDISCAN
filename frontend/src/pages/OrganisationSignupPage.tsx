@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, User, Phone, Lock, ArrowRight, Loader } from 'lucide-react';
-import {
-  mapOrganisationSignupToPayload,
-  mapRegistrationErrors,
-  registerOrganisation,
-} from '../utils/auth';
 import { NigerianStates as states } from '../utils/DummyData';
 export default function OrganisationSignupPage() {
     // Set Page Title
@@ -79,14 +74,10 @@ export default function OrganisationSignupPage() {
     setLoading(true);
 
     try {
-      const payload = mapOrganisationSignupToPayload(formData);
-      const response = await registerOrganisation(payload);
-
       navigate('/verify-email', {
-        state: { email: formData.workEmail, organisationId: response.organisation_id }
+        state: { email: formData.workEmail, organisationId: 8 }
       });
-    } catch (error) {
-      setErrors(mapRegistrationErrors(error));
+    } catch (error) {;
     } finally {
       setLoading(false);
     }

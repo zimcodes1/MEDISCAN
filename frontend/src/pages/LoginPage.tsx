@@ -1,9 +1,6 @@
 import React, {useEffect} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, StopCircle } from 'lucide-react';
-import { login } from '../utils/auth';
-import { getApiErrorMessage } from '../utils/api';
-
 export default function LoginPage() {
   	// Set Page Title
 	useEffect(() => {
@@ -22,10 +19,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login({ email, password });
       navigate('/');
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to sign in. Please check your details.'));
+      
     } finally {
       setLoading(false);
     }
