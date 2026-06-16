@@ -1,217 +1,222 @@
-# 🩺 MediScan NG
-## AI-Assisted Medical Imaging Diagnostic Support
-### INTEGRATED DESIGN PROJECT BRIEF
-k
----
+# MediScan NG — MVP Implementation Plan (v2)
 
-## 1. Project Overview
+> **Stack:** Firebase (Auth · Firestore · Storage · Hosting) · Cloud Run (FastAPI inference service) · Cloud Functions (orchestration glue) · React (TypeScript + Tailwind) · PyTorch (training) + ONNX Runtime (serving) · EfficientNet-B0 per-condition models · Grad-CAM
 
-MediScan NG is a web-based AI decision-support tool that allows medical staff to upload chest X-ray images and receive an automated analysis flagging possible pneumonia, supported by a visual heatmap overlay. The system is designed to assist — not replace — qualified radiologists and clinicians, particularly in settings where specialist availability is limited.
+## What Changed from v1
 
-> **⚠️ Important Framing Requirement**  
-> All outputs from MediScan NG must be labelled: *"Possible Findings — Review Required by a Qualified Clinician."* The system is a decision-support tool, not a diagnostic instrument. This framing is both ethically required and legally necessary.
+1. **Backend swap.** Django + DRF + PostgreSQL + SimpleJWT is replaced by a Firebase hybrid: Firebase Auth/Firestore/Storage handle everything CRUD-shaped (users, roles, patient records, scan metadata, image storage), while a dedicated **Cloud Run FastAPI service** handles only the AI inference — the one piece of the system where latency actually matters and where a serverless function's cold start would hurt. This keeps MVP build speed high without sacrificing response time on the part clinicians are actually waiting on.
+2. **Single-disease → multi-condition panel.** Instead of one binary pneumonia classifier, the system now runs a **registry of independent per-condition models**, each trained, evaluated, and served separately. A clinician can run one specific model or trigger a "Comprehensive Panel" (formerly "all-round diagnosis") that runs every registered model concurrently against the same X-ray.
 
-### 1.1 Problem Statement
+## A Note on Scope — Which Conditions Actually Belong Here
 
-Nigeria has fewer than 500 qualified radiologists serving a population of over 220 million people. Many secondary and tertiary hospitals in states outside Lagos and Abuja have imaging equipment — X-ray machines, ultrasound scanners — but lack trained specialists to read and interpret results in a timely manner. This diagnostic gap leads to delayed treatment, especially for time-sensitive conditions like pneumonia, fractures, and early-stage tumours.
+Before locking in the condition list, it's worth being honest about what a chest X-ray can and can't tell you, since this is a clinical-facing tool and overclaiming here is the kind of thing that should be caught at design time, not after a judge or a clinician asks about it.
 
-MediScan NG addresses this by providing an AI-powered preliminary screening layer, surfacing likely findings for a clinician to review and act on — dramatically reducing the time between scan and diagnosis.
+| Condition | Visible on plain chest X-ray? | Verdict |
+|---|---|---|
+| Pneumonia | Yes — well established | **Core model** |
+| Tuberculosis | Yes — established radiographic patterns | **Core model** (note: public labeled datasets are small, ~800 images — flag this in the model card) |
+| Heart problems (cardiomegaly) | Yes — enlarged cardiac silhouette is a standard X-ray finding | **Core model**, framed specifically as "cardiomegaly" rather than generic "heart problems" |
+| Lung cancer | Partially — X-ray can sometimes show a nodule or mass, but CT is the actual diagnostic standard | **Included, but reframed.** Model detects "possible nodule/mass" and the result explicitly recommends CT follow-up — it must never say "lung cancer detected" |
+| Broken ribs | Technically yes, but subtle fractures are notoriously hard to see on plain film even for trained radiologists, and public plain-film fracture datasets are scarce (most fracture research datasets are CT-based) | **Stretch/experimental tier** — build it, but don't promise it for demo day, and label it "Experimental" in the UI |
+| Bronchitis | No reliable radiographic signature — it's a clinical diagnosis (cough, sputum, auscultation); X-rays in suspected bronchitis are usually ordered to *rule out* pneumonia, not to diagnose bronchitis itself | **Dropped.** There's nothing real for a model to learn here |
+| Common cold | No chest X-ray finding at all | **Dropped.** Training a classifier against a condition with zero radiographic signal means it would only ever learn dataset artifacts, which isn't defensible in a medical AI context |
 
-### 1.2 Solution Summary
-
-| Component         | Description                                                                 | Technology                         |
-|-------------------|-----------------------------------------------------------------------------|------------------------------------|
-| **AI Model**      | CNN fine-tuned on chest X-ray dataset to detect pneumonia signs             | PyTorch / EfficientNet-B0          |
-| **Explainability**| Grad-CAM heatmap overlaid on uploaded X-ray to show model focus areas       | PyTorch + OpenCV                   |
-| **Backend API**   | REST API accepting image upload, returning diagnosis + confidence score     | Django REST Framework              |
-| **Frontend**      | Clean web interface for upload, results, and patient record management      | React.js                           |
-| **Database**      | Patient scan history, results log, clinician notes                          | PostgreSQL                         |
-| **Auth & Access** | Role-based login: admin, radiologist, clinician                             | JWT / Django Auth                  |
+Final condition panel for the MVP: **Pneumonia, Tuberculosis, Cardiomegaly, Lung Nodule/Mass**, with **Rib Fracture** as an explicitly experimental fifth model. This is still a genuinely "wide variety of chest-related conditions" — it's just the set that the imaging modality can actually speak to.
 
 ---
 
-## 2. Learning Objectives
+## Phase 0 — Project & Cloud Setup (Day 1–2)
 
-By the end of this project, students should be able to:
+**Goal:** Skeleton running locally, Firebase project provisioned, no feature code yet.
 
-1. Load, preprocess, and augment medical image datasets for model training
-2. Apply transfer learning using a pre-trained CNN (EfficientNet or ResNet) for binary image classification
-3. Evaluate model performance using clinically appropriate metrics: accuracy, sensitivity (recall), specificity, and AUC-ROC
-4. Implement Grad-CAM to generate visual explanations from a neural network
-5. Build and document a REST API that serves an ML model as a microservice
-6. Develop a functional React frontend that integrates with the ML backend
-7. Design a monetizable SaaS product and present a credible business case
-
----
-
-## 3. Recommended Technology Stack
-
-| Layer               | Technology                                   | Rationale                                                              |
-|---------------------|----------------------------------------------|------------------------------------------------------------------------|
-| **ML Framework**    | PyTorch + torchvision                        | Industry standard; excellent pretrained model support                  |
-| **Base Model**      | EfficientNet-B0 (pretrained on ImageNet)     | Strong accuracy, lightweight, ideal for medical imaging transfer learning |
-| **Explainability**  | Grad-CAM via pytorch-grad-cam library        | Generates clinician-readable heatmaps; open source                     |
-| **Backend**         | Django + Django REST Framework               | Robust, well-documented, familiar to Python-track students             |
-| **Frontend**        | React.js + Tailwind CSS                      | Component-based, responsive, fast UI development                       |
-| **Database**        | PostgreSQL                                   | Reliable relational DB for patient/scan record storage                 |
-| **Image Storage**   | Local filesystem or Cloudinary (free tier)   | Stores uploaded and processed scan images                              |
-| **ML Serving**      | Django view or Flask microservice            | Wraps the PyTorch model in an HTTP endpoint                            |
-| **Deployment**      | Render.com or Railway.app (free tier)        | Simple cloud deployment within student budget                          |
-| **Version Control** | GitHub (private repo)                        | Collaboration and submission                                           |
+1. Repo layout: `/inference-service` (FastAPI), `/functions` (Cloud Functions), `/frontend` (React). No `/backend` Django folder this time.
+2. Create a Firebase project in the console. Enable **Authentication** (Email/Password), **Firestore** (production mode), **Storage**, and **Hosting**.
+3. Note the Firebase project's underlying GCP project ID — you'll deploy Cloud Run and Cloud Functions into the same project so everything shares one IAM/billing surface.
+4. Install tooling: `npm install -g firebase-tools`, then `firebase init` selecting Firestore, Storage, Hosting, Functions, and Emulators.
+5. Scaffold the inference service in `/inference-service`:
+   ```
+   pip install fastapi uvicorn onnxruntime torch torchvision pillow opencv-python-headless firebase-admin python-multipart grad-cam
+   ```
+6. Scaffold the frontend exactly as before, plus the Firebase JS SDK:
+   ```
+   npm create vite@latest frontend -- --template react-ts
+   cd frontend && npm install axios react-router-dom firebase
+   ```
+7. Confirm: `firebase emulators:start` runs clean, `uvicorn main:app --reload` serves locally, frontend dev server starts.
 
 ---
 
-## 4. Recommended Datasets
+## Phase 1 — Authentication & Role System (Day 3–4)
 
-Students must NOT collect or use real patient data. All training must use publicly available, ethically cleared, anonymised medical datasets.
+**Goal:** Firebase Auth login working with three roles: `admin`, `radiologist`, `clinician`.
 
-| Dataset                       | Details                                                                                                           |
-|-------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| **NIH ChestX-ray14**          | 108,948 frontal-view X-ray images from 32,717 patients. 14 disease labels including pneumonia, mass, nodule. Available on NIH website and Kaggle. Primary recommended dataset. |
-| **Kaggle Chest X-Ray Pneumonia** | 5,863 labelled X-ray images (NORMAL vs PNEUMONIA). Simple binary classification — ideal for project scope. Available at kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia |
-| **RSNA Pneumonia Detection**  | 26,684 training images with bounding box annotations. More advanced — suitable for Phase 2 localisation features. |
-| **COVID-19 Radiography Database** | Includes COVID-19, normal, viral pneumonia, and lung opacity classes. Good for multi-class extension.           |
-
-> **Recommended Starting Point**  
-> Begin with the Kaggle Chest X-Ray Pneumonia dataset (binary: Normal vs Pneumonia). It is small enough to train in a reasonable time on a free GPU (Google Colab), well-balanced, and widely used as a benchmark — allowing students to compare their results against published literature.
+1. Roles are implemented as **Firebase custom claims**, not a database column. An admin-only Cloud Function (`setUserRole`) uses the Firebase Admin SDK to attach a `role` claim to a user's account.
+2. Frontend: Firebase Auth handles login/signup directly. `onAuthStateChanged` populates a React Context with the user object and their decoded role claim. The Firebase SDK auto-attaches ID tokens to Firestore/Storage calls — no manual interceptor needed for those.
+3. For calls to the **Cloud Run inference service** (which sits outside the Firebase SDK's auto-auth), manually attach `Authorization: Bearer <idToken>` from `getIdToken()`.
+4. In FastAPI, write a dependency that calls `firebase_admin.auth.verify_id_token()` on every request and checks the decoded `role` claim — this replaces DRF's `IsRadiologist` / `IsClinician` permission classes.
+5. Write Firestore Security Rules restricting reads/writes on `patients`, `scans`, and `scans/{id}/findings` by role — e.g., only `radiologist` and `clinician` can create scans; only `radiologist` can write `clinician_notes`.
 
 ---
 
-## 5. System Architecture
+## Phase 2 — Multi-Condition Model Training (Day 3–10, parallel)
 
-**Architecture Flow**
+**Goal:** Independently trained model files for each condition in the panel, registered behind a common interface.
 
-1. Clinician logs in → uploads chest X-ray image via React frontend  
-2. React sends image to Django REST API (multipart/form-data POST)  
-3. Django preprocesses image (resize to 224x224, normalize) and passes to PyTorch model  
-4. Model returns: class prediction (Normal / Pneumonia) + confidence score (0–100%)  
-5. Grad-CAM generates heatmap highlighting regions model focused on  
-6. Django returns JSON: { prediction, confidence, heatmap_url, scan_id }  
-7. React displays original X-ray, heatmap overlay, result, and disclaimer banner
+> Still done in **Google Colab** (free T4 GPU), committed under `model_training/`.
 
----
-
-## 6. Suggested Team Roles
-
-| Role                     | Responsibilities                                                               | Key Deliverables                                      |
-|--------------------------|--------------------------------------------------------------------------------|-------------------------------------------------------|
-| **ML Engineer (1–2)**    | Dataset prep, model training, fine-tuning, Grad-CAM implementation, model evaluation | Trained model file (.pth), evaluation report, Grad-CAM output samples |
-| **Backend Developer (1)**| Django REST API, model serving endpoint, database models, authentication       | API documentation, working endpoints, unit tests      |
-| **Frontend Developer (1)**| React UI: upload flow, results display, dashboard, patient record view         | Responsive web app, integrated with API               |
-| **Full-Stack / DevOps (1)**| Integration, deployment to cloud, environment setup, GitHub management         | Live deployed URL, README, deployment guide           |
-| **Business Analyst / PM (1)** | Market research, monetisation plan, pitch deck, project documentation      | Business case report, 10-slide pitch deck             |
-
----
-
-## 7. Eight-Week Implementation Roadmap
-
-| Week     | Phase               | Tasks & Deliverables                                                                                                                                                     |
-|----------|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Week 1** | **Setup & Research** | Download Kaggle dataset. Set up Python environment (PyTorch, torchvision). Explore and visualise dataset. Split into train/val/test (70/15/15). Set up Django project and PostgreSQL. Initialise GitHub repo with branching strategy. **Deliverable:** Working dev environment, dataset EDA notebook. |
-| **Week 2** | **Model Training**   | Implement data loaders with augmentation (random flip, rotation, brightness). Load pre-trained EfficientNet-B0. Replace final layer for binary classification. Train for 10–20 epochs on Google Colab GPU. Log training/validation accuracy and loss curves. **Deliverable:** Baseline trained model with >85% validation accuracy. |
-| **Week 3** | **Model Evaluation & Grad-CAM** | Evaluate on held-out test set. Generate: accuracy, precision, recall, specificity, AUC-ROC, confusion matrix. Implement Grad-CAM heatmap generation. Visual inspection: does the model focus on lung regions? Fine-tune if recall is below 85%. **Deliverable:** Evaluation report, Grad-CAM sample images. |
-| **Week 4** | **Backend API**     | Build Django REST endpoints: POST /api/scan/upload, GET /api/scan/{id}/result. Integrate PyTorch model into Django view. Store scan metadata and results in PostgreSQL. Implement JWT-based user authentication. **Deliverable:** Functional API tested via Postman, API documentation. |
-| **Week 5** | **Frontend — Core UI** | Build React components: login page, upload form, results display (X-ray + heatmap + prediction badge), disclaimer banner. Connect to Django API using Axios. Implement loading states and error handling. **Deliverable:** Working upload-to-result flow in browser. |
-| **Week 6** | **Frontend — Dashboard & Records** | Add patient scan history dashboard. Clinician notes field per scan. Role-based views (admin vs clinician). Basic responsiveness for tablet use. **Deliverable:** Full working web application (local), user testing with 3–5 test users. |
-| **Week 7** | **Deployment & Integration Testing** | Deploy Django backend to Render.com or Railway. Deploy React frontend to Vercel or Netlify. Configure CORS, environment variables, static file serving. End-to-end integration test. Fix bugs found in testing. **Deliverable:** Live deployed URL, all features functional in production. |
-| **Week 8** | **Documentation & Pitch** | Write technical README (setup guide, API docs, model card). Prepare business case: target market, pricing model, revenue projections. Build 10-slide pitch deck. Record a 5-minute demo video. Final code review and cleanup. **Deliverable:** Complete submission package — code, docs, pitch deck, demo video. |
+1. **Dataset shift.** The single Kaggle pneumonia set isn't enough on its own anymore. Use the **NIH ChestX-ray14** dataset (112,120 images, 14 labels including Pneumonia, Cardiomegaly, Nodule, Mass) as the backbone for Pneumonia, Cardiomegaly, and Lung Nodule/Mass. Tuberculosis needs a separate source — the public **Shenzhen + Montgomery TB X-ray sets**. If you pursue the Rib Fracture stretch model, expect to spend real time just locating a usable plain-film dataset; don't let this block the core four.
+2. Shared preprocessing pipeline (same as v1): resize to 224×224, ImageNet mean/std normalization, `RandomHorizontalFlip` / `RandomRotation(10)` / `ColorJitter` on train only, 80/10/10 split.
+3. **Reuse one training recipe across conditions** — write it once, parameterized by `condition` and label column, rather than four bespoke scripts:
+   ```python
+   model = efficientnet_b0(pretrained=True)
+   for param in model.parameters():
+       param.requires_grad = False
+   model.classifier[1] = nn.Linear(model.classifier[1].in_features, 1)
+   # train head only (5 epochs, lr=1e-3), then unfreeze last 2 blocks (5 epochs, lr=1e-4)
+   ```
+4. Evaluate each model independently: accuracy, sensitivity, specificity, AUC-ROC, confusion matrix. Expect Pneumonia and Cardiomegaly (larger, well-studied datasets) to outperform Tuberculosis (much smaller dataset) — document this gap honestly in the model card rather than smoothing it over.
+5. Generate Grad-CAM per model the same way as before (`pytorch-grad-cam` against the final EfficientNet feature layer), and visually confirm heatmaps land on lung/heart anatomy, not image borders, for each condition separately.
+6. **Export each trained model to ONNX** for serving:
+   ```python
+   torch.onnx.export(model, dummy_input, f"mediscan_{condition}.onnx")
+   ```
+   Verify numerical parity between the PyTorch and ONNX outputs on a handful of validation images before trusting the exported version.
+7. **Keep both formats.** ONNX Runtime is what actually serves predictions (smaller footprint, faster CPU inference). But Grad-CAM needs gradients, which ONNX Runtime doesn't expose — so the inference service keeps the original PyTorch checkpoint loaded alongside the ONNX file *specifically* for heatmap generation. Predict with ONNX, explain with PyTorch.
+8. Commit all artifacts to `/inference-service/models/`: `mediscan_pneumonia.onnx` + `.pth`, `mediscan_tuberculosis.onnx` + `.pth`, `mediscan_cardiomegaly.onnx` + `.pth`, `mediscan_nodule_mass.onnx` + `.pth` (+ rib fracture pair if pursued).
 
 ---
 
-## 8. Model Performance Targets
+## Phase 3 — Inference Orchestration & Data Layer (Day 8–13)
 
-The following minimum thresholds must be demonstrated on the held-out test set. Students must include a model card documenting dataset, architecture, training setup, and known limitations.
+**Goal:** Cloud Run service that can run any subset of registered models concurrently, with Firestore reflecting results as each one finishes — not as a single all-or-nothing blob.
 
-| Metric                 | Minimum Target & Explanation                                                                                              |
-|------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| **Accuracy**           | >88% — Overall correct predictions across both classes                                                                     |
-| **Sensitivity / Recall** | >90% — Critical: the model must not frequently miss actual pneumonia cases (false negatives are dangerous)               |
-| **Specificity**        | >85% — Avoid excessive false positives that waste clinician time                                                          |
-| **AUC-ROC Score**      | >0.92 — Strong discrimination between Normal and Pneumonia classes                                                         |
-| **Grad-CAM Quality**   | Heatmap must visibly highlight lung regions, not background or image borders — assessed qualitatively                     |
+### 3.1 Model Registry (`inference-service/registry.py`)
 
-> **Note on Recall vs Accuracy**  
-> In medical AI, sensitivity (recall) is more important than raw accuracy. A model that is 95% accurate but misses 30% of actual pneumonia cases is clinically unacceptable. Students should optimise for recall and be prepared to explain this trade-off in their pitch.
+A config-driven registry, loaded once at startup as module-level singletons (same "load once, not per-request" principle as v1's `_model = load_model()`):
 
----
+```python
+MODEL_REGISTRY = {
+    "pneumonia":    {"onnx": "models/mediscan_pneumonia.onnx",    "pth": "models/mediscan_pneumonia.pth",    "label": "Pneumonia"},
+    "tuberculosis": {"onnx": "models/mediscan_tuberculosis.onnx", "pth": "models/mediscan_tuberculosis.pth", "label": "Tuberculosis"},
+    "cardiomegaly": {"onnx": "models/mediscan_cardiomegaly.onnx", "pth": "models/mediscan_cardiomegaly.pth", "label": "Cardiomegaly"},
+    "nodule_mass":  {"onnx": "models/mediscan_nodule_mass.onnx", "pth": "models/mediscan_nodule_mass.pth", "label": "Possible Nodule/Mass"},
+    # "rib_fracture": {...}  # add when ready — no architecture change needed
+}
+```
 
-## 9. Monetisation Strategy
+Adding a fifth or sixth condition later is just one new entry plus weight files — nothing else in the system needs to change. This is the part that directly answers "selected by the clinician, or all-round" from a code-structure standpoint.
 
-### 9.1 Target Customers
+### 3.2 Firestore Data Model
 
-- Private hospitals and specialist clinics (primary target — ability to pay)
-- Independent diagnostic centres (X-ray, MRI, ultrasound labs)
-- Telemedicine platforms seeking to add radiology support features
-- NGOs and international health organisations operating in Nigeria (grant-funded tier)
+```
+patients/{patientId}            — patient_id (anonymised), age, sex, createdBy
+scans/{scanId}                  — patientId, uploadedBy, originalImageUrl,
+                                   requestedConditions: string[], status: "processing"|"complete", createdAt
+scans/{scanId}/findings/{conditionId}
+                                 — condition, prediction, confidence, heatmapUrl, modelVersion, completedAt
+```
 
-### 9.2 Revenue Model
+Each finding is its own subcollection document, written independently as soon as that specific model finishes — this is what makes progressive, per-condition results possible on the frontend.
 
-| Tier              | Price (Monthly)              | Inclusions                                                                 |
-|-------------------|------------------------------|----------------------------------------------------------------------------|
-| **Starter**       | ₦15,000 / month              | Up to 100 scans/month, 2 user accounts, basic result history               |
-| **Professional**  | ₦40,000 / month              | Up to 500 scans/month, 10 user accounts, API access, priority support      |
-| **Enterprise**    | Custom pricing               | Unlimited scans, white-label option, EHR integration, SLA guarantee        |
-| **Pay-Per-Scan**  | ₦300 per scan                | For low-volume clinics; no monthly commitment                              |
+### 3.3 Upload & Inference Flow
 
-### 9.3 Revenue Projections (Year 1)
-
-| Scenario                                                | Projection                                                                 |
-|---------------------------------------------------------|----------------------------------------------------------------------------|
-| **Conservative (10 Starter + 3 Professional clients)**  | ₦150,000 + ₦120,000 = ₦270,000/month (~₦3.2M/year)                        |
-| **Moderate (20 Starter + 8 Professional + 2 Enterprise)**| ₦300,000 + ₦320,000 + ₦200,000 = ₦820,000/month (~₦9.8M/year)             |
-| **Break-even estimate**                                 | Approximately 8–10 paying Starter clients cover basic server and operating costs |
-
----
-
-## 10. Ethical & Legal Constraints
-
-> **Mandatory Requirements — All Team Members Must Acknowledge**
-> 
-> 1. **Decision Support Only:** MediScan NG must never present itself as a diagnostic tool. Every output screen must display a visible disclaimer.
-> 2. **No Real Patient Data:** Students must use only publicly available, anonymised datasets. No data may be collected from hospitals, clinics, or individuals.
-> 3. **Data Privacy:** Any demo user data created during testing must not include real names, dates of birth, or identifiers.
-> 4. **Bias Awareness:** Students must acknowledge in their model card that the training dataset is predominantly from Western populations and may not perfectly generalise to Nigerian patient demographics.
-> 5. **Regulatory Context:** Students must briefly note in their business case that a commercial deployment would require compliance with Nigeria's National Health Act and guidance from the Medical and Dental Council of Nigeria (MDCN).
+1. Frontend uploads the raw X-ray to Firebase Storage (`scans/originals/{scanId}.jpg`).
+2. Frontend creates the `scans/{scanId}` document with `status: "processing"` and the clinician's selected `requestedConditions` (or `["all"]`).
+3. Frontend calls the Cloud Run endpoint: `POST /infer` with `{ scanId, imageUrl, conditions }` and a Firebase ID token.
+4. The `/infer` handler:
+   - Verifies the token and role.
+   - Downloads the image, resolves `"all"` to every key in `MODEL_REGISTRY` if requested.
+   - Runs each requested model **concurrently** (e.g. `asyncio.gather` over a thread pool — CPU inference is blocking, so don't run the panel sequentially) rather than one after another. This is the key latency lever for the Comprehensive Panel mode — four models run in roughly the time of the slowest one, not the sum of all four.
+   - As each model finishes: generates its Grad-CAM heatmap, uploads it to Storage, writes the corresponding `findings` doc immediately — it does not wait for the others.
+   - Once every requested model has written its finding, updates `scans/{scanId}.status = "complete"`.
+5. Frontend listens to `scans/{scanId}/findings` with Firestore's `onSnapshot` — results populate the Results page live, one card at a time, instead of one long spinner. This is the same progressive-disclosure trick discussed earlier, just generalized from "prediction now, heatmap later" to "each condition reports in as it finishes."
+6. Cloud Run config: `min-instances: 1` to eliminate cold starts (the whole reason this didn't stay a Cloud Function), 2–4GB memory to hold four ONNX + four PyTorch checkpoints simultaneously.
 
 ---
 
-## 11. Graded Deliverables
+## Phase 4 — Frontend UI (Day 10–15)
 
-| Deliverable                | Weight | Description                                                                                     |
-|----------------------------|--------|-------------------------------------------------------------------------------------------------|
-| **GitHub Repository**      | 20%    | Clean, documented code. Meaningful commit history. README with setup instructions. Model card included. |
-| **Trained Model + Evaluation Report** | 25%    | Model meeting performance targets. Confusion matrix, AUC-ROC curve, Grad-CAM samples. Written analysis of results. |
-| **Live Deployed Application** | 20%    | Functional web app accessible via public URL. All features working in production environment.   |
-| **Business Case Document** | 15%    | Market analysis, revenue model, competitive landscape, 3-year financial projection.            |
-| **Final Pitch Presentation** | 15%    | 10-slide deck + 5-min demo video. Covers problem, solution, tech, business model, roadmap.     |
-| **Team Peer Review**       | 5%     | Each member evaluates teammates' contribution confidentially.                                   |
+### Pages & Routes
 
----
+```
+/login                  → LoginPage
+/dashboard              → DashboardPage (per-condition breakdown)
+/patients               → PatientListPage
+/patients/:id           → PatientDetailPage (scan history)
+/scans/upload           → UploadPage
+/scans/:id/result       → ResultPage
+```
 
-## 12. Stretch Goals (If Time Permits)
+### Key Components
 
-- Multi-class detection — extend model to detect tuberculosis, pleural effusion, or cardiomegaly
-- Mobile-responsive PWA — allow upload from tablet devices used in ward rounds
-- DICOM file support — handle standard medical imaging file format (.dcm) rather than JPEG only
-- EHR integration stub — design an API interface for connecting to hospital management systems like EduManage NG or open-source EMR platforms
-- WhatsApp result delivery — send scan result summary to clinician via WhatsApp Business API (Twilio/Vonage)
+**`UploadPage`**
+- Drag-and-drop image input, patient selector — same as v1.
+- New: a condition selector — checkboxes for Pneumonia, Tuberculosis, Cardiomegaly, Lung Nodule/Mass, plus a prominent **"Run Comprehensive Panel"** toggle that selects all of them. Rib Fracture, if included, shows an "Experimental" badge next to its checkbox.
+- Submit triggers the upload + `/infer` flow described in Phase 3.
 
----
+**`ResultPage`**
+- Redesigned around a **grid of per-condition finding cards** rather than one single result — each card shows that condition's X-ray + heatmap pair, a colour-coded confidence bar, and a prediction badge, and populates live as Firestore findings stream in.
+- Disclaimer banner: same wording as v1, always visible, non-dismissable.
+- The Lung Nodule/Mass card specifically carries an extra line: *"Possible nodule/mass — not a cancer diagnosis. CT follow-up recommended."* This isn't optional styling; it's the line that keeps the tool from overclaiming on the one condition where X-ray genuinely isn't the diagnostic standard.
+- Clinician notes field, same role gating as v1.
 
-## 13. Learning Resources
+**`DashboardPage`**
+- Stats now broken down per condition (e.g. a stacked bar of flagged cases by condition this week) instead of a single pneumonia/normal split.
 
-| Resource                            | Link / Details                                                                                             |
-|-------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| **Kaggle Chest X-Ray Dataset**      | kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia                                                  |
-| **NIH ChestX-ray14**                | nihcc.app.box.com/v/ChestXray-NIHCC                                                                         |
-| **PyTorch Transfer Learning Tutorial** | pytorch.org/tutorials/beginner/transfer_learning_tutorial.html                                            |
-| **pytorch-grad-cam Library**        | github.com/jacobgil/pytorch-grad-cam                                                                        |
-| **Django REST Framework Docs**      | django-rest-framework.org                                                                                   |
-| **React + Axios Tutorial**          | axios-http.com/docs/intro                                                                                   |
-| **Render.com (Free Deployment)**    | render.com                                                                                                  |
-| **Google Colab (Free GPU)**         | colab.research.google.com                                                                                   |
-| **Chest X-Ray AI Paper (CheXNet)**  | arxiv.org/abs/1711.05225 — Stanford baseline reference                                                      |
+### State Management
+
+React Context for auth state, now populated from Firebase Auth's `onAuthStateChanged` instead of a custom JWT context. Same `useApi`-style hook pattern for calls to the Cloud Run service; Firestore/Storage calls go through the Firebase SDK directly.
 
 ---
 
-*This brief was developed for use in the Integrated Design Project course. All dataset and deployment links are subject to availability. Students are encouraged to explore extensions aligned with the Nigerian healthcare context.*
+## Phase 5 — Integration & Testing (Day 14–17)
+
+1. Use the **Firebase Local Emulator Suite** (Auth, Firestore, Storage, Functions) for end-to-end testing without touching production data. Point the Cloud Run service's Admin SDK initialization at the emulator endpoints during local testing.
+2. Test matrix:
+   - Role gating via custom claims (clinician cannot write radiologist-only fields).
+   - `/infer` called with a single condition, a partial subset, and `"all"` — confirm findings write progressively, not as one blocking batch.
+   - Heatmaps land in Storage under the right path per condition.
+   - Confidence/prediction values match what the standalone model produced in Phase 2 evaluation (sanity check that nothing got lost in the ONNX export or the API layer).
+3. Full user journey: Login → Upload → select conditions or Comprehensive Panel → watch finding cards populate live → add notes.
+
+---
+
+## Phase 6 — Deployment (Day 17–19)
+
+1. **Frontend:** `firebase deploy --only hosting`. (Vercel still works fine if preferred — Firebase Hosting just means one less external service to wire up since you're already in the Firebase console for everything else.)
+2. **Cloud Functions:** `firebase deploy --only functions` for `setUserRole` and any other lightweight triggers.
+3. **Cloud Run:** containerize `/inference-service` with Docker, deploy with `gcloud run deploy --min-instances=1 --memory=4Gi`, and set the Firebase Admin SDK credentials as environment variables (never committed).
+4. **Security rules:** `firebase deploy --only firestore:rules,storage:rules` — more important than ever now that there are more roles, more collections, and per-condition data to gate correctly.
+5. Set the Cloud Run URL as `VITE_INFERENCE_API_URL` in the frontend build.
+6. Smoke-test the full flow against the live Firebase project and the deployed Cloud Run service.
+
+---
+
+## Libraries Summary
+
+| Purpose | Library |
+|---|---|
+| Deep learning (training) | `torch`, `torchvision` |
+| Serving runtime | `onnxruntime` |
+| Inference API | `fastapi`, `uvicorn` |
+| Grad-CAM | `grad-cam` (pytorch-grad-cam) |
+| Image processing | `Pillow`, `opencv-python-headless` |
+| ML evaluation | `scikit-learn`, `matplotlib`, `seaborn` |
+| Firebase backend services | `firebase-admin` (Python), `firebase` (JS SDK) |
+| Cloud deploy | `gcloud` CLI, `firebase-tools` CLI |
+
+---
+
+## Milestone Checklist
+
+- [ ] Phase 0: Firebase project provisioned, both services running locally
+- [ ] Phase 1: Firebase Auth login + custom-claim roles working
+- [ ] Phase 2: Pneumonia, TB, Cardiomegaly, Nodule/Mass models trained, ONNX-exported, eval reports written for each
+- [ ] Phase 3: `/infer` returns progressive per-condition findings into Firestore for single, partial, and "all" requests
+- [ ] Phase 4: Upload → multi-finding Result grid working in browser
+- [ ] Phase 5: Full journey tested against emulators, no broken paths
+- [ ] Phase 6: Live deployment, all conditions working in production
+
+---
+
+> **Ethical reminder (expanded for v2):** Every finding card displays the disclaimer banner. No real patient data, at any stage. Each model's bias and limitations are documented in the model card individually — call out the small Tuberculosis dataset size, the fact that NIH ChestX-ray14 and CheXpert are both predominantly Western-population datasets, and the experimental status of any Rib Fracture model explicitly. The Lung Nodule/Mass finding must never be worded as a cancer diagnosis. Bronchitis and the common cold were deliberately excluded from the imaging panel — not because they're unimportant clinically, but because chest X-ray has no reliable signal for either, and training a model against a non-existent radiographic pattern would be scientifically and ethically indefensible.
