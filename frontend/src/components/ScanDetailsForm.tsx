@@ -52,24 +52,24 @@ export default function ScanDetailsForm({
 	};
 
 	return (
-		<div className="bg-[#151b2d] rounded-xl p-6 space-y-6">
-			<h2 className="text-lg font-bold text-[#dce1fb]">Scan Details</h2>
+		<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+			<h2 className="text-lg font-bold text-brand-text font-display">Scan Details</h2>
 
 			{/* Scan Type */}
 			<div>
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 					Scan Type
 				</label>
 				<select
 					value={scanType}
 					onChange={(e) => onScanTypeChange(e.target.value)}
-					className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 				>
 					<option value="chest-xray">Chest X-Ray</option>
-					<option value="ct-scan" disabled className="text-[#dce1fb]/30">
+					<option value="ct-scan" disabled className="text-brand-text-muted/30">
 						CT Scan (Coming Soon)
 					</option>
-					<option value="mri" disabled className="text-[#dce1fb]/30">
+					<option value="mri" disabled className="text-brand-text-muted/30">
 						MRI (Coming Soon)
 					</option>
 				</select>
@@ -77,7 +77,7 @@ export default function ScanDetailsForm({
 
 			{/* Image File Upload */}
 			<div>
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 					Image File
 				</label>
 				{!imageFile ? (
@@ -85,15 +85,17 @@ export default function ScanDetailsForm({
 						onDragOver={handleDragOver}
 						onDragLeave={handleDragLeave}
 						onDrop={handleDrop}
-						className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-							isDragging ? "border-[#7bd0ff] bg-[#191f31]" : "border-[#2e3447] bg-transparent"
+						className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
+							isDragging 
+								? "border-brand-primary bg-brand-primary/10 shadow-[0_0_20px_rgba(0,210,255,0.1)] scale-[1.01]" 
+								: "border-brand-border/80 bg-transparent hover:border-brand-primary/50 hover:bg-brand-primary/5"
 						}`}
 					>
 						<div className="flex flex-col items-center gap-3">
-							<Upload size={32} className="text-[#7bd0ff]" />
+							<Upload size={32} className="text-brand-primary animate-pulse" />
 							<div>
-								<p className="text-[#dce1fb] mb-1">Drag & drop or browse</p>
-								<p className="text-[#dce1fb]/50 text-xs">JPEG, PNG, DICOM (.dcm)</p>
+								<p className="text-brand-text font-bold mb-1 text-sm">Drag & drop or browse</p>
+								<p className="text-brand-text-muted/50 text-xs">JPEG, PNG, DICOM (.dcm)</p>
 							</div>
 							<label className="inline-block">
 								<input
@@ -102,26 +104,26 @@ export default function ScanDetailsForm({
 									onChange={handleFileInput}
 									className="hidden"
 								/>
-								<span className="bg-[#2e3447] text-[#7bd0ff] px-4 py-2 rounded-lg cursor-pointer hover:bg-[#191f31] transition-colors inline-block text-sm">
+								<span className="bg-brand-card text-brand-primary border border-brand-border/60 px-4 py-2 rounded-xl cursor-pointer hover:bg-brand-primary hover:text-brand-bg hover:border-brand-primary transition-all duration-300 inline-block text-xs font-bold mt-2 shadow-sm">
 									Browse Files
 								</span>
 							</label>
 						</div>
 					</div>
 				) : (
-					<div className="flex items-center justify-between bg-[#191f31] px-4 py-3 rounded-lg">
+					<div className="flex items-center justify-between bg-brand-primary/5 border border-brand-primary/20 px-5 py-4 rounded-xl animate-fade-in-up">
 						<div className="flex items-center gap-3">
-							<FileImage size={20} className="text-[#7bd0ff]" />
+							<FileImage size={20} className="text-brand-primary" />
 							<div>
-								<p className="text-[#dce1fb] font-semibold">{imageFile.name}</p>
-								<p className="text-[#dce1fb]/50 text-xs">
+								<p className="text-brand-text font-bold text-sm">{imageFile.name}</p>
+								<p className="text-brand-text-muted/50 text-xs font-semibold mt-0.5">
 									{(imageFile.size / 1024 / 1024).toFixed(2)} MB
 								</p>
 							</div>
 						</div>
 						<button
 							onClick={() => onImageFileChange(null)}
-							className="text-[#dce1fb]/70 hover:text-[#ffb4ab] transition-colors text-sm"
+							className="text-brand-text-muted/70 hover:text-rose-400 p-1.5 rounded-lg hover:bg-brand-card/60 transition-all duration-200 text-xs font-bold"
 						>
 							Remove
 						</button>
@@ -131,13 +133,13 @@ export default function ScanDetailsForm({
 
 			{/* View/Projection */}
 			<div>
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 					View / Projection
 				</label>
 				<select
 					value={viewProjection}
 					onChange={(e) => onViewProjectionChange(e.target.value)}
-					className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 				>
 					<option value="">Select view...</option>
 					<option value="PA">PA (Posteroanterior)</option>
@@ -148,20 +150,20 @@ export default function ScanDetailsForm({
 
 			{/* Date of Scan */}
 			<div>
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 					Date of Scan
 				</label>
 				<input
 					type="date"
 					value={scanDate}
 					onChange={(e) => onScanDateChange(e.target.value)}
-					className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 				/>
 			</div>
 
 			{/* Clinical Notes */}
 			<div>
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 					Pre-Analysis Notes (Optional)
 				</label>
 				<textarea
@@ -169,9 +171,10 @@ export default function ScanDetailsForm({
 					onChange={(e) => onClinicalNotesChange(e.target.value)}
 					placeholder="Reason for scan / clinical suspicion..."
 					rows={4}
-					className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all resize-none"
+					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 resize-none placeholder-brand-text-muted/40"
 				/>
 			</div>
 		</div>
 	);
 }
+

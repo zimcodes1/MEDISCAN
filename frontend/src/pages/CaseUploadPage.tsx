@@ -50,17 +50,17 @@ export default function CaseUploadPage() {
 	const isFormValid = selectedPatient && imageFile && viewProjection && assignedRadiologist;
 
 	return (
-		<div className="flex bg-[#0c1324] min-h-screen">
+		<div className="flex bg-brand-bg min-h-screen">
 			<Sidebar />
 
-			<div className="ml-64 flex-1">
+			<div className="ml-64 flex-1 flex flex-col">
 				<TopBar />
 
-				<main className="pt-16 p-8">
+				<main className="pt-16 p-8 relative z-0">
 					{/* Header */}
 					<div className="mb-8 mt-5">
-						<h1 className="text-2xl font-bold text-[#dce1fb] mb-2">New Diagnostic Case</h1>
-						<p className="text-[#dce1fb]/70">Upload and assign chest X-ray scans for AI-assisted analysis.</p>
+						<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">New Diagnostic Case</h1>
+						<p className="text-brand-text-muted text-sm">Upload and assign chest X-ray scans for AI-assisted analysis.</p>
 					</div>
 
 					{uploadSuccess ? (
@@ -98,16 +98,18 @@ export default function CaseUploadPage() {
 									uploadedBy="Dr. Nwosu"
 									priority={priority}
 									onPriorityChange={setPriority}
+									assignedRadiologist={assignedRadiologist}
+									onAssignedRadiologistChange={setAssignedRadiologist}
 								/>
 
 								{/* Submit Button */}
 								<button
 									onClick={handleSubmit}
 									disabled={!isFormValid}
-									className="w-full bg-[#7bd0ff] text-[#0c1324] py-4 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+									className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300"
 								>
-									<Upload size={20} />
-									Upload & Queue for Analysis
+									<Upload size={18} />
+									Upload
 								</button>
 							</div>
 						</div>
@@ -117,3 +119,4 @@ export default function CaseUploadPage() {
 		</div>
 	);
 }
+

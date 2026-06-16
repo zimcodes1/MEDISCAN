@@ -38,13 +38,13 @@ export default function PatientSearch({ selectedPatient, onPatientSelect, onClea
 	};
 
 	return (
-		<div className="bg-[#151b2d] rounded-xl p-6">
-			<h2 className="text-lg font-bold text-[#dce1fb] mb-4">Patient</h2>
+		<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+			<h2 className="text-lg font-bold text-brand-text mb-4 font-display">Patient</h2>
 
 			{!selectedPatient ? (
 				<div className="relative">
 					<div className="relative">
-						<Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#dce1fb]/50" />
+						<Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text-muted" />
 						<input
 							type="text"
 							value={searchQuery}
@@ -54,32 +54,32 @@ export default function PatientSearch({ selectedPatient, onPatientSelect, onClea
 							}}
 							onFocus={() => setShowResults(true)}
 							placeholder="Search by name or hospital ID..."
-							className="w-full bg-[#191f31] text-[#dce1fb] pl-12 pr-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all"
+							className="w-full bg-brand-card/60 text-brand-text pl-12 pr-4 py-3.5 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 placeholder-brand-text-muted/50 text-sm"
 						/>
 					</div>
 
 					{/* Results Dropdown */}
 					{showResults && searchQuery && (
-						<div className="absolute top-full left-0 right-0 mt-2 bg-[#191f31] rounded-lg border border-[#2e3447] overflow-hidden z-10">
+						<div className="absolute top-full left-0 right-0 mt-2 bg-brand-bg/95 backdrop-blur-md rounded-xl border border-brand-border/60 overflow-hidden z-20 shadow-2xl animate-fade-in-up">
 							{filteredPatients.length > 0 ? (
 								filteredPatients.map((patient) => (
 									<button
 										key={patient.id}
 										onClick={() => handleSelect(patient)}
-										className="w-full text-left px-4 py-3 hover:bg-[#2e3447] transition-colors"
+										className="w-full text-left px-5 py-3.5 hover:bg-brand-card border-b border-brand-border/30 last:border-0 transition-all duration-200"
 									>
-										<p className="text-[#dce1fb] font-semibold">{patient.name}</p>
-										<p className="text-[#dce1fb]/70 text-sm">
+										<p className="text-brand-text font-bold text-sm">{patient.name}</p>
+										<p className="text-brand-text-muted/70 text-xs font-semibold mt-0.5">
 											{patient.hospitalId} · {patient.age}y · {patient.sex}
 										</p>
 									</button>
 								))
 							) : (
-								<div className="px-4 py-6 text-center">
-									<p className="text-[#dce1fb]/70 mb-3">Patient not found</p>
+								<div className="px-5 py-8 text-center">
+									<p className="text-brand-text-muted/70 text-sm mb-3">Patient not found</p>
 									<a
 										href="/patients/new"
-										className="text-[#7bd0ff] hover:underline text-sm font-semibold"
+										className="text-brand-primary hover:text-brand-primary-hover hover:underline text-sm font-bold transition-colors"
 									>
 										+ Register new patient
 									</a>
@@ -89,18 +89,22 @@ export default function PatientSearch({ selectedPatient, onPatientSelect, onClea
 					)}
 				</div>
 			) : (
-				<div className="flex items-center justify-between bg-[#191f31] px-4 py-3 rounded-lg">
+				<div className="flex items-center justify-between bg-brand-primary/5 border border-brand-primary/20 px-5 py-4 rounded-xl animate-fade-in-up">
 					<div>
-						<p className="text-[#dce1fb] font-semibold">{selectedPatient.name}</p>
-						<p className="text-[#dce1fb]/70 text-sm">
+						<p className="text-brand-text font-bold text-sm">{selectedPatient.name}</p>
+						<p className="text-brand-text-muted/70 text-xs font-semibold mt-0.5">
 							{selectedPatient.hospitalId} · {selectedPatient.age}y · {selectedPatient.sex}
 						</p>
 					</div>
-					<button onClick={onClearPatient} className="text-[#dce1fb]/70 hover:text-[#ffb4ab] transition-colors">
-						<X size={20} />
+					<button 
+						onClick={onClearPatient} 
+						className="text-brand-text-muted/70 hover:text-rose-400 p-1.5 rounded-lg hover:bg-brand-card/60 transition-all duration-200"
+					>
+						<X size={16} />
 					</button>
 				</div>
 			)}
 		</div>
 	);
 }
+
