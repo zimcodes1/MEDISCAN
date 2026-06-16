@@ -19,7 +19,7 @@ export default function BillingPlanSection({ planData, onSave }: BillingPlanSect
 	const usagePercentage = (planData.scansUsed / planData.scansLimit) * 100;
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 sm:pt-10">
 			<div>
 				<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Billing & Plan</h2>
 				<p className="text-brand-text-muted text-sm">Manage your subscription and billing information</p>

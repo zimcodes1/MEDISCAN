@@ -26,7 +26,7 @@ export default function DangerZoneSection() {
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 sm:pt-10">
 			<div>
 				<h2 className="text-3xl font-extrabold text-rose-500 tracking-tight font-display mb-2">Danger Zone</h2>
 				<p className="text-brand-text-muted text-sm">Irreversible actions that affect your entire organisation</p>

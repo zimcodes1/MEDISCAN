@@ -25,7 +25,7 @@ export default function ScanReportDefaultsSection({
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 sm:pt-10">
 			<div>
 				<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Scan & Report Defaults</h2>
 				<p className="text-brand-text-muted text-sm">Set organisation-wide defaults for scans and reports</p>

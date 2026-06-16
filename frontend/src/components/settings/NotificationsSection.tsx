@@ -29,7 +29,7 @@ export default function NotificationsSection({
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 sm:pt-10">
 			<div>
 				<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Notifications</h2>
 				<p className="text-brand-text-muted text-sm">Manage your notification preferences</p>
@@ -95,7 +95,7 @@ export default function NotificationsSection({
 										onChange={(e) => setReportSubmitted(e.target.checked)}
 										className="sr-only peer"
 									/>
-									<div className="w-11 h-6 bg-brand-bg/85 border border-brand-border/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-brand-text-muted after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-primary peer-checked:after:bg-brand-bg peer-checked:after:border-brand-primary"></div>
+									<div className="w-11 h-6 bg-brand-bg/85 border border-brand-border/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-brand-text-muted after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-primary peer-checked:after:bg-brand-bg"></div>
 								</label>
 							</div>
 						)}

@@ -36,7 +36,7 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 sm:pt-10">
 			<div>
 				<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Organisation Profile</h2>
 				<p className="text-brand-text-muted text-sm">Manage your organisation's information and branding</p>
