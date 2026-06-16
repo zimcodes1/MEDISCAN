@@ -24,7 +24,7 @@ export default function SubmissionFooter({
 	disabled = false,
 }: SubmissionFooterProps) {
 	return (
-		<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+		<div className="glass-panel rounded-2xl p-4 sm:p-6 relative overflow-hidden group">
 			{/* Clinician Info */}
 			<div className="mb-6">
 				<div className="flex items-center justify-between mb-4">
@@ -75,7 +75,7 @@ export default function SubmissionFooter({
 							className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl text-xs font-extrabold hover:shadow-[0_0_20px_rgba(0,210,255,0.2)] hover:opacity-95 active:scale-95 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
 						>
 							<FileCheck size={14} />
-							Submit & Sign Report
+							Submit <span className="hidden sm:inline">& Sign Report</span>
 						</button>
 					</div>
 				</>

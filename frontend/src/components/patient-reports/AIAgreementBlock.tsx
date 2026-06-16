@@ -16,7 +16,7 @@ export default function AIAgreementBlock({
 	const showReasonField = agreement === "partially-agree" || agreement === "disagree";
 
 	return (
-		<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+		<div className="glass-panel rounded-2xl p-4 sm:p-6 relative overflow-hidden group">
 			<h2 className="text-lg font-bold text-brand-text mb-6 font-display">Block 4 — Agreement with AI</h2>
 
 			{/* AI Assessment Agreement */}

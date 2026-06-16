@@ -40,7 +40,7 @@ export default function FindingsBlock({
 	};
 
 	return (
-		<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+		<div className="glass-panel rounded-2xl p-4 sm:p-6 relative overflow-hidden group">
 			<h2 className="text-lg font-bold text-brand-text mb-6 font-display">Block 1 — Findings</h2>
 
 			{/* Lung Fields */}

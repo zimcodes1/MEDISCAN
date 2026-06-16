@@ -28,7 +28,7 @@ export default function ContextBar({
 	const hasFindings = detectedFindings.length > 0;
 
 	return (
-		<div className="glass-panel rounded-2xl p-6 mb-6 relative overflow-hidden group">
+		<div className="glass-panel rounded-2xl p-4 sm:p-6 mb-6 relative overflow-hidden group">
 			<div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
 				<div className="flex flex-wrap items-center gap-6 text-sm">
 					<div>

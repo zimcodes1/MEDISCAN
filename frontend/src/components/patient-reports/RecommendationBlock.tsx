@@ -24,7 +24,7 @@ export default function RecommendationBlock({
 	const showFollowUpFields = recommendedAction === "follow-up-xray";
 
 	return (
-		<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+		<div className="glass-panel rounded-2xl p-4 sm:p-6 relative overflow-hidden group">
 			<h2 className="text-lg font-bold text-brand-text mb-6 font-display">Block 3 — Recommendation</h2>
 
 			{/* Recommended Action */}
