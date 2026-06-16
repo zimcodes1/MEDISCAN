@@ -37,7 +37,7 @@ export default function HeroSection() {
 								</span>
 							</h1>
 
-							<p className="text-lg md:text-xl text-brand-text-muted leading-relaxed max-w-xl">
+							<p className="text-lg text-brand-text-muted leading-relaxed max-w-xl">
 								Mediscan NG is an AI-powered decision-support tool that helps
 								clinicians analyze chest X-rays faster. Get preliminary findings
 								in seconds, with visual explanations to guide your clinical
