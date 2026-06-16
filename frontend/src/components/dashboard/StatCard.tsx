@@ -5,43 +5,54 @@ interface StatCardProps {
 	icon: React.ReactNode;
 	accent: "blue" | "amber" | "green" | "red";
 }
+
 const ACCENT = {
 	blue: {
-		bg: "bg-[#1a2540]",
-		text: "text-[#7bd0ff]",
-		border: "border-[#7bd0ff]/20",
-		iconBg: "bg-[#7bd0ff]/10",
+		bg: "bg-brand-primary",
+		text: "text-brand-primary",
+		border: "border-brand-primary/20",
+		iconBg: "bg-brand-primary/10",
 	},
 	amber: {
-		bg: "bg-[#251e14]",
-		text: "text-[#ffb95f]",
-		border: "border-[#ffb95f]/20",
-		iconBg: "bg-[#ffb95f]/10",
+		bg: "bg-amber-500",
+		text: "text-amber-500",
+		border: "border-amber-500/20",
+		iconBg: "bg-amber-500/10",
 	},
 	green: {
-		bg: "bg-[#142018]",
-		text: "text-[#5dca9e]",
-		border: "border-[#5dca9e]/20",
-		iconBg: "bg-[#5dca9e]/10",
+		bg: "bg-emerald-500",
+		text: "text-emerald-400",
+		border: "border-emerald-500/20",
+		iconBg: "bg-emerald-500/10",
 	},
 	red: {
-		bg: "bg-[#251414]",
-		text: "text-[#f08080]",
-		border: "border-[#f08080]/20",
-		iconBg: "bg-[#f08080]/10",
+		bg: "bg-rose-500",
+		text: "text-rose-400",
+		border: "border-rose-500/20",
+		iconBg: "bg-rose-500/10",
 	},
 };
 
 export default function StatCard({ label, value, sub, icon, accent }: StatCardProps) {
 	const a = ACCENT[accent];
 	return (
-		<div className={`bg-[#151b2d] border border-blue-300/40 rounded-xl p-5 flex items-start justify-between`}>
-			<div>
-				<p className="text-[#dce1fb]/50 text-xs uppercase tracking-widest mb-2">{label}</p>
-				<p className={`text-3xl font-bold ${a.text} leading-none mb-1`}>{value}</p>
-				{sub && <p className="text-[#dce1fb]/40 text-xs mt-1">{sub}</p>}
+		<div className="glass-panel glass-panel-hover rounded-2xl p-6 flex items-start justify-between relative overflow-hidden group">
+			{/* Color-matched background glow */}
+			<div className={`absolute -bottom-8 -right-8 w-24 h-24 rounded-full blur-2xl pointer-events-none opacity-10 group-hover:opacity-20 transition-all duration-500 ${a.bg}`} />
+			
+			<div className="space-y-3 relative z-10">
+				<p className="text-brand-text-muted text-xs font-bold uppercase tracking-wider">{label}</p>
+				<div className="space-y-1">
+					<p className={`text-4xl font-extrabold tracking-tight ${a.text} text-neon-glow leading-none`}>
+						{value}
+					</p>
+					{sub && <p className="text-brand-text-muted/60 text-xs">{sub}</p>}
+				</div>
 			</div>
-			<div className={`${a.iconBg} p-2.5 rounded-lg ${a.text}`}>{icon}</div>
+			
+			<div className={`p-3 rounded-xl ${a.iconBg} ${a.text} border ${a.border} group-hover:scale-105 transition-transform duration-300 relative z-10`}>
+				{icon}
+			</div>
 		</div>
 	);
 }

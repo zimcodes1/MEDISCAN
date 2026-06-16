@@ -107,11 +107,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-[#0c1324] py-3 rounded-lg font-semibold text-lg disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-              style={{
-                background: loading ? '#7bd0ff' : 'linear-gradient(135deg, #7bd0ff 0%, #008abb 100%)',
-                opacity: loading ? 0.6 : 1
-              }}
+              className="w-full text-[#0c1324] py-3 rounded-lg font-semibold text-lg disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-brand-primary hover:bg-brand-primary/90"
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </button>

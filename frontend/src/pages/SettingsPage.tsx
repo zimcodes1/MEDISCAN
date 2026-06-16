@@ -90,10 +90,10 @@ export default function SettingsPage() {
 				onSectionChange={setActiveSection}
 				userRole={userRole}
 			/>
-			<div className="flex-1">
+			<div className="flex-1 ml-64 flex flex-col">
 				<TopBar />
 
-				<main className="w-8/10 ml-[20%] pt-16 p-8 mt-5">
+				<main className="pt-16 p-8 mt-5">
 					<div className="flex gap-6">
 						{/* Content Area */}
 						<div className="flex-1">

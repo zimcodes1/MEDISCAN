@@ -106,7 +106,7 @@ export default function BenefitsSection() {
               {/* Highlight metrics */}
               <div className="space-y-6">
                 <div className="max-sm:flex-col flex gap-2 md:gap-4 items-start">
-                  <div className="text-2xl md:text-5xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent text-neon-glow shrink-0 w-fit md:w-32">&lt; 500</div>
+                  <div className="text-2xl md:text-4xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent text-neon-glow shrink-0 w-fit md:w-32">&lt; 500</div>
                   <div>
                     <h4 className="text-lg font-bold text-brand-text">Qualified Radiologists</h4>
                     <p className="text-brand-text-muted text-sm leading-relaxed">Serving a growing population of over 220+ million people nationwide.</p>
@@ -114,7 +114,7 @@ export default function BenefitsSection() {
                 </div>
 
                 <div className="max-sm:flex-col flex gap-2 md:gap-4 items-start pt-3 md:pt-6 border-t border-brand-border/60">
-                  <div className="text-2xl md:text-5xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent text-neon-glow shrink-0 md:w-32">Critical</div>
+                  <div className="text-2xl md:text-4xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent text-neon-glow shrink-0 md:w-32">Critical</div>
                   <div>
                     <h4 className="text-lg font-bold text-brand-text">Specialist Gap</h4>
                     <p className="text-brand-text-muted text-sm leading-relaxed">Many hospitals have imaging equipment but lack the specialists required to interpret findings quickly.</p>
@@ -122,7 +122,7 @@ export default function BenefitsSection() {
                 </div>
 
                 <div className="max-sm:flex-col flex gap-2 md:gap-4 items-start pt-3 md:pt-6 border-t border-brand-border/60">
-                  <div className="text-2xl md:text-5xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent text-neon-glow shrink-0 md:w-32">Delayed</div>
+                  <div className="text-2xl md:text-4xl font-black bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent text-neon-glow shrink-0 md:w-32">Delayed</div>
                   <div>
                     <h4 className="text-lg font-bold text-brand-text">Diagnostic Care</h4>
                     <p className="text-brand-text-muted text-sm leading-relaxed">This diagnostic gap leads to delayed treatment, especially for time-sensitive respiratory conditions.</p>

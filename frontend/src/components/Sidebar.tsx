@@ -18,23 +18,29 @@ export default function Sidebar() {
 	];
 
 	return (
-		<aside className="w-2/10 bg-[#151b2d] h-screen flex flex-col fixed left-0 top-0">
+		<aside className="w-64 bg-brand-bg/95 border-r border-brand-border/60 h-screen flex flex-col fixed left-0 top-0 z-20 shadow-xl backdrop-blur-md">
 			{/* Logo */}
-			<div className=" px-3 py-5 flex gap-2 items-center">
-				<Logo size={32}/>
-				<h1 className="text-[#7bd0ff] text-xl font-bold tracking-wide">Mediscan</h1>
+			<div className="px-6 py-6 flex gap-3 items-center border-b border-brand-border/40">
+				<div className="p-1.5 rounded-lg bg-brand-primary/10 border border-brand-primary/20">
+					<Logo size={24}/>
+				</div>
+				<h1 className="text-brand-text text-lg font-bold tracking-tight font-display">
+					MediScan<span className="text-brand-primary font-extrabold ml-0.5">NG</span>
+				</h1>
 			</div>
 
 			{/* New Case Button */}
-			<div className="px-4 mb-6 mt-4">
-				<button className="w-full bg-[#7bd0ff] text-[#0c1324] py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-					<Plus size={20} />
-					New Case
-				</button>
+			<div className="px-4 mb-6 mt-6">
+				<Link to="/case-upload">
+					<button className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300">
+						<Plus size={18} />
+						New Case
+					</button>
+				</Link>
 			</div>
 
 			{/* Main Navigation */}
-			<nav className="flex-1 px-4 space-y-1">
+			<nav className="flex-1 px-3 space-y-1">
 				{navItems.map((item) => {
 					const Icon = item.icon;
 					const isActive = location.pathname === item.path;
@@ -42,31 +48,36 @@ export default function Sidebar() {
 						<Link
 							key={item.path}
 							to={item.path}
-							className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+							className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border-l-2 ${
 								isActive
-									? "bg-[#2e3447] text-[#7bd0ff]"
-									: "text-[#dce1fb] hover:bg-[#191f31]"
+									? "bg-brand-primary/10 text-brand-primary border-brand-primary font-semibold shadow-[inset_0_0_10px_rgba(0,210,255,0.02)]"
+									: "text-brand-text-muted hover:text-brand-text hover:bg-brand-card/45 border-transparent"
 							}`}
 						>
-							<Icon size={20} />
-							<span className="font-medium">{item.label}</span>
+							<Icon size={18} />
+							<span className="text-sm font-medium">{item.label}</span>
 						</Link>
 					);
 				})}
 			</nav>
 
 			{/* Bottom Navigation */}
-			<nav className="px-4 pb-6 space-y-1">
+			<nav className="px-3 pb-6 space-y-1">
 				{bottomItems.map((item) => {
 					const Icon = item.icon;
+					const isActive = location.pathname === item.path;
 					return (
 						<Link
 							key={item.path}
 							to={item.path}
-							className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#dce1fb] hover:bg-[#191f31] transition-colors"
+							className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border-l-2 ${
+								isActive
+									? "bg-brand-primary/10 text-brand-primary border-brand-primary font-semibold"
+									: "text-brand-text-muted hover:text-brand-text hover:bg-brand-card/45 border-transparent"
+							}`}
 						>
-							<Icon size={20} />
-							<span className="font-medium">{item.label}</span>
+							<Icon size={18} />
+							<span className="text-sm font-medium">{item.label}</span>
 						</Link>
 					);
 				})}
@@ -74,3 +85,4 @@ export default function Sidebar() {
 		</aside>
 	);
 }
+

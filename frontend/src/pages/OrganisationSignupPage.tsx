@@ -11,7 +11,7 @@ export default function OrganisationSignupPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const [formData, setFormData] = useState({
     organisationName: '',
     organisationType: 'hospital',
@@ -76,17 +76,17 @@ export default function OrganisationSignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
-    
+
     try {
       const payload = mapOrganisationSignupToPayload(formData);
       const response = await registerOrganisation(payload);
 
-      navigate('/verify-email', { 
-        state: { email: formData.workEmail, organisationId: response.organisation_id } 
+      navigate('/verify-email', {
+        state: { email: formData.workEmail, organisationId: response.organisation_id }
       });
     } catch (error) {
       setErrors(mapRegistrationErrors(error));
@@ -136,11 +136,10 @@ export default function OrganisationSignupPage() {
                 value={formData.organisationName}
                 onChange={handleChange}
                 placeholder="e.g., Maiduguri Specialist Hospital"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
-                  errors.organisationName
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.organisationName
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
                     : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
-                }`}
+                  }`}
               />
               {errors.organisationName && (
                 <p className="text-[#ffb4ab] text-sm mt-1">{errors.organisationName}</p>
@@ -175,11 +174,10 @@ export default function OrganisationSignupPage() {
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] transition-all ${
-                    errors.state
+                  className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] transition-all ${errors.state
                       ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
                       : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
-                  }`}
+                    }`}
                 >
                   <option value="">Select a state</option>
                   {states.map(state => (
@@ -204,11 +202,10 @@ export default function OrganisationSignupPage() {
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 placeholder="+234 8000 000 000"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
-                  errors.phoneNumber
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.phoneNumber
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
                     : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
-                }`}
+                  }`}
               />
               {errors.phoneNumber && (
                 <p className="text-[#ffb4ab] text-sm mt-1">{errors.phoneNumber}</p>
@@ -234,11 +231,10 @@ export default function OrganisationSignupPage() {
                 value={formData.adminFullName}
                 onChange={handleChange}
                 placeholder="First & Last Name"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
-                  errors.adminFullName
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.adminFullName
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
                     : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
-                }`}
+                  }`}
               />
               {errors.adminFullName && (
                 <p className="text-[#ffb4ab] text-sm mt-1">{errors.adminFullName}</p>
@@ -257,11 +253,10 @@ export default function OrganisationSignupPage() {
                 value={formData.workEmail}
                 onChange={handleChange}
                 placeholder="admin@hospital.com"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
-                  errors.workEmail
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.workEmail
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
                     : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
-                }`}
+                  }`}
               />
               {errors.workEmail && (
                 <p className="text-[#ffb4ab] text-sm mt-1">{errors.workEmail}</p>
@@ -280,11 +275,10 @@ export default function OrganisationSignupPage() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
-                  errors.password
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.password
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
                     : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
-                }`}
+                  }`}
               />
               {errors.password && (
                 <p className="text-[#ffb4ab] text-sm mt-1">{errors.password}</p>
@@ -303,11 +297,10 @@ export default function OrganisationSignupPage() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
-                  errors.confirmPassword
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.confirmPassword
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
                     : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
-                }`}
+                  }`}
               />
               {errors.confirmPassword && (
                 <p className="text-[#ffb4ab] text-sm mt-1">{errors.confirmPassword}</p>
@@ -332,11 +325,7 @@ export default function OrganisationSignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full text-[#0c1324] py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all"
-            style={{
-              background: loading ? '#7bd0ff' : 'linear-gradient(135deg, #7bd0ff 0%, #008abb 100%)',
-              opacity: loading ? 0.5 : 1
-            }}
+            className="w-full text-[#0c1324] py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all bg-brand-primary hover:bg-brand-primary/90"
           >
             {loading ? (
               <>

@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Hourglass, RefreshCw, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Hourglass, RefreshCw, ShieldCheck, ChevronRight } from "lucide-react";
 
 type ScanStatus = "flagged" | "processing" | "ready" | "reviewed";
 type Priority = "urgent" | "routine";
@@ -21,114 +21,121 @@ interface ScanRowProps {
 	scan: ScanQueueItem;
 }
 
-
-const STATUS_CONFIG: Record<ScanStatus, { label: string; color: string; icon: React.ReactNode }> = {
+const STATUS_CONFIG: Record<ScanStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
     flagged: {
         label: "Flagged",
-        color: "text-[#f08080]",
-        icon: <AlertTriangle size={14} />,
+        color: "text-rose-400",
+        bg: "bg-rose-500/5",
+        border: "border-rose-500/20",
+        icon: <AlertTriangle size={13} />,
     },
     processing: {
         label: "Analysing",
-        color: "text-[#ffb95f]",
-        icon: <RefreshCw size={14} className="animate-spin" />,
+        color: "text-amber-400",
+        bg: "bg-amber-500/5",
+        border: "border-amber-500/20",
+        icon: <RefreshCw size={13} className="animate-spin" />,
     },
     ready: {
         label: "Ready",
-        color: "text-[#5dca9e]",
-        icon: <CheckCircle2 size={14} />,
+        color: "text-emerald-400",
+        bg: "bg-emerald-500/5",
+        border: "border-emerald-500/20",
+        icon: <CheckCircle2 size={13} />,
     },
     reviewed: {
         label: "Reviewed",
-        color: "text-[#dce1fb]/40",
-        icon: <ShieldCheck size={14} />,
+        color: "text-brand-text-muted/65",
+        bg: "bg-brand-card/40",
+        border: "border-brand-border/40",
+        icon: <ShieldCheck size={13} />,
     },
 };
 
-const PRIORITY_BORDER: Record<Priority, string> = {
-    urgent: "border-l-[#f08080]",
-    routine: "border-l-[#2e3650]",
-};
-
-function ConfidencePill({ confidence, prediction }: { confidence: number; prediction: string }) {
-    const isPositive = prediction === "Pneumonia";
-    const color = confidence >= 80 ? "#f08080" : confidence >= 50 ? "#ffb95f" : "#5dca9e";
-
-    return (
-        <div className="flex items-center gap-2">
-            <span className="text-[#dce1fb] text-xs tabular-nums w-8">{confidence}%</span>
-            <div className="flex-1 h-1 bg-[#1e2740] rounded-full overflow-hidden min-w-[40px]">
-                <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${confidence}%`, backgroundColor: color }}
-                />
-            </div>
-            <span
-                className="text-[10px] font-medium px-2 py-0.5 rounded-full border"
-                style={{
-                    color: isPositive ? "#f08080" : "#5dca9e",
-                    borderColor: isPositive ? "#f08080" + "33" : "#5dca9e" + "33",
-                    backgroundColor: isPositive ? "#f08080" + "11" : "#5dca9e" + "11",
-                }}
-            >
-                {prediction}
-            </span>
-        </div>
-    );
+function getInitials(name: string) {
+	return name
+		.split(" ")
+		.map((n) => n[0])
+		.slice(0, 2)
+		.join("")
+		.toUpperCase();
 }
+
 export default function ScanRow({ scan }: ScanRowProps) {
     const status = STATUS_CONFIG[scan.status];
     const isReviewed = scan.status === "reviewed";
+    const initials = getInitials(scan.patientName);
+    
+    // AI Verdict style configuration
+    const confidenceColor = scan.confidence !== null && scan.confidence >= 80 
+        ? "text-rose-400 border-rose-500/20 bg-rose-500/5" 
+        : scan.confidence !== null && scan.confidence >= 50 
+            ? "text-amber-400 border-amber-500/20 bg-amber-500/5" 
+            : "text-emerald-400 border-emerald-500/20 bg-emerald-500/5";
 
     return (
         <div
-            className={`grid grid-cols-12 gap-3 items-center px-4 py-3.5 rounded-lg border-l-2 transition-colors ${
-                isReviewed ? "bg-[#0f1520] opacity-60" : "bg-[#111827] hover:bg-[#141c2f]"
-            } ${PRIORITY_BORDER[scan.priority]}`}
+            className={`grid grid-cols-12 gap-4 items-center px-5 py-4 rounded-xl border border-brand-border/40 transition-all duration-300 cursor-pointer ${
+                isReviewed 
+                    ? "bg-brand-card/20 opacity-50 hover:opacity-75" 
+                    : "bg-brand-card/50 hover:bg-brand-card/80 hover:border-brand-primary/30 hover:shadow-[0_4px_20px_rgba(0,210,255,0.04)]"
+            }`}
         >
-            {/* Patient */}
-            <div className="col-span-3">
-                <p className={`text-sm font-medium ${isReviewed ? "text-[#dce1fb]/50" : "text-[#dce1fb]"}`}>
-                    {scan.patientName}
-                </p>
-                <p className="text-[#dce1fb]/30 text-xs mt-0.5">{scan.patientCode} · {scan.id}</p>
+            {/* Patient Info with Avatar */}
+            <div className="col-span-4 flex items-center gap-3.5">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 border ${
+                    isReviewed 
+                        ? "bg-brand-card/30 border-brand-border/50 text-brand-text-muted" 
+                        : "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
+                }`}>
+                    {initials}
+                </div>
+                <div className="min-w-0">
+                    <p className={`text-sm font-bold truncate ${isReviewed ? "text-brand-text-muted" : "text-brand-text"}`}>
+                        {scan.patientName}
+                    </p>
+                    <p className="text-brand-text-muted/60 text-[10px] uppercase font-bold tracking-wider mt-0.5">
+                        {scan.patientCode} · {scan.id}
+                    </p>
+                </div>
             </div>
 
-            {/* Scan Info */}
+            {/* Priority */}
             <div className="col-span-2">
-                <span className="text-[#dce1fb]/60 text-xs bg-[#1e2740] px-2 py-1 rounded">
-                    {scan.projection}
-                </span>
-            </div>
-
-            {/* Uploaded */}
-            <div className="col-span-2">
-                <p className="text-[#dce1fb]/50 text-xs">{scan.uploadedBy}</p>
-                <p className="text-[#dce1fb]/30 text-[10px]">{scan.uploadedAt}</p>
+                {scan.priority === "urgent" ? (
+                    <span className="inline-flex items-center text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-wider">
+                        Urgent
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-brand-card/60 text-brand-text-muted/70 border border-brand-border/40 uppercase tracking-wider">
+                        Routine
+                    </span>
+                )}
             </div>
 
             {/* Status */}
-            <div className="col-span-2">
-                <div className={`flex items-center gap-1.5 ${status.color}`}>
+            <div className="col-span-3">
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border ${status.bg} ${status.border} ${status.color}`}>
                     {status.icon}
-                    <span className="text-xs font-medium">{status.label}</span>
+                    <span className="text-xs font-bold tracking-wide">{status.label}</span>
                 </div>
-                {scan.priority === "urgent" && (
-                    <span className="text-[10px] text-[#f08080] font-semibold uppercase tracking-wider">Urgent</span>
-                )}
             </div>
 
-            {/* Confidence */}
-            <div className="col-span-3 flex justify-center">
+            {/* AI Verdict & Click Action */}
+            <div className="col-span-3 flex items-center justify-between pl-2">
                 {scan.confidence !== null && scan.prediction ? (
-                    <ConfidencePill confidence={scan.confidence} prediction={scan.prediction} />
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-extrabold ${confidenceColor}`}>
+                        {scan.prediction} ({scan.confidence}%)
+                    </span>
                 ) : (
-                    <div className="flex items-center gap-1.5 text-[#dce1fb]/25 text-xs">
+                    <span className="inline-flex items-center gap-1.5 text-brand-text-muted/50 text-xs">
                         <Hourglass size={12} />
-                        Pending
-                    </div>
+                        Analysing
+                    </span>
                 )}
+                <ChevronRight size={16} className="text-brand-text-muted/40 group-hover:text-brand-primary transition-colors ml-2" />
             </div>
         </div>
     );
 }
+

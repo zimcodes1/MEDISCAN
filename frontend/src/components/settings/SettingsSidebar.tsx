@@ -71,14 +71,14 @@ export default function SettingsSidebar({
 	);
 
 	return (
-		<div className="w-2/10 bg-[#151b2d] left-0 top-0 py-4 px-4 fixed h-screen">
-			<h2 className="text-[#dce1fb] font-bold text-lg mb-4 px-2">Settings</h2>
+		<div className="w-64 bg-brand-bg/95 border-r border-brand-border/60 h-screen flex flex-col fixed left-0 top-0 z-20 shadow-xl backdrop-blur-md py-6 px-4">
+			<h2 className="text-brand-text font-bold text-lg mb-4 px-2 font-display">Settings</h2>
 
-			{/* New Case Button */}
+			{/* Back to Dashboard Button */}
 			<Link to={'/dashboard'} className="block my-4">
-				<button className="w-full bg-[#7bd0ff] text-[#0c1324] py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-					<ArrowLeft size={20} />
-					Back to Dashboard
+				<button className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300">
+					<ArrowLeft size={18} />
+					Dashboard
 				</button>
 			</Link>
 
@@ -92,18 +92,18 @@ export default function SettingsSidebar({
 						<button
 							key={section.id}
 							onClick={() => onSectionChange(section.id)}
-							className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border-l-2 ${
 								isActive
 									? isDanger
-										? "bg-[#ffb4ab]/10 text-[#ffb4ab]"
-										: "bg-[#2e3447] text-[#7bd0ff]"
+										? "bg-[#ffb4ab]/10 text-[#ffb4ab] border-[#ffb4ab]"
+										: "bg-brand-primary/10 text-brand-primary border-brand-primary font-semibold"
 									: isDanger
-										? "text-[#ffb4ab]/70 hover:bg-[#ffb4ab]/5"
-										: "text-[#dce1fb] hover:bg-[#191f31]"
+										? "text-[#ffb4ab]/70 hover:bg-[#ffb4ab]/5 border-transparent"
+										: "text-brand-text-muted hover:text-brand-text hover:bg-brand-card/45 border-transparent"
 							}`}
 						>
 							<Icon size={18} />
-							<span className="font-medium">{section.label}</span>
+							<span className="text-sm font-medium">{section.label}</span>
 						</button>
 					);
 				})}
@@ -111,3 +111,4 @@ export default function SettingsSidebar({
 		</div>
 	);
 }
+
