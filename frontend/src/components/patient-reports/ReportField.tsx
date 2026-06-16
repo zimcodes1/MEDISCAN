@@ -6,9 +6,9 @@ interface ReportFieldProps {
 
 export default function ReportField({ label, value, fullWidth = false }: ReportFieldProps) {
 	return (
-		<div className={fullWidth ? "col-span-2" : ""}>
-			<p className="text-[#dce1fb]/70 text-sm mb-1">{label}</p>
-			<p className="text-[#dce1fb] font-semibold">{value}</p>
+		<div className={fullWidth ? "col-span-2 border-t border-brand-border/30 pt-3 mt-1" : ""}>
+			<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-1 font-display">{label}</p>
+			<div className="text-brand-text text-sm font-semibold leading-relaxed">{value}</div>
 		</div>
 	);
 }

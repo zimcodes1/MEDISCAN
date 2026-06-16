@@ -28,29 +28,33 @@ export default function PatientReportViewPage() {
 		projection: "PA (Posteroanterior)",
 		scanId: "SCN-2024-9921",
 
-		// AI Summary
-		aiPrediction: "Possible Pneumonia",
-		aiConfidence: 94,
-		aiPredictionType: "pneumonia" as const,
+		// AI Summary (Multi-condition Panel)
+		aiFindings: [
+			{ condition: "Pneumonia", prediction: "detected" as const, confidence: 94, isExperimental: false },
+			{ condition: "Tuberculosis", prediction: "normal" as const, confidence: 98, isExperimental: false },
+			{ condition: "Cardiomegaly", prediction: "normal" as const, confidence: 97, isExperimental: false },
+			{ condition: "Lung Nodule/Mass", prediction: "detected" as const, confidence: 88, isExperimental: false },
+			{ condition: "Rib Fracture", prediction: "normal" as const, confidence: 95, isExperimental: true }
+		],
 
 		// Findings
-		lungFields: ["Consolidation present", "Increased opacity"],
+		lungFields: ["Consolidation present", "Increased opacity", "Possible nodule right mid-zone"],
 		affectedSide: "Right",
 		severity: "Moderate",
 		detailedFindings:
-			"Right lower lobe demonstrates increased opacity with air bronchograms consistent with consolidation. Left lung field appears clear. No pleural effusion or pneumothorax identified. Cardiac silhouette is within normal limits.",
+			"Right lower lobe demonstrates increased opacity with air bronchograms consistent with consolidation. In addition, there is a round, well-circumscribed nodular opacity (approximately 1.5 cm) in the right mid-zone. Left lung field appears clear. No pleural effusion or pneumothorax identified. Cardiac silhouette is within normal limits.",
 
 		// Impression
-		primaryImpression: "Pneumonia (Bacterial)",
-		secondaryFindings: "None",
+		primaryImpression: "Pneumonia (Bacterial) and Lung Nodule (Right Mid-Zone)",
+		secondaryFindings: "Recommend CT chest for lung nodule evaluation",
 		impressionNarrative:
-			"The radiographic findings are consistent with right lower lobe pneumonia, likely bacterial in origin. The pattern of consolidation with air bronchograms supports this diagnosis. No complications such as pleural effusion or abscess formation are evident.",
+			"The radiographic findings are consistent with right lower lobe pneumonia, likely bacterial in origin. The pattern of consolidation with air bronchograms supports this diagnosis. Additionally, a possible lung nodule is noted in the right mid-zone. Follow-up chest CT is recommended to further characterize the nodule.",
 
 		// Recommendation
-		recommendedAction: "Follow-up X-ray",
-		followUpTimeframe: "7 days",
+		recommendedAction: "Chest CT follow-up & Follow-up X-ray",
+		followUpTimeframe: "Immediate for CT / 7 days for X-ray",
 		additionalNotes:
-			"Recommend clinical correlation with patient symptoms and laboratory findings. Follow-up chest X-ray in 7 days to assess treatment response. If symptoms worsen or fail to improve, consider CT chest for further evaluation.",
+			"Recommend clinical correlation with patient symptoms and laboratory findings. Obtain chest CT to evaluate the right mid-zone nodule. Follow-up chest X-ray in 7 days to assess response of the consolidative process to antibiotic therapy.",
 
 		// Agreement
 		aiAgreement: "Agree",
@@ -72,39 +76,39 @@ export default function PatientReportViewPage() {
 	};
 
 	return (
-		<div className="flex bg-[#0c1324] min-h-screen">
+		<div className="flex bg-brand-bg min-h-screen print:bg-white print:min-h-0 text-brand-text print:text-black">
 			<Sidebar />
 
-			<div className="ml-64 flex-1">
+			<div className="ml-64 flex-1 flex flex-col print:ml-0 print:p-0 print:bg-white">
 				<TopBar />
 
-				<main className="pt-16 p-8">
+				<main className="pt-16 p-8 relative z-0 flex-1 print:pt-0 print:p-0">
 					{/* Page Header with Actions */}
-					<div className="flex items-center justify-between mb-8 mt-5">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 mt-5 print:hidden">
 						<div>
-							<h1 className="text-4xl font-bold text-[#dce1fb] mb-2">Diagnostic Report</h1>
-							<p className="text-[#dce1fb]/70">Read-only view · Signed and submitted</p>
+							<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Diagnostic Report</h1>
+							<p className="text-brand-text-muted text-sm">Read-only view · Signed and submitted</p>
 						</div>
-						<div className="flex gap-3">
+						<div className="flex gap-3 w-full sm:w-auto">
 							<button
 								onClick={handlePrint}
-								className="flex items-center gap-2 bg-[#2e3447] text-[#7bd0ff] px-6 py-3 rounded-lg font-semibold hover:bg-[#191f31] transition-colors"
+								className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-brand-card text-brand-primary border border-brand-border/60 hover:bg-brand-card/80 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 active:scale-95 cursor-pointer"
 							>
-								<Printer size={18} />
+								<Printer size={15} />
 								Print
 							</button>
 							<button
 								onClick={handleExportPDF}
-								className="flex items-center gap-2 bg-[#7bd0ff] text-[#0c1324] px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+								className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg px-5 py-2.5 rounded-xl text-xs font-extrabold hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer"
 							>
-								<Download size={18} />
+								<Download size={15} />
 								Export PDF
 							</button>
 						</div>
 					</div>
 
 					{/* Report Content */}
-					<div className="max-w-5xl">
+					<div className="max-w-5xl print:max-w-full">
 						{/* Header */}
 						<ReportHeader
 							orgName={reportData.orgName}
@@ -115,10 +119,11 @@ export default function PatientReportViewPage() {
 
 						{/* Patient Information */}
 						<ReportSection title="Patient Information">
-							<div className="grid grid-cols-2 gap-4">
-								<ReportField label="Full Name" value={reportData.patientName} />
+							<div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+								<div className="col-span-2">
+									<ReportField label="Full Name" value={reportData.patientName} />
+								</div>
 								<ReportField label="Patient ID" value={reportData.patientId} />
-								<ReportField label="Date of Birth" value={reportData.dateOfBirth} />
 								<ReportField label="Sex" value={reportData.sex} />
 								<ReportField label="Age" value={`${reportData.age} years`} />
 							</div>
@@ -126,7 +131,7 @@ export default function PatientReportViewPage() {
 
 						{/* Scan Information */}
 						<ReportSection title="Scan Information">
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 								<ReportField label="Scan Date" value={reportData.scanDate} />
 								<ReportField label="Scan Type" value={reportData.scanType} />
 								<ReportField label="Projection" value={reportData.projection} />
@@ -136,112 +141,158 @@ export default function PatientReportViewPage() {
 
 						{/* AI Summary */}
 						<ReportSection title="AI-Generated Preliminary Analysis" highlight>
-							<div className="flex items-center gap-3 mb-3">
-								{reportData.aiPredictionType === "pneumonia" ? (
-									<AlertTriangle size={24} className="text-[#ffb95f]" />
-								) : (
-									<CheckCircle size={24} className="text-[#4ade80]" />
-								)}
-								<div>
-									<p className="text-[#dce1fb] font-semibold text-lg">{reportData.aiPrediction}</p>
-									<p className="text-[#dce1fb]/70 text-sm">
-										AI Confidence: {reportData.aiConfidence}%
-									</p>
-								</div>
+							<p className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-4 font-display print:text-amber-600">
+								Multi-Condition Diagnostic Panel Findings
+							</p>
+							
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 print:grid-cols-1 print:gap-3">
+								{reportData.aiFindings.map((finding, idx) => (
+									<div 
+										key={idx} 
+										className={`p-4 rounded-xl border flex flex-col justify-between gap-3 print:bg-white print:border-gray-200 print:text-black ${
+											finding.prediction === "detected"
+												? "bg-rose-500/5 border-rose-500/20 text-rose-400"
+												: "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
+										}`}
+									>
+										<div className="flex items-start justify-between gap-2">
+											<div className="flex items-center gap-2">
+												{finding.prediction === "detected" ? (
+													<AlertTriangle size={16} className="shrink-0 text-rose-400 print:text-red-500" />
+												) : (
+													<CheckCircle size={16} className="shrink-0 text-emerald-400 print:text-green-600" />
+												)}
+												<span className="font-extrabold text-sm text-brand-text print:text-black tracking-tight font-display">
+													{finding.condition}
+												</span>
+												{finding.isExperimental && (
+													<span className="bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded print:border-gray-300 print:text-gray-500">
+														Experimental
+													</span>
+												)}
+											</div>
+											<span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
+												finding.prediction === "detected"
+													? "bg-rose-500/10 text-rose-400 print:bg-red-100 print:text-red-600"
+													: "bg-emerald-500/10 text-emerald-400 print:bg-green-100 print:text-green-700"
+											}`}>
+												{finding.prediction === "detected" ? "Detected" : "Normal"}
+											</span>
+										</div>
+
+										{/* Specific notice for Lung Nodule/Mass findings */}
+										{finding.condition === "Lung Nodule/Mass" && finding.prediction === "detected" && (
+											<p className="text-rose-400/90 print:text-red-600 text-[10px] font-bold leading-normal bg-rose-500/10 border border-rose-500/20 p-2 rounded-lg -mt-1 print:bg-red-50 print:border-red-100">
+												Possible nodule/mass — not a cancer diagnosis. CT follow-up recommended.
+											</p>
+										)}
+
+										{/* Confidence score indicator */}
+										<div className="print:hidden">
+											<div className="flex justify-between items-center mb-1 text-[10px] text-brand-text-muted font-bold">
+												<span>Confidence</span>
+												<span>{finding.confidence}%</span>
+											</div>
+											<div className="w-full bg-brand-bg/60 h-1.5 rounded-full overflow-hidden border border-brand-border/20">
+												<div 
+													className={`h-full rounded-full transition-all duration-500 ${
+														finding.prediction === "detected"
+															? "bg-gradient-to-r from-rose-500 to-amber-500"
+															: "bg-gradient-to-r from-brand-primary to-brand-secondary"
+													}`}
+													style={{ width: `${finding.confidence}%` }}
+												/>
+											</div>
+										</div>
+										<div className="hidden print:block text-xs text-gray-500">
+											AI Confidence: {finding.confidence}%
+										</div>
+									</div>
+								))}
 							</div>
-							<p className="text-[#ffb95f] text-xs italic">
-								Note: This is an AI-generated preliminary finding. The final diagnosis below has been
-								independently assessed and confirmed by a qualified radiologist.
+
+							<p className="text-amber-500/80 print:text-gray-500 text-[10px] font-bold leading-relaxed border-t border-amber-500/10 print:border-gray-200 pt-3 mt-4">
+								* NOTE: The findings above represent automated pre-analysis results generated by independent, specialized deep learning models. The official radiologist diagnosis, narrative impression, and clinical recommendations are detailed below.
 							</p>
 						</ReportSection>
 
 						{/* Radiologist Findings */}
 						<ReportSection title="Radiologist Findings">
-							<div className="space-y-4">
+							<div className="space-y-5">
 								<div>
-									<p className="text-[#dce1fb]/70 text-sm mb-2">Lung Fields</p>
+									<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2.5 font-display">Identified Anomalies</p>
 									<div className="flex flex-wrap gap-2">
 										{reportData.lungFields.map((field, index) => (
 											<span
 												key={index}
-												className="bg-[#191f31] text-[#dce1fb] px-3 py-1 rounded-full text-sm"
+												className="bg-brand-card text-brand-text border border-brand-border/60 px-3.5 py-1.5 rounded-xl text-xs font-semibold print:bg-white print:border-gray-200 print:text-black"
 											>
 												{field}
 											</span>
 										))}
 									</div>
 								</div>
-								<div className="grid grid-cols-2 gap-4">
+								
+								<div className="grid grid-cols-2 gap-4 border-t border-brand-border/30 pt-4">
 									<ReportField label="Affected Side" value={reportData.affectedSide} />
-									<ReportField label="Severity" value={reportData.severity} />
+									<ReportField label="Severity Status" value={reportData.severity} />
 								</div>
+								
 								<ReportField
 									label="Detailed Findings"
-									value={
-										<p className="text-[#dce1fb] leading-relaxed mt-2">
-											{reportData.detailedFindings}
-										</p>
-									}
+									value={reportData.detailedFindings}
 									fullWidth
 								/>
 							</div>
 						</ReportSection>
 
 						{/* Impression */}
-						<ReportSection title="Impression">
+						<ReportSection title="Radiologist Impression">
 							<div className="space-y-4">
 								<div className="grid grid-cols-2 gap-4">
 									<ReportField label="Primary Impression" value={reportData.primaryImpression} />
 									<ReportField label="Secondary Findings" value={reportData.secondaryFindings} />
 								</div>
 								<ReportField
-									label="Clinical Impression"
-									value={
-										<p className="text-[#dce1fb] leading-relaxed mt-2">
-											{reportData.impressionNarrative}
-										</p>
-									}
+									label="Clinical Impression Narrative"
+									value={reportData.impressionNarrative}
 									fullWidth
 								/>
 							</div>
 						</ReportSection>
 
 						{/* Recommendation */}
-						<ReportSection title="Recommendation">
+						<ReportSection title="Clinical Recommendation">
 							<div className="space-y-4">
 								<div className="grid grid-cols-2 gap-4">
 									<ReportField label="Recommended Action" value={reportData.recommendedAction} />
 									<ReportField label="Follow-up Timeframe" value={reportData.followUpTimeframe} />
 								</div>
 								<ReportField
-									label="Additional Clinical Notes"
-									value={
-										<p className="text-[#dce1fb] leading-relaxed mt-2">
-											{reportData.additionalNotes}
-										</p>
-									}
+									label="Additional Notes"
+									value={reportData.additionalNotes}
 									fullWidth
 								/>
 							</div>
 						</ReportSection>
 
 						{/* Signature */}
-						<ReportSection title="Report Signed By">
-							<div className="flex items-center justify-between">
+						<ReportSection title="Report Authenticity & Signature">
+							<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 								<div>
-									<p className="text-[#dce1fb] font-semibold text-lg">
+									<p className="text-brand-text print:text-black font-extrabold text-base tracking-tight font-display">
 										{reportData.radiologistName}
 									</p>
-									<p className="text-[#dce1fb]/70">{reportData.radiologistTitle}</p>
+									<p className="text-brand-text-muted text-xs font-semibold mt-0.5">{reportData.radiologistTitle}</p>
 								</div>
-								<div className="text-right">
-									<p className="text-[#dce1fb]/70 text-sm">Submitted</p>
-									<p className="text-[#dce1fb] font-semibold">{reportData.submissionTimestamp}</p>
+								<div className="sm:text-right">
+									<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider">Submitted</p>
+									<p className="text-brand-text print:text-black font-bold text-xs mt-0.5">{reportData.submissionTimestamp}</p>
 								</div>
 							</div>
-							<div className="mt-4 flex items-center gap-2 text-[#4ade80]">
-								<CheckCircle size={18} />
-								<span className="text-sm font-semibold">Digitally Signed & Verified</span>
+							<div className="mt-4 pt-3 border-t border-brand-border/30 flex items-center gap-2 text-emerald-400 print:text-green-700">
+								<CheckCircle size={15} />
+								<span className="text-[10px] font-extrabold uppercase tracking-wider">Digitally Signed & Verified</span>
 							</div>
 						</ReportSection>
 

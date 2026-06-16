@@ -1,7 +1,6 @@
 import {
 	AlertTriangle,
 	CheckCircle,
-	Clock,
 	User,
 } from "lucide-react";
 
@@ -39,115 +38,121 @@ export default function AIOutputPanel({
 	canWriteReport,
 }: AIOutputPanelProps) {
 	return (
-		<div className="space-y-6">
+		<div className="space-y-5">
 			{/* Disclaimer Banner */}
-			<div className="bg-[#ffb95f]/10 border-l-4 border-[#ffb95f] p-4 rounded-lg">
-				<p className="text-[#ffb95f] text-sm font-semibold">
-					⚠ Possible Findings — Review Required by a Qualified Clinician
-				</p>
-				<p className="text-[#dce1fb]/70 text-xs mt-1">
-					This output does not constitute a medical diagnosis.
-				</p>
+			<div className="bg-amber-500/5 border border-amber-500/25 p-4 rounded-xl flex items-start gap-3">
+				<AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5 animate-pulse" />
+				<div>
+					<p className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-0.5">
+						Clinician Review Required
+					</p>
+					<p className="text-brand-text-muted text-[11px] font-medium leading-relaxed">
+						This output is AI-generated and does not constitute an official medical diagnosis.
+					</p>
+				</div>
 			</div>
 
 			{/* AI Prediction */}
-			<div className="bg-[#151b2d] rounded-xl p-0">
-				<h3 className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-3">
+			<div className="border border-brand-border/40 p-4 rounded-xl bg-brand-card/25">
+				<h3 className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2.5">
 					AI Prediction
 				</h3>
 				<div
-					className={`flex items-center gap-3 p-4 rounded-lg ${
-						prediction === "normal" ? "bg-[#4ade80]/10" : "bg-[#ffb95f]/10"
+					className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
+						prediction === "normal"
+							? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
+							: "bg-rose-500/5 border-rose-500/20 text-rose-400"
 					}`}
 				>
 					{prediction === "normal" ? (
-						<CheckCircle size={20} className="text-[#4ade80]" />
+						<CheckCircle size={18} className="shrink-0" />
 					) : (
-						<AlertTriangle size={20} className="text-[#ffb95f]" />
+						<AlertTriangle size={18} className="shrink-0" />
 					)}
-					<div>
-						<p
-							className={`font-bold ${
-								prediction === "normal" ? "text-[#4ade80]" : "text-[#ffb95f]"
-							}`}
-						>
-							{prediction === "normal" ? "Normal" : "Possible Pneumonia"}
-						</p>
-					</div>
+					<span className="font-extrabold text-xs tracking-wider uppercase">
+						{prediction === "normal" ? "Normal Scan" : "Possible Pneumonia"}
+					</span>
 				</div>
 			</div>
 
 			{/* Confidence Score */}
-			<div className="bg-[#151b2d] rounded-xl">
-				<h3 className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-3">
+			<div className="border border-brand-border/40 p-4 rounded-xl bg-brand-card/25">
+				<h3 className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 					Confidence Score
 				</h3>
-				<div className="flex items-center gap-4 mb-2">
-					<span className="text-4xl font-bold text-[#7bd0ff]">
+				<div className="flex items-baseline justify-between mb-2">
+					<span className="text-3xl font-extrabold text-brand-primary tracking-tight font-display">
 						{confidence}%
 					</span>
+					<span className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider">
+						{confidence >= 90 ? "High Confidence" : confidence >= 70 ? "Moderate" : "Low"}
+					</span>
 				</div>
-				<div className="w-full bg-[#2e3447] h-2 rounded-full overflow-hidden">
+				<div className="w-full bg-brand-bg/80 h-2.5 rounded-full overflow-hidden border border-brand-border/30 p-0.5">
 					<div
-						className="h-full bg-[#7bd0ff] transition-all"
+						className="h-full bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full shadow-[0_0_10px_rgba(0,210,255,0.4)] transition-all duration-500"
 						style={{ width: `${confidence}%` }}
 					/>
 				</div>
 			</div>
 
 			{/* Grad-CAM Summary */}
-			<div className="bg-[#151b2d] rounded-xl">
-				<h3 className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-3">
+			<div className="border border-brand-border/40 p-4 rounded-xl bg-brand-card/25">
+				<h3 className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2.5">
 					Model Attention Analysis
 				</h3>
-				<p className="text-[#dce1fb]">{gradCamSummary}</p>
+				<p className="text-brand-text text-xs leading-relaxed font-semibold">
+					{gradCamSummary}
+				</p>
 			</div>
 
 			{/* Scan Metadata */}
-			<div className="bg-[#151b2d] rounded-xl">
-				<h3 className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-4">
+			<div className="border border-brand-border/40 p-4 rounded-xl bg-brand-card/25">
+				<h3 className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3.5">
 					Scan Metadata
 				</h3>
 				<div className="space-y-3">
-					<div className="flex justify-between">
-						<span className="text-[#dce1fb]/70 text-sm">Patient</span>
-						<span className="text-[#dce1fb] font-semibold">{patientName}</span>
+					<div className="flex justify-between items-center border-b border-brand-border/30 pb-2">
+						<span className="text-brand-text-muted text-xs font-medium">Patient</span>
+						<span className="text-brand-text font-bold text-xs">{patientName}</span>
 					</div>
-					<div className="flex justify-between">
-						<span className="text-[#dce1fb]/70 text-sm">Scan ID</span>
-						<span className="text-[#dce1fb] font-mono text-sm">{scanId}</span>
+					<div className="flex justify-between items-center border-b border-brand-border/30 pb-2">
+						<span className="text-brand-text-muted text-xs font-medium">Scan ID</span>
+						<span className="text-brand-primary font-mono text-xs font-bold">{scanId}</span>
 					</div>
-					<div className="flex justify-between">
-						<span className="text-[#dce1fb]/70 text-sm">Date Uploaded</span>
-						<span className="text-[#dce1fb]">{dateUploaded}</span>
+					<div className="flex justify-between items-center border-b border-brand-border/30 pb-2">
+						<span className="text-brand-text-muted text-xs font-medium">Date Uploaded</span>
+						<span className="text-brand-text font-bold text-xs">{dateUploaded}</span>
 					</div>
-					<div className="flex justify-between">
-						<span className="text-[#dce1fb]/70 text-sm">Projection</span>
-						<span className="text-[#dce1fb]">{projection}</span>
+					<div className="flex justify-between items-center border-b border-brand-border/30 pb-2">
+						<span className="text-brand-text-muted text-xs font-medium">Projection</span>
+						<span className="text-brand-text font-bold text-xs">{projection}</span>
 					</div>
-					<div className="flex justify-between">
-						<span className="text-[#dce1fb]/70 text-sm">Uploaded By</span>
-						<span className="text-[#dce1fb]">{uploadedBy}</span>
+					<div className="flex justify-between items-center">
+						<span className="text-brand-text-muted text-xs font-medium">Uploaded By</span>
+						<span className="text-brand-text font-bold text-xs">{uploadedBy}</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Assignment Info */}
-			<div className="bg-[#151b2d] rounded-xl">
-				<h3 className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-4">
-					Assignment
+			<div className="border border-brand-border/40 p-4 rounded-xl bg-brand-card/25">
+				<h3 className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3.5">
+					Case Assignment
 				</h3>
 				<div className="space-y-3">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
-							<User size={16} className="text-[#7bd0ff]" />
-							<span className="text-[#dce1fb]">{assignedRadiologist}</span>
+							<div className="w-6 h-6 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
+								<User size={12} className="text-brand-primary" />
+							</div>
+							<span className="text-brand-text text-xs font-bold">{assignedRadiologist}</span>
 						</div>
 						<span
-							className={`px-3 py-1 rounded-full text-xs font-semibold ${
+							className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider border ${
 								reportStatus === "pending"
-									? "bg-[#ffb95f]/10 text-[#ffb95f]"
-									: "bg-[#4ade80]/10 text-[#4ade80]"
+									? "bg-amber-500/5 border-amber-500/20 text-amber-500"
+									: "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
 							}`}
 						>
 							{reportStatus === "pending"
@@ -155,18 +160,14 @@ export default function AIOutputPanel({
 								: "Report Complete"}
 						</span>
 					</div>
-					<div className="flex items-center gap-2">
-						<Clock
-							size={16}
-							className={
-								priority === "urgent" ? "text-[#ffb95f]" : "text-[#7bd0ff]"
-							}
-						/>
+					
+					<div className="flex items-center justify-between border-t border-brand-border/30 pt-3">
+						<span className="text-brand-text-muted text-xs font-medium">Priority Status</span>
 						<span
-							className={`px-3 py-1 rounded-full text-xs font-semibold ${
+							className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider border ${
 								priority === "urgent"
-									? "bg-[#ffb95f]/10 text-[#ffb95f]"
-									: "bg-[#7bd0ff]/10 text-[#7bd0ff]"
+									? "bg-rose-500/5 border-rose-500/20 text-rose-400 animate-pulse"
+									: "bg-brand-primary/5 border-brand-primary/20 text-brand-primary"
 							}`}
 						>
 							{priority === "urgent" ? "Urgent" : "Routine"}
@@ -177,11 +178,13 @@ export default function AIOutputPanel({
 
 			{/* Pre-Analysis Notes */}
 			{preAnalysisNotes && (
-				<div className="bg-[#151b2d] rounded-xl p-2">
-					<h3 className="text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-3">
+				<div className="border border-brand-border/40 p-4 rounded-xl bg-brand-card/25">
+					<h3 className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 						Pre-Analysis Notes
 					</h3>
-					<p className="text-[#dce1fb] text-sm">{preAnalysisNotes}</p>
+					<p className="text-brand-text text-xs leading-relaxed italic font-medium">
+						"{preAnalysisNotes}"
+					</p>
 				</div>
 			)}
 
@@ -189,7 +192,7 @@ export default function AIOutputPanel({
 			{canWriteReport && (
 				<button
 					onClick={onWriteReport}
-					className="w-full bg-[#7bd0ff] text-[#0c1324] py-4 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity"
+					className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3.5 rounded-xl font-extrabold text-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300"
 				>
 					Write Report
 				</button>
