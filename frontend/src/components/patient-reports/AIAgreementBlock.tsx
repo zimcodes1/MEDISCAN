@@ -16,12 +16,12 @@ export default function AIAgreementBlock({
 	const showReasonField = agreement === "partially-agree" || agreement === "disagree";
 
 	return (
-		<div className="bg-[#151b2d] rounded-xl p-6">
-			<h2 className="text-xl font-bold text-[#dce1fb] mb-6">Block 4 — Agreement with AI</h2>
+		<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+			<h2 className="text-lg font-bold text-brand-text mb-6 font-display">Block 4 — Agreement with AI</h2>
 
 			{/* AI Assessment Agreement */}
 			<div className="mb-6">
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-3">
+				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3 font-display">
 					AI Assessment Agreement
 				</label>
 				<div className="grid grid-cols-3 gap-3">
@@ -32,13 +32,14 @@ export default function AIAgreementBlock({
 					].map((option) => (
 						<button
 							key={option.value}
+							type="button"
 							onClick={() => !disabled && onAgreementChange(option.value)}
 							disabled={disabled}
-							className={`p-4 rounded-lg border-2 transition-all ${
+							className={`p-4 rounded-xl border text-xs font-bold transition-all duration-300 ${
 								agreement === option.value
-									? "border-[#7bd0ff] bg-[#191f31] text-[#7bd0ff]"
-									: "border-[#2e3447] bg-transparent text-[#dce1fb] hover:border-[#7bd0ff]/50"
-							} ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+									? "border-brand-primary bg-brand-primary/10 text-brand-primary font-extrabold shadow-[0_0_15px_rgba(0,210,255,0.08)]"
+									: "border-brand-border/60 bg-brand-card/30 text-brand-text-muted hover:border-brand-primary/40 hover:text-brand-text hover:bg-brand-card/75"
+							} ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
 						>
 							{option.label}
 						</button>
@@ -49,7 +50,7 @@ export default function AIAgreementBlock({
 			{/* Reason (conditional) */}
 			{showReasonField && (
 				<div>
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Reason for Disagreement
 					</label>
 					<textarea
@@ -58,7 +59,7 @@ export default function AIAgreementBlock({
 						disabled={disabled}
 						placeholder="Explain why you disagree or partially agree with the AI assessment..."
 						rows={4}
-						className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+						className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 resize-none placeholder-brand-text-muted/40 disabled:opacity-50 disabled:cursor-not-allowed"
 					/>
 				</div>
 			)}

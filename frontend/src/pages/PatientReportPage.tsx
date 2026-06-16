@@ -9,15 +9,20 @@ import AIAgreementBlock from "../components/patient-reports/AIAgreementBlock";
 import SubmissionFooter from "../components/patient-reports/SubmissionFooter";
 
 export default function PatientReportPage() {
-	// Context data (from scan)
+	// Context data (from scan - updated for multi-condition v2 scope)
 	const contextData = {
 		patientName: "Elias Vance",
 		age: 45,
 		sex: "Male",
 		scanDate: "2024-01-15",
 		projection: "PA",
-		aiPrediction: "pneumonia" as const,
-		confidence: 94,
+		aiFindings: [
+			{ condition: "Pneumonia", prediction: "detected" as const, confidence: 94, isExperimental: false },
+			{ condition: "Tuberculosis", prediction: "normal" as const, confidence: 98, isExperimental: false },
+			{ condition: "Cardiomegaly", prediction: "normal" as const, confidence: 97, isExperimental: false },
+			{ condition: "Lung Nodule/Mass", prediction: "detected" as const, confidence: 88, isExperimental: false },
+			{ condition: "Rib Fracture", prediction: "normal" as const, confidence: 95, isExperimental: true }
+		]
 	};
 
 	// Form state
@@ -57,17 +62,17 @@ export default function PatientReportPage() {
 	};
 
 	return (
-		<div className="flex bg-[#0c1324] min-h-screen">
+		<div className="flex bg-brand-bg min-h-screen">
 			<Sidebar />
 
-			<div className="ml-64 flex-1">
+			<div className="ml-64 flex-1 flex flex-col">
 				<TopBar />
 
-				<main className="pt-16 p-8">
+				<main className="pt-16 p-8 relative z-0 flex-1 flex flex-col max-w-5xl">
 					{/* Header */}
 					<div className="mb-8 mt-5">
-						<h1 className="text-2xl font-bold text-[#dce1fb] mb-2">Clinician Report</h1>
-						<p className="text-[#dce1fb]/70">
+						<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Clinician Report</h1>
+						<p className="text-brand-text-muted text-sm">
 							{isSubmitted ? "View submitted report" : "Complete structured diagnostic report"}
 						</p>
 					</div>
@@ -79,8 +84,7 @@ export default function PatientReportPage() {
 						sex={contextData.sex}
 						scanDate={contextData.scanDate}
 						projection={contextData.projection}
-						aiPrediction={contextData.aiPrediction}
-						confidence={contextData.confidence}
+						aiFindings={contextData.aiFindings}
 					/>
 
 					{/* Report Form */}

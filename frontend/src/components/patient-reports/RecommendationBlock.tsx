@@ -24,19 +24,19 @@ export default function RecommendationBlock({
 	const showFollowUpFields = recommendedAction === "follow-up-xray";
 
 	return (
-		<div className="bg-[#151b2d] rounded-xl p-6">
-			<h2 className="text-xl font-bold text-[#dce1fb] mb-6">Block 3 — Recommendation</h2>
+		<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+			<h2 className="text-lg font-bold text-brand-text mb-6 font-display">Block 3 — Recommendation</h2>
 
 			{/* Recommended Action */}
 			<div className="mb-6">
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 					Recommended Action
 				</label>
 				<select
 					value={recommendedAction}
 					onChange={(e) => onRecommendedActionChange(e.target.value)}
 					disabled={disabled}
-					className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					<option value="">Select recommended action...</option>
 					<option value="no-action">No further action</option>
@@ -50,7 +50,7 @@ export default function RecommendationBlock({
 			{/* Follow-up Timeframe (conditional) */}
 			{showFollowUpFields && (
 				<div className="mb-6">
-					<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 						Follow-up Timeframe
 					</label>
 					<div className="grid grid-cols-2 gap-3">
@@ -61,13 +61,13 @@ export default function RecommendationBlock({
 							disabled={disabled}
 							placeholder="Number"
 							min="1"
-							className="bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+							className="bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
 						/>
 						<select
 							value={followUpUnit}
 							onChange={(e) => onFollowUpUnitChange(e.target.value)}
 							disabled={disabled}
-							className="bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+							className="bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							<option value="days">Days</option>
 							<option value="weeks">Weeks</option>
@@ -79,7 +79,7 @@ export default function RecommendationBlock({
 
 			{/* Additional Notes */}
 			<div>
-				<label className="block text-[#dce1fb]/70 text-xs uppercase tracking-wide mb-2">
+				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
 					Additional Notes
 				</label>
 				<textarea
@@ -88,7 +88,7 @@ export default function RecommendationBlock({
 					disabled={disabled}
 					placeholder="Any other clinical guidance..."
 					rows={4}
-					className="w-full bg-[#191f31] text-[#dce1fb] px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-[#7bd0ff]/50 transition-all resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 resize-none placeholder-brand-text-muted/40 disabled:opacity-50 disabled:cursor-not-allowed"
 				/>
 			</div>
 		</div>
