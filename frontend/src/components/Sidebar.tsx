@@ -1,8 +1,13 @@
-import { LayoutDashboard, Upload, Brain, FileText, Settings, HelpCircle, Plus } from "lucide-react";
+import { LayoutDashboard, Upload, Brain, FileText, Settings, HelpCircle, Plus, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "./svgs/Logo";
 
-export default function Sidebar() {
+interface SidebarProps {
+	isOpen: boolean;
+	onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 	const location = useLocation();
 
 	const navItems = [
@@ -18,20 +23,32 @@ export default function Sidebar() {
 	];
 
 	return (
-		<aside className="max-sm:hidden w-64 bg-brand-bg/95 border-r border-brand-border/60 h-screen flex flex-col fixed left-0 top-0 z-20 shadow-xl backdrop-blur-md print:hidden">
-			{/* Logo */}
-			<div className="px-6 py-6 flex gap-3 items-center border-b border-brand-border/40">
-				<div className="p-1.5 rounded-lg bg-brand-primary/10 border border-brand-primary/20">
-					<Logo size={24}/>
+		<aside
+			className={`w-64 bg-brand-bg/95 border-r border-brand-border/60 h-screen flex flex-col fixed left-0 top-0 z-30 shadow-xl backdrop-blur-md print:hidden transition-transform duration-300 ease-in-out ${
+				isOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"
+			}`}
+		>
+			{/* Logo and Close Button */}
+			<div className="px-6 py-6 flex justify-between items-center border-b border-brand-border/40">
+				<div className="flex gap-3 items-center">
+					<div className="p-1.5 rounded-lg bg-brand-primary/10 border border-brand-primary/20">
+						<Logo size={24} />
+					</div>
+					<h1 className="text-brand-text text-lg font-bold tracking-tight font-display">
+						Mediscan
+					</h1>
 				</div>
-				<h1 className="text-brand-text text-lg font-bold tracking-tight font-display">
-					Mediscan
-				</h1>
+				<button
+					onClick={onClose}
+					className="sm:hidden p-1.5 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-brand-primary text-brand-text-muted transition-all duration-300 active:scale-95"
+				>
+					<X size={16} />
+				</button>
 			</div>
 
 			{/* New Case Button */}
 			<div className="px-4 mb-6 mt-6">
-				<Link to="/case-upload">
+				<Link to="/case-upload" onClick={onClose}>
 					<button className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300">
 						<Plus size={18} />
 						New Case
@@ -48,6 +65,7 @@ export default function Sidebar() {
 						<Link
 							key={item.path}
 							to={item.path}
+							onClick={onClose}
 							className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border-l-2 ${
 								isActive
 									? "bg-brand-primary/10 text-brand-primary border-brand-primary font-semibold shadow-[inset_0_0_10px_rgba(0,210,255,0.02)]"
@@ -70,6 +88,7 @@ export default function Sidebar() {
 						<Link
 							key={item.path}
 							to={item.path}
+							onClick={onClose}
 							className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border-l-2 ${
 								isActive
 									? "bg-brand-primary/10 text-brand-primary border-brand-primary font-semibold"

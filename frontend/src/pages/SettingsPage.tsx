@@ -25,6 +25,7 @@ export default function SettingsPage() {
 	}, []);
 
 	const [activeSection, setActiveSection] = useState("profile");
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 	const handleSaveProfile = (data: any) => {
 		console.log("Saving profile:", data);
@@ -48,16 +49,26 @@ export default function SettingsPage() {
 
 	return (
 		<div className="flex bg-brand-bg min-h-screen">
+			{/* Backdrop for mobile */}
+			{isSidebarOpen && (
+				<div
+					className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 sm:hidden transition-opacity duration-300"
+					onClick={() => setIsSidebarOpen(false)}
+				/>
+			)}
+
 			{/* Settings Sidebar */}
 			<SettingsSidebar
 				activeSection={activeSection}
 				onSectionChange={setActiveSection}
 				userRole={userRole}
+				isOpen={isSidebarOpen}
+				onClose={() => setIsSidebarOpen(false)}
 			/>
-			<div className="flex-1 ml-64 flex flex-col min-w-0">
-				<TopBar />
+			<div className="sm:ml-64 flex-1 flex flex-col min-w-0">
+				<TopBar onMenuClick={() => setIsSidebarOpen(true)} />
 
-				<main className="pt-16 p-8 mt-5">
+				<main className="pt-16 p-4 sm:p-8 mt-5">
 					<div className="flex gap-6">
 						{/* Content Area */}
 						<div className="flex-1 min-w-0">

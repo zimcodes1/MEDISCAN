@@ -11,6 +11,7 @@ import NeuralAnalysisPage from "./pages/NeuralAnalysisPage";
 import PatientReportPage from "./pages/PatientReportPage";
 import PatientReportViewPage from "./pages/PatientReportViewPage";
 import SettingsPage from "./pages/SettingsPage";
+import MainLayout from "./components/MainLayout";
 
 function App() {
 	return (
@@ -25,14 +26,19 @@ function App() {
 					path="/staff/accept-invite"
 					element={<StaffInviteAcceptancePage />}
 				/>
-				<Route path="/dashboard" element={<DashboardPage />} />
-				<Route path="/case-upload" element={<CaseUploadPage />} />
-				<Route path="/neural-analysis" element={<NeuralAnalysisPage />} />
-				<Route path="/patient-reports" element={<PatientReportPage />} />
-				<Route
-					path="/patient-reports/:reportId"
-					element={<PatientReportViewPage />}
-				/>
+
+				{/* Shared Main Layout for Dashboard & Standard Pages */}
+				<Route element={<MainLayout />}>
+					<Route path="/dashboard" element={<DashboardPage />} />
+					<Route path="/case-upload" element={<CaseUploadPage />} />
+					<Route path="/neural-analysis" element={<NeuralAnalysisPage />} />
+					<Route path="/patient-reports" element={<PatientReportPage />} />
+					<Route
+						path="/patient-reports/:reportId"
+						element={<PatientReportViewPage />}
+					/>
+				</Route>
+
 				<Route path="/settings" element={<SettingsPage />} />
 			</Routes>
 		</Router>

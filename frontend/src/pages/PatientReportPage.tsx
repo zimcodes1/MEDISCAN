@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
-import TopBar from "../components/TopBar";
 import ContextBar from "../components/patient-reports/ContextBar";
 import FindingsBlock from "../components/patient-reports/FindingsBlock";
 import ImpressionBlock from "../components/patient-reports/ImpressionBlock";
@@ -52,88 +50,80 @@ export default function PatientReportPage() {
 	};
 
 	return (
-		<div className="flex bg-brand-bg min-h-screen">
-			<Sidebar />
+		<div className="p-4 sm:p-8 flex-1 flex flex-col max-w-5xl">
+			{/* Header */}
+			<div className="mb-8 mt-5">
+				<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Clinician Report</h1>
+				<p className="text-brand-text-muted text-sm">
+					{isSubmitted ? "View submitted report" : "Complete structured diagnostic report"}
+				</p>
+			</div>
 
-			<div className="ml-64 flex-1 flex flex-col">
-				<TopBar />
+			{/* Context Bar */}
+			<ContextBar
+				patientName={contextData.patientName}
+				age={contextData.age}
+				sex={contextData.sex}
+				scanDate={contextData.scanDate}
+				projection={contextData.projection}
+				aiFindings={contextData.aiFindings}
+			/>
 
-				<main className="pt-16 p-8 relative z-0 flex-1 flex flex-col max-w-5xl">
-					{/* Header */}
-					<div className="mb-8 mt-5">
-						<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Clinician Report</h1>
-						<p className="text-brand-text-muted text-sm">
-							{isSubmitted ? "View submitted report" : "Complete structured diagnostic report"}
-						</p>
-					</div>
+			{/* Report Form */}
+			<div className="space-y-6">
+				<FindingsBlock
+					lungFields={lungFields}
+					affectedSide={affectedSide}
+					severity={severity}
+					detailedFindings={detailedFindings}
+					onLungFieldsChange={setLungFields}
+					onAffectedSideChange={setAffectedSide}
+					onSeverityChange={setSeverity}
+					onDetailedFindingsChange={setDetailedFindings}
+					disabled={isSubmitted}
+				/>
 
-					{/* Context Bar */}
-					<ContextBar
-						patientName={contextData.patientName}
-						age={contextData.age}
-						sex={contextData.sex}
-						scanDate={contextData.scanDate}
-						projection={contextData.projection}
-						aiFindings={contextData.aiFindings}
-					/>
+				<ImpressionBlock
+					primaryImpression={primaryImpression}
+					secondaryFindings={secondaryFindings}
+					impressionNarrative={impressionNarrative}
+					onPrimaryImpressionChange={setPrimaryImpression}
+					onSecondaryFindingsChange={setSecondaryFindings}
+					onImpressionNarrativeChange={setImpressionNarrative}
+					disabled={isSubmitted}
+				/>
 
-					{/* Report Form */}
-					<div className="space-y-6">
-						<FindingsBlock
-							lungFields={lungFields}
-							affectedSide={affectedSide}
-							severity={severity}
-							detailedFindings={detailedFindings}
-							onLungFieldsChange={setLungFields}
-							onAffectedSideChange={setAffectedSide}
-							onSeverityChange={setSeverity}
-							onDetailedFindingsChange={setDetailedFindings}
-							disabled={isSubmitted}
-						/>
+				<RecommendationBlock
+					recommendedAction={recommendedAction}
+					followUpTimeframe={followUpTimeframe}
+					followUpUnit={followUpUnit}
+					additionalNotes={additionalNotes}
+					onRecommendedActionChange={setRecommendedAction}
+					onFollowUpTimeframeChange={setFollowUpTimeframe}
+					onFollowUpUnitChange={setFollowUpUnit}
+					onAdditionalNotesChange={setAdditionalNotes}
+					disabled={isSubmitted}
+				/>
 
-						<ImpressionBlock
-							primaryImpression={primaryImpression}
-							secondaryFindings={secondaryFindings}
-							impressionNarrative={impressionNarrative}
-							onPrimaryImpressionChange={setPrimaryImpression}
-							onSecondaryFindingsChange={setSecondaryFindings}
-							onImpressionNarrativeChange={setImpressionNarrative}
-							disabled={isSubmitted}
-						/>
+				<AIAgreementBlock
+					agreement={agreement}
+					disagreementReason={disagreementReason}
+					onAgreementChange={setAgreement}
+					onDisagreementReasonChange={setDisagreementReason}
+					disabled={isSubmitted}
+				/>
 
-						<RecommendationBlock
-							recommendedAction={recommendedAction}
-							followUpTimeframe={followUpTimeframe}
-							followUpUnit={followUpUnit}
-							additionalNotes={additionalNotes}
-							onRecommendedActionChange={setRecommendedAction}
-							onFollowUpTimeframeChange={setFollowUpTimeframe}
-							onFollowUpUnitChange={setFollowUpUnit}
-							onAdditionalNotesChange={setAdditionalNotes}
-							disabled={isSubmitted}
-						/>
-
-						<AIAgreementBlock
-							agreement={agreement}
-							disagreementReason={disagreementReason}
-							onAgreementChange={setAgreement}
-							onDisagreementReasonChange={setDisagreementReason}
-							disabled={isSubmitted}
-						/>
-
-						<SubmissionFooter
-							clinicianName="Dr. Elias Vance"
-							clinicianCredentials="MD"
-							confirmationChecked={confirmationChecked}
-							onConfirmationChange={setConfirmationChecked}
-							onSaveDraft={handleSaveDraft}
-							onSubmitReport={handleSubmitReport}
-							isSubmitted={isSubmitted}
-							submittedDate={submittedDate}
-							disabled={isSubmitted}
-						/>
-					</div>
-				</main>
+				<SubmissionFooter
+					clinicianName="Dr. Elias Vance"
+					clinicianCredentials="MD"
+					confirmationChecked={confirmationChecked}
+					onConfirmationChange={setConfirmationChecked}
+					onSaveDraft={handleSaveDraft}
+					onSubmitReport={handleSubmitReport}
+					isSubmitted={isSubmitted}
+					submittedDate={submittedDate}
+					disabled={isSubmitted}
+				/>
 			</div>
 		</div>
 	);

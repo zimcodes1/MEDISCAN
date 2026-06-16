@@ -1,9 +1,16 @@
 import { Search, Bell, HelpCircle, Menu } from "lucide-react";
 
-export default function TopBar() {
+interface TopBarProps {
+	onMenuClick?: () => void;
+}
+
+export default function TopBar({ onMenuClick }: TopBarProps) {
 	return (
 		<header className="h-16 bg-brand-bg/85 backdrop-blur-md border-b border-brand-border/40 flex items-center justify-between px-4 sm:px-6 fixed top-0 sm:left-64 right-0 z-10 transition-all duration-300 print:hidden">
-			<button className="p-2 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-brand-primary text-brand-text-muted transition-all duration-300 active:scale-95">
+			<button
+				onClick={onMenuClick}
+				className="sm:hidden p-2 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-brand-primary text-brand-text-muted transition-all duration-300 active:scale-95"
+			>
 				<Menu size={16} />
 			</button>
 			{/* Search Bar */}

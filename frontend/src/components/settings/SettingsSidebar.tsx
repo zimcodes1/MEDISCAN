@@ -6,7 +6,8 @@ import {
 	Settings as SettingsIcon,
 	CreditCard,
 	AlertTriangle,
-	ArrowLeft
+	ArrowLeft,
+	X
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -14,12 +15,16 @@ interface SettingsSidebarProps {
 	activeSection: string;
 	onSectionChange: (section: string) => void;
 	userRole: "org-admin" | "radiologist" | "clinician";
+	isOpen: boolean;
+	onClose: () => void;
 }
 
 export default function SettingsSidebar({
 	activeSection,
 	onSectionChange,
 	userRole,
+	isOpen,
+	onClose,
 }: SettingsSidebarProps) {
 	const sections = [
 		{
@@ -71,11 +76,23 @@ export default function SettingsSidebar({
 	);
 
 	return (
-		<div className="w-64 bg-brand-bg/95 border-r border-brand-border/60 h-screen flex flex-col fixed left-0 top-0 z-20 shadow-xl backdrop-blur-md py-6 px-4">
-			<h2 className="text-brand-text font-bold text-lg mb-4 px-2 font-display">Settings</h2>
+		<aside
+			className={`w-64 bg-brand-bg/95 border-r border-brand-border/60 h-screen flex flex-col fixed left-0 top-0 z-30 shadow-xl backdrop-blur-md py-6 px-4 transition-transform duration-300 ease-in-out ${
+				isOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"
+			}`}
+		>
+			<div className="flex justify-between items-center mb-4 px-2">
+				<h2 className="text-brand-text font-bold text-lg font-display">Settings</h2>
+				<button
+					onClick={onClose}
+					className="sm:hidden p-1.5 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-brand-primary text-brand-text-muted transition-all duration-300 active:scale-95"
+				>
+					<X size={16} />
+				</button>
+			</div>
 
 			{/* Back to Dashboard Button */}
-			<Link to={'/dashboard'} className="block my-4">
+			<Link to={"/dashboard"} className="block my-4" onClick={onClose}>
 				<button className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300">
 					<ArrowLeft size={18} />
 					Dashboard
@@ -91,7 +108,10 @@ export default function SettingsSidebar({
 					return (
 						<button
 							key={section.id}
-							onClick={() => onSectionChange(section.id)}
+							onClick={() => {
+								onSectionChange(section.id);
+								onClose();
+							}}
 							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border-l-2 ${
 								isActive
 									? isDanger
@@ -108,7 +128,7 @@ export default function SettingsSidebar({
 					);
 				})}
 			</nav>
-		</div>
+		</aside>
 	);
 }
 
