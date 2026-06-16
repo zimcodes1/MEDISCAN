@@ -1,13 +1,7 @@
 import { Search, X } from "lucide-react";
 import { useState } from "react";
-
-interface Patient {
-	id: string;
-	name: string;
-	hospitalId: string;
-	age: number;
-	sex: string;
-}
+import { type Patient } from "../utils/types";
+import { mockPatients } from "../utils/DummyData";
 
 interface PatientSearchProps {
 	selectedPatient: Patient | null;
@@ -18,12 +12,6 @@ interface PatientSearchProps {
 export default function PatientSearch({ selectedPatient, onPatientSelect, onClearPatient }: PatientSearchProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [showResults, setShowResults] = useState(false);
-
-	// Mock search results
-	const mockPatients: Patient[] = [
-		{ id: "1", name: "Sarah Connor", hospitalId: "RAD-4042-M", age: 45, sex: "Female" },
-		{ id: "2", name: "Arthur Morgan", hospitalId: "RAD-1899-K", age: 52, sex: "Male" },
-	];
 
 	const filteredPatients = mockPatients.filter(
 		(p) =>
@@ -60,7 +48,7 @@ export default function PatientSearch({ selectedPatient, onPatientSelect, onClea
 
 					{/* Results Dropdown */}
 					{showResults && searchQuery && (
-						<div className="absolute top-full left-0 right-0 mt-2 bg-brand-bg/95 backdrop-blur-md rounded-xl border border-brand-border/60 overflow-hidden z-20 shadow-2xl animate-fade-in-up">
+						<div className="static top-full left-0 right-0 mt-2 bg-brand-bg/95 backdrop-blur-md rounded-xl border border-brand-border/60 overflow-hidden z-10 shadow-2xl animate-fade-in-up">
 							{filteredPatients.length > 0 ? (
 								filteredPatients.map((patient) => (
 									<button

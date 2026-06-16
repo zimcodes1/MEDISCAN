@@ -269,3 +269,16 @@ export const billingData = {
 
 // Mock user role - would come from auth context
 export const userRole: "org-admin" | "radiologist" | "clinician" = "org-admin";
+
+import { type Patient } from "./types";
+// Mock search results
+export const mockPatients: Patient[] = [
+    { id: "1", name: "Sarah Daniel", hospitalId: "RAD-4042-M", age: 45, sex: "Female" },
+    { id: "2", name: "Mohammed Ali", hospitalId: "RAD-1899-K", age: 52, sex: "Male" },
+    { id: "1", name: "Mary Connor", hospitalId: "RAD-4041-M", age: 25, sex: "Female" },
+    { id: "2", name: "James Morgan", hospitalId: "RAD-1839-K", age: 52, sex: "Male" },
+    { id: "1", name: "Aisha Ismail", hospitalId: "RAD-4047-R", age: 43, sex: "Female" },
+    { id: "2", name: "Abdul Sale", hospitalId: "RAD-1819-L", age: 12, sex: "Male" },
+    { id: "1", name: "Mariam Abu", hospitalId: "RAD-4022-H", age: 35, sex: "Female" },
+    { id: "2", name: "Isa Sule", hospitalId: "RAD-1839-F", age: 56, sex: "Male" },
+];
