@@ -5,8 +5,12 @@ import HowItWorksSection from '../components/HowItWorksSection';
 import BenefitsSection from '../components/BenefitsSection';
 import CTASection from '../components/CTASection';
 import Footer from '../components/Footer';
+import { useEffect } from 'react';
 
 export default function LandingPage() {
+  useEffect(() => {
+    document.title = 'Mediscan - AI-Powered Medical Scan Analysis';
+  }, [])
   return (
     <div className="w-full bg-[#0c1324]">
       <Navigation />
