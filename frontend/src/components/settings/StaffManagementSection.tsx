@@ -60,14 +60,14 @@ export default function StaffManagementSection() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 				<div>
 					<h2 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Staff Management</h2>
 					<p className="text-brand-text-muted text-sm">Manage team members and their access levels</p>
 				</div>
 				<button
 					onClick={() => setShowAddPanel(true)}
-					className="flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg px-4 py-2.5 rounded-xl text-xs font-extrabold hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer"
+					className="flex items-center justify-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg px-4 py-2.5 rounded-xl text-xs font-extrabold hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 cursor-pointer self-start sm:self-auto"
 				>
 					<Plus size={15} />
 					Add Staff Member
@@ -75,8 +75,8 @@ export default function StaffManagementSection() {
 			</div>
 
 			{/* Staff Table */}
-			<div className="glass-panel rounded-2xl overflow-hidden border border-brand-border/40 relative">
-				<table className="w-full">
+			<div className="w-full max-sm:hide-scrollbar overflow-x-auto glass-panel rounded-2xl border border-brand-border/40 relative">
+				<table className="w-full min-w-[800px]">
 					<thead className="bg-brand-card/65 border-b border-brand-border/40">
 						<tr>
 							<th className="text-left text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-6 py-4 font-display">
@@ -114,13 +114,12 @@ export default function StaffManagementSection() {
 								<td className="px-6 py-4 text-brand-text-muted text-xs font-medium">{member.email}</td>
 								<td className="px-6 py-4">
 									<span
-										className={`px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider border ${
-											member.status === "active"
-												? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
-												: member.status === "invited"
+										className={`px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider border ${member.status === "active"
+											? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
+											: member.status === "invited"
 												? "bg-brand-primary/5 border-brand-primary/20 text-brand-primary"
 												: "bg-rose-500/5 border-rose-500/20 text-rose-400"
-										}`}
+											}`}
 									>
 										{member.status}
 									</span>

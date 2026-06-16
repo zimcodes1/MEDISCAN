@@ -90,13 +90,13 @@ export default function SettingsPage() {
 				onSectionChange={setActiveSection}
 				userRole={userRole}
 			/>
-			<div className="flex-1 ml-64 flex flex-col">
+			<div className="flex-1 ml-64 flex flex-col min-w-0">
 				<TopBar />
 
 				<main className="pt-16 p-8 mt-5">
 					<div className="flex gap-6">
 						{/* Content Area */}
-						<div className="flex-1">
+						<div className="flex-1 min-w-0">
 							{activeSection === "profile" && (
 								<MyProfileSection
 									initialData={profileData}
