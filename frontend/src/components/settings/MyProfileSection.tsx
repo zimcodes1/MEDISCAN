@@ -47,7 +47,7 @@ export default function MyProfileSection({ initialData, onSave }: MyProfileSecti
 				<p className="text-brand-text-muted text-sm">Manage your personal information and account settings</p>
 			</div>
 
-			<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+			<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
 				{/* Profile Photo */}
 				<div>
 					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3 font-display">

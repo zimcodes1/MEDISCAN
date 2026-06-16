@@ -26,7 +26,7 @@ export default function BillingPlanSection({ planData, onSave }: BillingPlanSect
 			</div>
 
 			{/* Current Plan */}
-			<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+			<div className="glass-panel rounded-2xl p-4 sm:p-6 relative overflow-hidden group">
 				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
 					<div>
 						<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">Current Plan</p>
@@ -81,7 +81,7 @@ export default function BillingPlanSection({ planData, onSave }: BillingPlanSect
 			</div>
 
 			{/* Billing Contact */}
-			<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+			<div className="glass-panel rounded-2xl p-4 sm:p-6 relative overflow-hidden group">
 				<h3 className="text-brand-text font-bold text-sm mb-4 font-display">Billing Contact</h3>
 				<div className="space-y-4">
 					<div>
@@ -110,7 +110,7 @@ export default function BillingPlanSection({ planData, onSave }: BillingPlanSect
 			</div>
 
 			{/* Payment Method (Read-only for MVP) */}
-			<div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+			<div className="glass-panel rounded-2xl p-4 sm:p-6 relative overflow-hidden group">
 				<div className="flex items-center gap-3 mb-4">
 					<div className="p-2 bg-brand-primary/10 border border-brand-primary/20 text-brand-primary rounded-xl shrink-0">
 						<CreditCard size={20} />

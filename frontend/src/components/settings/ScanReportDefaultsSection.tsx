@@ -31,7 +31,7 @@ export default function ScanReportDefaultsSection({
 				<p className="text-brand-text-muted text-sm">Set organisation-wide defaults for scans and reports</p>
 			</div>
 
-			<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+			<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
 				{/* Default Scan Priority */}
 				<div>
 					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3 font-display">

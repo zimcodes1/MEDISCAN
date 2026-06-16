@@ -32,7 +32,7 @@ export default function DangerZoneSection() {
 				<p className="text-brand-text-muted text-sm">Irreversible actions that affect your entire organisation</p>
 			</div>
 
-			<div className="glass-panel border-rose-500/25 bg-rose-500/[0.01] rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+			<div className="glass-panel border-rose-500/25 bg-rose-500/[0.01] rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
 				{/* Export All Data */}
 				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-brand-card/25 border border-brand-border/40 rounded-xl transition-all duration-300 gap-4">
 					<div className="flex-1">

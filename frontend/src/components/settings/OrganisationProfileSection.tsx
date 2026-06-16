@@ -42,7 +42,7 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 				<p className="text-brand-text-muted text-sm">Manage your organisation's information and branding</p>
 			</div>
 
-			<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+			<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
 				{/* Organisation Logo */}
 				<div>
 					<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-3 font-display">

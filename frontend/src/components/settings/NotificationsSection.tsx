@@ -35,7 +35,7 @@ export default function NotificationsSection({
 				<p className="text-brand-text-muted text-sm">Manage your notification preferences</p>
 			</div>
 
-			<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+			<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
 				{/* Email Notifications */}
 				<div>
 					<h3 className="text-brand-text font-bold text-sm mb-4 font-display">Email Notifications</h3>
