@@ -28,7 +28,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c1324] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-brand-bg flex items-center justify-center px-4">
       <div className="w-full max-w-md pb-10 pt-5">
         {/* Back Button */}
         <button
@@ -40,7 +40,7 @@ export default function LoginPage() {
         </button>
 
         {/* Login Card */}
-        <div className="bg-[#191f31] rounded-2xl border border-[#2e3447] p-8 space-y-8">
+        <div className="glass-card bg-brand-card rounded-2xl border border-brand-border p-6 sm:p-8 space-y-8">
           {/* Header */}
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold text-[#dce1fb]">Welcome Back</h1>
@@ -66,7 +66,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 bg-[#151b2d] border border-[#2e3447] text-[#dce1fb] placeholder-[#8c91a8] rounded-lg focus:outline-none focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
+                className="w-full px-4 py-3 bg-[#151b2d] border border-brand-border text-brand-text placeholder-brand-text-muted rounded-lg focus:outline-none focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
                 required
               />
             </div>
@@ -87,7 +87,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 bg-[#151b2d] border border-[#2e3447] text-[#dce1fb] placeholder-[#8c91a8] rounded-lg focus:outline-none focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
+                className="w-full px-4 py-3 bg-[#151b2d] border border-brand-border text-brand-text placeholder-brand-text-muted rounded-lg focus:outline-none focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
                 required
               />
             </div>
@@ -108,7 +108,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-[#0c1324] py-3 rounded-lg font-semibold text-lg disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-brand-primary hover:bg-brand-primary/90"
+              className="w-full py-3 rounded-lg font-semibold text-lg disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3"
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </button>
@@ -120,7 +120,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-[#2e3447]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[#191f31] text-[#8c91a8]">Or</span>
+              <span className="px-2 bg-brand-card text-[#8c91a8]">Or</span>
             </div>
           </div>
 

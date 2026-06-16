@@ -84,13 +84,13 @@ export default function OrganisationSignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c1324] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-brand-bg flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-linear-to-br from-[#7bd0ff] to-[#008abb] rounded-2xl flex items-center justify-center shadow-lg">
-              <Building2 className="text-[#0c1324]" size={32} />
+            <div className="w-16 h-16 bg-linear-to-br from-brand-primary to-brand-secondary rounded-2xl flex items-center justify-center shadow-lg">
+              <Building2 className="text-brand-bg" size={32} />
             </div>
           </div>
           <h1 className="text-4xl font-bold text-[#dce1fb] mb-2">Register Your Organisation</h1>
@@ -98,7 +98,7 @@ export default function OrganisationSignupPage() {
         </div>
 
         {/* Signup Form */}
-        <form onSubmit={handleSubmit} className="bg-[#191f31] rounded-3xl border border-[#2e3447] p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-brand-card rounded-3xl border p-6 sm:p-8 space-y-6">
           {errors.submit && (
             <div className="bg-[#ffb4ab] bg-opacity-20 border border-[#ffb4ab] rounded-xl p-4 flex items-start gap-3">
               <div className="w-5 h-5 bg-[#ffb4ab] rounded-full shrink-0 mt-0.5"></div>
@@ -124,9 +124,9 @@ export default function OrganisationSignupPage() {
                 value={formData.organisationName}
                 onChange={handleChange}
                 placeholder="e.g., Maiduguri Specialist Hospital"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.organisationName
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.organisationName
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
-                    : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
+                    : 'border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
                   }`}
               />
               {errors.organisationName && (
@@ -144,7 +144,7 @@ export default function OrganisationSignupPage() {
                   name="organisationType"
                   value={formData.organisationType}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 border-[#2e3447] text-[#dce1fb] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-[#151b2d] border border-brand-border text-brand-text placeholder-brand-text-muted text-[#dce1fb] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
                 >
                   {orgTypes.map(type => (
                     <option key={type.value} value={type.value}>
@@ -162,9 +162,9 @@ export default function OrganisationSignupPage() {
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] transition-all ${errors.state
+                  className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-[#dce1fb] transition-all ${errors.state
                       ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
-                      : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
+                      : 'border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
                     }`}
                 >
                   <option value="">Select a state</option>
@@ -190,9 +190,9 @@ export default function OrganisationSignupPage() {
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 placeholder="+234 8000 000 000"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.phoneNumber
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.phoneNumber
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
-                    : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
+                    : 'border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
                   }`}
               />
               {errors.phoneNumber && (
@@ -202,7 +202,7 @@ export default function OrganisationSignupPage() {
           </div>
 
           {/* Admin Details */}
-          <div className="space-y-4 pt-6 border-t-2 border-[#2e3447]">
+          <div className="space-y-4 pt-6 border-t-2 border-brand-border text-brand-text placeholder-brand-text-muted">
             <h3 className="text-lg font-semibold text-[#dce1fb] flex items-center gap-2">
               <User size={20} className="text-[#7bd0ff]" />
               Admin Account
@@ -219,9 +219,9 @@ export default function OrganisationSignupPage() {
                 value={formData.adminFullName}
                 onChange={handleChange}
                 placeholder="First & Last Name"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.adminFullName
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.adminFullName
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
-                    : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
+                    : 'border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
                   }`}
               />
               {errors.adminFullName && (
@@ -241,9 +241,9 @@ export default function OrganisationSignupPage() {
                 value={formData.workEmail}
                 onChange={handleChange}
                 placeholder="admin@hospital.com"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.workEmail
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.workEmail
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
-                    : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
+                    : 'border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
                   }`}
               />
               {errors.workEmail && (
@@ -263,9 +263,9 @@ export default function OrganisationSignupPage() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.password
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.password
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
-                    : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
+                    : 'border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
                   }`}
               />
               {errors.password && (
@@ -285,9 +285,9 @@ export default function OrganisationSignupPage() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${errors.confirmPassword
+                className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.confirmPassword
                     ? 'border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20'
-                    : 'border-[#2e3447] focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
+                    : 'border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20'
                   }`}
               />
               {errors.confirmPassword && (
@@ -297,7 +297,7 @@ export default function OrganisationSignupPage() {
           </div>
 
           {/* Terms & Conditions */}
-          <div className="bg-[#151b2d] rounded-xl border border-[#2e3447] p-4 space-y-3">
+          <div className="bg-[#151b2d] rounded-xl border border-brand-border text-brand-text placeholder-brand-text-muted p-4 space-y-3">
             <p className="text-sm text-[#dce1fb] leading-relaxed">
               By registering, you agree to our{' '}
               <a href="#" className="text-[#7bd0ff] hover:underline font-semibold">Terms of Service</a>
@@ -313,7 +313,7 @@ export default function OrganisationSignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full text-[#0c1324] py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all bg-brand-primary hover:bg-brand-primary/90"
+            className="w-full text-brand-bg py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-all bg-linear-to-r from-brand-primary to-brand-secondary cursor-pointer"
           >
             {loading ? (
               <>
