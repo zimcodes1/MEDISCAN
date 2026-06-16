@@ -59,7 +59,7 @@ export default function CaseUploadPage() {
 					onUploadAnother={handleReset}
 				/>
 			) : (
-				<div className="grid grid-cols-3 gap-6">
+				<div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
 					{/* Left Column */}
 					<div className="col-span-2 space-y-6">
 						<PatientSearch
@@ -83,7 +83,7 @@ export default function CaseUploadPage() {
 					</div>
 
 					{/* Right Column */}
-					<div className="space-y-6">
+					<div className="max-sm:col-span-2 space-y-6">
 						<AssignmentPriorityForm
 							uploadedBy="Dr. Nwosu"
 							priority={priority}

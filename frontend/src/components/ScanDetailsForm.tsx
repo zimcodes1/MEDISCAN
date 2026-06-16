@@ -52,7 +52,7 @@ export default function ScanDetailsForm({
 	};
 
 	return (
-		<div className="glass-panel rounded-2xl p-6 space-y-6 relative overflow-hidden group">
+		<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
 			<h2 className="text-lg font-bold text-brand-text font-display">Scan Details</h2>
 
 			{/* Scan Type */}
