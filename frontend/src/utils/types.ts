@@ -6,3 +6,11 @@ export interface Patient {
     age: number;
     sex: string;
 }
+
+export type OnboardingStep = 1 | 2;
+
+export interface StaffMember {
+  fullName: string;
+  email: string;
+  role: 'radiologist' | 'clinician';
+}
