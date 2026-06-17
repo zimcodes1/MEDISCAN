@@ -4,3 +4,4 @@ backend/Pipfile.lock
 frontend/Mediscan/package-lock.json
 .codex
 design/
+IMGS/
