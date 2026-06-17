@@ -8,7 +8,7 @@ import { reportData } from "../utils/DummyData";
 export default function PatientReportViewPage() {
 	// Set Page Title
 	useEffect(() => {
-		document.title = "View Result - Mediscan AI";
+		document.title = "View Report - Mediscan AI";
 	}, []);
 
 	const handleExportPDF = () => {

@@ -14,3 +14,10 @@ export interface StaffMember {
   email: string;
   role: 'radiologist' | 'clinician';
 }
+
+export interface ReportHeaderProps {
+	orgName: string;
+	orgLogo?: string;
+	reportId: string;
+	reportDate: string;
+}

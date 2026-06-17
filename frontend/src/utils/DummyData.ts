@@ -167,7 +167,7 @@ export const contextData = {
 export const reportData = {
     // Header
     orgName: "Lagos General Hospital",
-    orgLogo: "/images/hospital-logo.png",
+    orgLogo: undefined,
     reportId: "RPT-2024-001234",
     reportDate: "January 15, 2024 14:32",
 
