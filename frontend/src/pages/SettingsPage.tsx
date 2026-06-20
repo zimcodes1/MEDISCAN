@@ -19,6 +19,9 @@ import {
 } from "../utils/DummyData";
 
 export default function SettingsPage() {
+	//Set Previous page for the 404 back button handler to check
+	sessionStorage.setItem("lastPage", window.location.href);
+
 	// Set Page Title
 	useEffect(() => {
 		document.title = "Settings - Mediscan AI";

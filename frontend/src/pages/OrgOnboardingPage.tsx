@@ -13,6 +13,8 @@ import {
 import type { OnboardingStep, StaffMember } from "../utils/types";
 
 export default function OrgOnboardingPage() {
+	//Set Previous page for the 404 back button handler to check
+	sessionStorage.setItem("lastPage", window.location.href);
 	// Set Page Title
 	useEffect(() => {
 		document.title = "Fill in your info - Mediscan AI";

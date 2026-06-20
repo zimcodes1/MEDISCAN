@@ -8,7 +8,9 @@ import SubmissionFooter from "../components/patient-reports/SubmissionFooter";
 import { contextData } from "../utils/DummyData";
 
 export default function PatientReportPage() {
-		// Set Page Title
+	//Set Previous page for the 404 back button handler to check
+	sessionStorage.setItem("lastPage", window.location.href);
+	// Set Page Title
 	useEffect(() => {
 		document.title = "Report - Mediscan AI";
 	}, []);
@@ -42,7 +44,7 @@ export default function PatientReportPage() {
 
 	const handleSubmitReport = () => {
 		if (!confirmationChecked) return;
-		
+
 		// Submit report logic
 		setIsSubmitted(true);
 		setSubmittedDate(new Date().toLocaleString());
@@ -53,9 +55,13 @@ export default function PatientReportPage() {
 		<div className="p-4 sm:p-8 flex-1 flex flex-col max-w-5xl">
 			{/* Header */}
 			<div className="mb-8 mt-5">
-				<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Clinician Report</h1>
+				<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">
+					Clinician Report
+				</h1>
 				<p className="text-brand-text-muted text-sm">
-					{isSubmitted ? "View submitted report" : "Complete structured diagnostic report"}
+					{isSubmitted
+						? "View submitted report"
+						: "Complete structured diagnostic report"}
 				</p>
 			</div>
 

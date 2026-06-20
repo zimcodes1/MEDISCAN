@@ -16,6 +16,8 @@ import { useEffect } from "react";
 //Main Dashboard Page
 
 export default function DashboardPage() {
+	//Set Previous page for the 404 back button handler to check
+	sessionStorage.setItem("lastPage", window.location.href);
 	// Set Page Title
 	useEffect(() => {
 		document.title = "Dashboard - Mediscan AI";
@@ -53,8 +55,8 @@ export default function DashboardPage() {
 					<span className="font-bold uppercase tracking-wider mr-1">
 						AI Support Notice:
 					</span>
-					All findings are preliminary clinical decision-support data and
-					must be verified by a clinician.
+					All findings are preliminary clinical decision-support data and must
+					be verified by a clinician.
 				</p>
 			</div>
 

@@ -12,6 +12,7 @@ import PatientReportPage from "./pages/PatientReportPage";
 import PatientReportViewPage from "./pages/PatientReportViewPage";
 import SettingsPage from "./pages/SettingsPage";
 import MainLayout from "./components/MainLayout";
+import LostPage from "./pages/404";
 
 function App() {
 	return (
@@ -26,6 +27,7 @@ function App() {
 					path="/staff/accept-invite"
 					element={<StaffInviteAcceptancePage />}
 				/>
+				<Route path="*" element={<LostPage />} />
 
 				{/* Shared Main Layout for Dashboard & Standard Pages */}
 				<Route element={<MainLayout />}>

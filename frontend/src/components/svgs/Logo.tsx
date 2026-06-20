@@ -1,4 +1,4 @@
-export default function Logo({size = 40}: {size?: number}) {
+export default function Logo({ size = 40 }: { size?: number }) {
 	return (
 		<svg
 			width={size}
@@ -11,10 +11,10 @@ export default function Logo({size = 40}: {size?: number}) {
 			<path
 				d="M 25 50 H 42 L 50 30 L 58 70 L 66 50 H 83"
 				stroke="black"
-				stroke-width="4"
+				strokeWidth="4"
 				fill="none"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 			/>
 		</svg>
 	);

@@ -4,10 +4,12 @@ import { scanData } from "../utils/DummyData";
 import { useEffect } from "react";
 
 export default function NeuralAnalysisPage() {
-		// Set Page Title
-		useEffect(() => {
-			document.title = "Analysis - Mediscan AI";
-		}, []);
+	//Set Previous page for the 404 back button handler to check
+	sessionStorage.setItem("lastPage", window.location.href);
+	// Set Page Title
+	useEffect(() => {
+		document.title = "Analysis - Mediscan AI";
+	}, []);
 	const handleWriteReport = () => {
 		// Navigate to report writing page
 		window.location.href = "/patient-reports/write";
@@ -20,8 +22,12 @@ export default function NeuralAnalysisPage() {
 		<div className="p-4 sm:p-8 flex-1 flex flex-col">
 			{/* Header */}
 			<div className="mb-8 mt-5">
-				<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">Neural Analysis</h1>
-				<p className="text-brand-text-muted text-sm">AI-assisted diagnostic output for radiologist review.</p>
+				<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">
+					Neural Analysis
+				</h1>
+				<p className="text-brand-text-muted text-sm">
+					AI-assisted diagnostic output for radiologist review.
+				</p>
 			</div>
 
 			{/* Responsive Layout Grid */}
