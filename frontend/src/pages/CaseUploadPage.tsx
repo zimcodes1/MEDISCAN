@@ -7,16 +7,20 @@ import { Upload } from "lucide-react";
 import type { Patient } from "../utils/types";
 
 export default function CaseUploadPage() {
-		// Set Page Title
-		useEffect(() => {
-			document.title = "New Upload - Mediscan AI";
-		}, []);
+	//Set Previous page for the 404 back button handler to check
+	sessionStorage.setItem("lastPage", window.location.href);
+	// Set Page Title
+	useEffect(() => {
+		document.title = "New Upload - Mediscan AI";
+	}, []);
 
 	const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 	const [scanType, setScanType] = useState("chest-xray");
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [viewProjection, setViewProjection] = useState("");
-	const [scanDate, setScanDate] = useState(new Date().toISOString().split("T")[0]);
+	const [scanDate, setScanDate] = useState(
+		new Date().toISOString().split("T")[0],
+	);
 	const [clinicalNotes, setClinicalNotes] = useState("");
 	const [assignedRadiologist, setAssignedRadiologist] = useState("");
 	const [priority, setPriority] = useState<"routine" | "urgent">("routine");
@@ -24,7 +28,12 @@ export default function CaseUploadPage() {
 
 	const handleSubmit = () => {
 		// Validate and submit
-		if (!selectedPatient || !imageFile || !viewProjection || !assignedRadiologist) {
+		if (
+			!selectedPatient ||
+			!imageFile ||
+			!viewProjection ||
+			!assignedRadiologist
+		) {
 			alert("Please fill in all required fields");
 			return;
 		}
@@ -43,14 +52,19 @@ export default function CaseUploadPage() {
 		setPriority("routine");
 	};
 
-	const isFormValid = selectedPatient && imageFile && viewProjection && assignedRadiologist;
+	const isFormValid =
+		selectedPatient && imageFile && viewProjection && assignedRadiologist;
 
 	return (
 		<div className="p-4 sm:p-8">
 			{/* Header */}
 			<div className="mb-8 mt-5">
-				<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">New Diagnostic Case</h1>
-				<p className="text-brand-text-muted text-sm">Upload and assign chest X-ray scans for AI-assisted analysis.</p>
+				<h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display mb-2">
+					New Diagnostic Case
+				</h1>
+				<p className="text-brand-text-muted text-sm">
+					Upload and assign chest X-ray scans for AI-assisted analysis.
+				</p>
 			</div>
 
 			{uploadSuccess ? (
@@ -107,4 +121,3 @@ export default function CaseUploadPage() {
 		</div>
 	);
 }
-
