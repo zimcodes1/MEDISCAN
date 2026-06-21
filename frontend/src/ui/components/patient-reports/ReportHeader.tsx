@@ -1,4 +1,4 @@
-import type { ReportHeaderProps } from "../../utils/types";
+import type { ReportHeaderProps } from "../../../utils/types";
 
 export default function ReportHeader({
 	orgName,
@@ -10,13 +10,13 @@ export default function ReportHeader({
 		<div className="glass-panel rounded-2xl p-6 mb-6 relative overflow-hidden group">
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 				<div className="flex items-center gap-4">
-						<div className="w-16 h-16 rounded-xl bg-brand-card border border-brand-border/60 p-2 flex items-center justify-center">
-							{orgLogo ? (
-								<img src={orgLogo} alt="Organisation logo" className="w-full h-full object-contain" />
-							) : (
-								<span className="text-brand-primary  text-2xl font-bold text-center px-2">{orgName.slice(0,1).toLocaleUpperCase()}</span>
-							)}
-						</div>
+					<div className="w-16 h-16 rounded-xl bg-brand-card border border-brand-border/60 p-2 flex items-center justify-center">
+						{orgLogo ? (
+							<img src={orgLogo} alt="Organisation logo" className="w-full h-full object-contain" />
+						) : (
+							<span className="text-brand-primary  text-2xl font-bold text-center px-2">{orgName.slice(0, 1).toLocaleUpperCase()}</span>
+						)}
+					</div>
 					<div>
 						<h1 className="text-xl font-extrabold text-brand-text font-display tracking-tight">
 							{orgName}

@@ -1,6 +1,6 @@
 import ImageViewer from "../components/neural-analysis/ImageViewer";
 import AIOutputPanel from "../components/neural-analysis/AIOutputPanel";
-import { scanData } from "../utils/DummyData";
+import { scanData } from "../../utils/DummyData";
 import { useEffect } from "react";
 
 export default function NeuralAnalysisPage() {

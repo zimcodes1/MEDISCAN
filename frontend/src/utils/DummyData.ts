@@ -1,4 +1,4 @@
-import type { ScanQueueItem } from "../components/dashboard/ScanRow";
+import type { ScanQueueItem } from "../ui/components/dashboard/ScanRow";
 export const pendingCases = [
     {
         id: 1,

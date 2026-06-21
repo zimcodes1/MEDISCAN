@@ -10,7 +10,7 @@ import {
 	Loader,
 	Plus,
 } from "lucide-react";
-import type { OnboardingStep, StaffMember } from "../utils/types";
+import type { OnboardingStep, StaffMember } from "../../utils/types";
 
 export default function OrgOnboardingPage() {
 	//Set Previous page for the 404 back button handler to check
@@ -161,9 +161,8 @@ export default function OrgOnboardingPage() {
 						{[1, 2].map((i) => (
 							<div
 								key={i}
-								className={`h-1 flex-1 rounded-full transition-all ${
-									i <= step ? "bg-brand-primary" : "bg-brand-border"
-								}`}
+								className={`h-1 flex-1 rounded-full transition-all ${i <= step ? "bg-brand-primary" : "bg-brand-border"
+									}`}
 							></div>
 						))}
 					</div>
@@ -190,11 +189,10 @@ export default function OrgOnboardingPage() {
 									value={profileData.adminJobTitle}
 									onChange={handleProfileChange}
 									placeholder="e.g., Medical Director, IT Administrator"
-									className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-brand-text placeholder-[#8c91a8] transition-all ${
-										errors.adminJobTitle
+									className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-brand-text placeholder-[#8c91a8] transition-all ${errors.adminJobTitle
 											? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
 											: "border-brand-border focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:ring-opacity-20"
-									}`}
+										}`}
 								/>
 								{errors.adminJobTitle && (
 									<p className="text-[#ffb4ab] text-sm mt-1">
@@ -328,11 +326,10 @@ export default function OrgOnboardingPage() {
 											value={newStaff.fullName}
 											onChange={handleStaffChange}
 											placeholder="First & Last Name"
-											className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 border-brand-border text-brand-text placeholder-[#8c91a8] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:ring-opacity-20 transition-all ${
-												errors.email
+											className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 border-brand-border text-brand-text placeholder-[#8c91a8] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:ring-opacity-20 transition-all ${errors.email
 													? "border-[#ffb4ab] focus:border-[#ffb4ab]"
 													: "border-brand-border focus:border-brand-primary"
-											}`}
+												}`}
 										/>
 										{errors.fullName && (
 											<p className="text-[#ffb4ab] text-xs mt-1">
@@ -352,11 +349,10 @@ export default function OrgOnboardingPage() {
 											value={newStaff.email}
 											onChange={handleStaffChange}
 											placeholder="colleague@hospital.com"
-											className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 border-brand-border text-brand-text placeholder-[#8c91a8] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:ring-opacity-20 transition-all ${
-												errors.email
+											className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 border-brand-border text-brand-text placeholder-[#8c91a8] focus:border-brand-primary focus:ring-2 focus:ring-brand-primary focus:ring-opacity-20 transition-all ${errors.email
 													? "border-[#ffb4ab] focus:border-[#ffb4ab]"
 													: "border-brand-border focus:border-brand-primary"
-											}`}
+												}`}
 										/>
 										{errors.email && (
 											<p className="text-[#ffb4ab] text-xs mt-1">

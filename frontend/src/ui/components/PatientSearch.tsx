@@ -1,7 +1,7 @@
 import { Search, X } from "lucide-react";
 import { useState } from "react";
-import { type Patient } from "../utils/types";
-import { mockPatients } from "../utils/DummyData";
+import { type Patient } from "../../utils/types";
+import { mockPatients } from "../../utils/DummyData";
 
 interface PatientSearchProps {
 	selectedPatient: Patient | null;
@@ -84,8 +84,8 @@ export default function PatientSearch({ selectedPatient, onPatientSelect, onClea
 							{selectedPatient.hospitalId} · {selectedPatient.age}y · {selectedPatient.sex}
 						</p>
 					</div>
-					<button 
-						onClick={onClearPatient} 
+					<button
+						onClick={onClearPatient}
 						className="text-brand-text-muted/70 hover:text-rose-400 p-1.5 rounded-lg hover:bg-brand-card/60 transition-all duration-200"
 					>
 						<X size={16} />

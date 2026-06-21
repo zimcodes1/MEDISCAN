@@ -1,18 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import OrganisationSignupPage from "./pages/OrganisationSignupPage";
-import EmailVerificationPage from "./pages/EmailVerificationPage";
-import OrgOnboardingPage from "./pages/OrgOnboardingPage";
-import StaffInviteAcceptancePage from "./pages/StaffInviteAcceptancePage";
-import DashboardPage from "./pages/DashboardPage";
-import CaseUploadPage from "./pages/CaseUploadPage";
-import NeuralAnalysisPage from "./pages/NeuralAnalysisPage";
-import PatientReportPage from "./pages/PatientReportPage";
-import PatientReportViewPage from "./pages/PatientReportViewPage";
-import SettingsPage from "./pages/SettingsPage";
-import MainLayout from "./components/MainLayout";
-import LostPage from "./pages/404";
+import LandingPage from "./pages/landingPage";
+import LoginPage from "./pages/loginPage";
+import OrganisationSignupPage from "./pages/organisationSignUpPage";
+import EmailVerificationPage from "./pages/emailVerificationPage";
+import OrgOnboardingPage from "./pages/orgOnboardingPage";
+import StaffInviteAcceptancePage from "./pages/staffInviteAcceptancePage";
+import DashboardPage from "./pages/dashboardPage";
+import CaseUploadPage from "./pages/caseUploadPage";
+import NeuralAnalysisPage from "./pages/neuralAnalysisPage";
+import PatientReportPage from "./pages/patientReportPage";
+import PatientReportViewPage from "./pages/patientReportViewPage";
+import SettingsPage from "./pages/settingsPage";
+import MainLayout from "./ui/components/MainLayout";
+import LostPage from "./ui/pages/404";
 
 function App() {
 	return (

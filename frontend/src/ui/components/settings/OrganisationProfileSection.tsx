@@ -1,6 +1,6 @@
 import { Upload, Save } from "lucide-react";
 import { useState } from "react";
-import { NigerianStates as nigerianStates } from "../../utils/DummyData";
+import { NigerianStates as nigerianStates } from "../../../utils/DummyData";
 
 interface OrganisationProfileSectionProps {
 	initialData: {
@@ -53,7 +53,7 @@ export default function OrganisationProfileSection({ initialData, onSave }: Orga
 							{logo ? (
 								<img src={logo} alt="Organisation logo" className="w-full h-full object-contain" />
 							) : (
-								<span className="text-brand-primary  text-2xl font-bold text-center px-2">{orgName.slice(0,1).toLocaleUpperCase()}</span>
+								<span className="text-brand-primary  text-2xl font-bold text-center px-2">{orgName.slice(0, 1).toLocaleUpperCase()}</span>
 							)}
 						</div>
 						<label className="cursor-pointer">

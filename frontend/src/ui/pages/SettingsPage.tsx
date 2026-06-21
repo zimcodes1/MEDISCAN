@@ -16,7 +16,7 @@ import {
 	profileData,
 	radiologists,
 	userRole,
-} from "../utils/DummyData";
+} from "../../utils/DummyData";
 
 export default function SettingsPage() {
 	//Set Previous page for the 404 back button handler to check

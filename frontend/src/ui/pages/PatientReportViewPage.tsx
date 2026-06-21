@@ -4,7 +4,7 @@ import ReportSection from "../components/patient-reports/ReportSection";
 import ReportField from "../components/patient-reports/ReportField";
 import ReportDisclaimer from "../components/patient-reports/ReportDisclaimer";
 import { Download, Printer, AlertTriangle, CheckCircle } from "lucide-react";
-import { reportData } from "../utils/DummyData";
+import { reportData } from "../../utils/DummyData";
 export default function PatientReportViewPage() {
 	//Set Previous page for the 404 back button handler to check
 	sessionStorage.setItem("lastPage", window.location.href);
@@ -95,11 +95,10 @@ export default function PatientReportViewPage() {
 						{reportData.aiFindings.map((finding, idx) => (
 							<div
 								key={idx}
-								className={`p-4 rounded-xl border flex flex-col justify-between gap-3 print:bg-white print:border-gray-200 print:text-black ${
-									finding.prediction === "detected"
+								className={`p-4 rounded-xl border flex flex-col justify-between gap-3 print:bg-white print:border-gray-200 print:text-black ${finding.prediction === "detected"
 										? "bg-rose-500/5 border-rose-500/20 text-rose-400"
 										: "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
-								}`}
+									}`}
 							>
 								<div className="flex items-start justify-between gap-2">
 									<div className="flex items-center gap-2">
@@ -124,11 +123,10 @@ export default function PatientReportViewPage() {
 										)}
 									</div>
 									<span
-										className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
-											finding.prediction === "detected"
+										className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${finding.prediction === "detected"
 												? "bg-rose-500/10 text-rose-400 print:bg-red-100 print:text-red-600"
 												: "bg-emerald-500/10 text-emerald-400 print:bg-green-100 print:text-green-700"
-										}`}
+											}`}
 									>
 										{finding.prediction === "detected" ? "Detected" : "Normal"}
 									</span>
@@ -151,11 +149,10 @@ export default function PatientReportViewPage() {
 									</div>
 									<div className="w-full bg-brand-bg/60 h-1.5 rounded-full overflow-hidden border border-brand-border/20">
 										<div
-											className={`h-full rounded-full transition-all duration-500 ${
-												finding.prediction === "detected"
+											className={`h-full rounded-full transition-all duration-500 ${finding.prediction === "detected"
 													? "bg-gradient-to-r from-rose-500 to-amber-500"
 													: "bg-gradient-to-r from-brand-primary to-brand-secondary"
-											}`}
+												}`}
 											style={{ width: `${finding.confidence}%` }}
 										/>
 									</div>

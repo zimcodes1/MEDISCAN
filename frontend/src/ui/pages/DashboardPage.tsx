@@ -10,7 +10,7 @@ import { ActivityLog } from "../components/dashboard/ActivityLogs";
 import SystemStats from "../components/dashboard/SystemStats";
 import StatCard from "../components/dashboard/StatCard";
 import ScanRow from "../components/dashboard/ScanRow";
-import { SCAN_QUEUE } from "../utils/DummyData";
+import { SCAN_QUEUE } from "../../utils/DummyData";
 import { useEffect } from "react";
 
 //Main Dashboard Page

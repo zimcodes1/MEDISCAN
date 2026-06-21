@@ -5,7 +5,7 @@ import ImpressionBlock from "../components/patient-reports/ImpressionBlock";
 import RecommendationBlock from "../components/patient-reports/RecommendationBlock";
 import AIAgreementBlock from "../components/patient-reports/AIAgreementBlock";
 import SubmissionFooter from "../components/patient-reports/SubmissionFooter";
-import { contextData } from "../utils/DummyData";
+import { contextData } from "../../utils/DummyData";
 
 export default function PatientReportPage() {
 	//Set Previous page for the 404 back button handler to check

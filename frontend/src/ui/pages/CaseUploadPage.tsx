@@ -4,7 +4,7 @@ import ScanDetailsForm from "../components/ScanDetailsForm";
 import AssignmentPriorityForm from "../components/AssignmentPriorityForm";
 import UploadSuccessState from "../components/UploadSuccessState";
 import { Upload } from "lucide-react";
-import type { Patient } from "../utils/types";
+import type { Patient } from "../../utils/types";
 
 export default function CaseUploadPage() {
 	//Set Previous page for the 404 back button handler to check

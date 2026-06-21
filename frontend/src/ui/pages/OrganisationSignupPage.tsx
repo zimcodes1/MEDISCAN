@@ -9,7 +9,7 @@ import {
 	ArrowRight,
 	Loader,
 } from "lucide-react";
-import { NigerianStates as states } from "../utils/DummyData";
+import { NigerianStates as states } from "../../utils/DummyData";
 export default function OrganisationSignupPage() {
 	//Set Previous page for the 404 back button handler to check
 	sessionStorage.setItem("lastPage", window.location.href);
@@ -143,11 +143,10 @@ export default function OrganisationSignupPage() {
 								value={formData.organisationName}
 								onChange={handleChange}
 								placeholder="e.g., Maiduguri Specialist Hospital"
-								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${
-									errors.organisationName
+								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.organisationName
 										? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
 										: "border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20"
-								}`}
+									}`}
 							/>
 							{errors.organisationName && (
 								<p className="text-[#ffb4ab] text-sm mt-1">
@@ -184,11 +183,10 @@ export default function OrganisationSignupPage() {
 									name="state"
 									value={formData.state}
 									onChange={handleChange}
-									className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-[#dce1fb] transition-all ${
-										errors.state
+									className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-[#dce1fb] transition-all ${errors.state
 											? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
 											: "border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20"
-									}`}
+										}`}
 								>
 									<option value="">Select a state</option>
 									{states.map((state) => (
@@ -215,11 +213,10 @@ export default function OrganisationSignupPage() {
 								value={formData.phoneNumber}
 								onChange={handleChange}
 								placeholder="+234 8000 000 000"
-								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${
-									errors.phoneNumber
+								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.phoneNumber
 										? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
 										: "border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20"
-								}`}
+									}`}
 							/>
 							{errors.phoneNumber && (
 								<p className="text-[#ffb4ab] text-sm mt-1">
@@ -247,11 +244,10 @@ export default function OrganisationSignupPage() {
 								value={formData.adminFullName}
 								onChange={handleChange}
 								placeholder="First & Last Name"
-								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${
-									errors.adminFullName
+								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.adminFullName
 										? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
 										: "border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20"
-								}`}
+									}`}
 							/>
 							{errors.adminFullName && (
 								<p className="text-[#ffb4ab] text-sm mt-1">
@@ -272,11 +268,10 @@ export default function OrganisationSignupPage() {
 								value={formData.workEmail}
 								onChange={handleChange}
 								placeholder="admin@hospital.com"
-								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${
-									errors.workEmail
+								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.workEmail
 										? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
 										: "border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20"
-								}`}
+									}`}
 							/>
 							{errors.workEmail && (
 								<p className="text-[#ffb4ab] text-sm mt-1">
@@ -297,11 +292,10 @@ export default function OrganisationSignupPage() {
 								value={formData.password}
 								onChange={handleChange}
 								placeholder="••••••••"
-								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${
-									errors.password
+								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.password
 										? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
 										: "border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20"
-								}`}
+									}`}
 							/>
 							{errors.password && (
 								<p className="text-[#ffb4ab] text-sm mt-1">{errors.password}</p>
@@ -322,11 +316,10 @@ export default function OrganisationSignupPage() {
 								value={formData.confirmPassword}
 								onChange={handleChange}
 								placeholder="••••••••"
-								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${
-									errors.confirmPassword
+								className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${errors.confirmPassword
 										? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
 										: "border-brand-border text-brand-text placeholder-brand-text-muted focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20"
-								}`}
+									}`}
 							/>
 							{errors.confirmPassword && (
 								<p className="text-[#ffb4ab] text-sm mt-1">
