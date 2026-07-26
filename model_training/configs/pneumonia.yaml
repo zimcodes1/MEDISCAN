@@ -1,0 +1,11 @@
+dataset:
+  source: "Kaggle Chest X-Ray Pneumonia"
+  drive_path: "Mediscan_AI/training/datasets/pneumonia/"
+  num_images_approx: 5856 # confirmed pooled count (was 5863 estimate)
+  classes: ["Normal", "Pneumonia"]
+  class_distribution:
+    normal: 1583
+    pneumonia: 4273
+    ratio_neg_to_pos: 0.370 # 1583 / 4273 — imbalance noted, positive class overrepresented
+  split_seed: 42
+  split_ratios: [0.8, 0.1, 0.1]
