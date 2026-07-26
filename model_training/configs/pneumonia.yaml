@@ -9,3 +9,5 @@ dataset:
     ratio_neg_to_pos: 0.370 # 1583 / 4273 — imbalance noted, positive class overrepresented
   split_seed: 42
   split_ratios: [0.8, 0.1, 0.1]
+training:
+  pos_weight: 0.3704
