@@ -11,3 +11,5 @@ dataset:
   split_ratios: [0.8, 0.1, 0.1]
 training:
   pos_weight: 0.3704
+
+  experimental: true
