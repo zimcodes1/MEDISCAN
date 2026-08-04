@@ -34,6 +34,31 @@ def apply_train_augmentation(img):
     """Step 6: training-only augmentation (flip, rotation, jitter)."""
     return train_augment(img)
 
+def crop_thorax(img):
+    """
+    Crop out neck/shoulder region and side margins before resizing.
+    Added after Grad-CAM revealed the model attending to neck/collar/
+    hardware regions rather than lung fields on the uncropped pipeline.
+    """
+    w, h = img.size
+    top = int(h * 0.25)      # cut top 25% (neck/throat/shoulders)
+    bottom = int(h * 0.98)
+    left = int(w * 0.05)
+    right = int(w * 0.95)
+    return img.crop((left, top, right, bottom))
+
+
+def preprocess(image_path, train=False):
+    img = load_and_convert(image_path)
+    img = crop_thorax(img)          # <-- new step
+
+    if train:
+        img = apply_train_augmentation(img)
+
+    img = resize(img)
+    arr = to_normalized_array(img)
+    arr = to_model_input(arr)
+    return arr
 
 def resize(img):
     """Step 3: resize to 224x224, bilinear interpolation."""
