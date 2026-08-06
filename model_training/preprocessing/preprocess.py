@@ -30,10 +30,6 @@ def load_and_convert(image_path):
     return img
 
 
-def apply_train_augmentation(img):
-    """Step 6: training-only augmentation (flip, rotation, jitter)."""
-    return train_augment(img)
-
 def crop_thorax(img):
     """
     Crop out neck/shoulder region and side margins before resizing.
@@ -48,17 +44,10 @@ def crop_thorax(img):
     return img.crop((left, top, right, bottom))
 
 
-def preprocess(image_path, train=False):
-    img = load_and_convert(image_path)
-    img = crop_thorax(img)          # <-- new step
+def apply_train_augmentation(img):
+    """Step 6: training-only augmentation (flip, rotation, jitter)."""
+    return train_augment(img)
 
-    if train:
-        img = apply_train_augmentation(img)
-
-    img = resize(img)
-    arr = to_normalized_array(img)
-    arr = to_model_input(arr)
-    return arr
 
 def resize(img):
     """Step 3: resize to 224x224, bilinear interpolation."""
@@ -86,6 +75,7 @@ def preprocess(image_path, train=False):
     at inference time).
     """
     img = load_and_convert(image_path)
+    img = crop_thorax(img)
 
     if train:
         img = apply_train_augmentation(img)
