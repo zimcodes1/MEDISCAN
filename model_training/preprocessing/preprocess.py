@@ -35,9 +35,14 @@ def crop_thorax(img):
     Crop out neck/shoulder region and side margins before resizing.
     Added after Grad-CAM revealed the model attending to neck/collar/
     hardware regions rather than lung fields on the uncropped pipeline.
+
+    v2: reduced top crop from 25% to 15% after the 25% version showed
+    a specificity regression (96.2% -> 67.7%) on the test set, likely
+    from removing information useful for correctly identifying NORMAL
+    cases.
     """
     w, h = img.size
-    top = int(h * 0.25)      # cut top 25% (neck/throat/shoulders)
+    top = int(h * 0.15)      # reduced from 0.25
     bottom = int(h * 0.98)
     left = int(w * 0.05)
     right = int(w * 0.95)
