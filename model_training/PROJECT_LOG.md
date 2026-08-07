@@ -2,9 +2,8 @@
 
 > Covers: repo/branch setup through the Pneumonia crop-fix retrain.
 > Purpose: a single source of truth for what's been built, what broke,
-> and how it was fixed — so any teammate (or future me
-) can pick this
-> up.
+> and how it was fixed — so any teammate (or future you) can pick this
+> up without reconstructing context from chat history.
 
 ---
 
@@ -310,7 +309,48 @@ from the original run (confirmed real test this time). Results:
 
 ---
 
-## 10. Open Infrastructure Items (carry forward to remaining conditions)
+## 11. TorchXRayVision / DenseNet121 Comparison (Explored, Not Adopted)
+
+Explored using TorchXRayVision's pretrained DenseNet121
+(`densenet121-res224-all`, trained on NIH ChestX-ray14 + CheXpert +
+MIMIC-CXR + PadChest) as a diagnostic baseline to check whether the
+Grad-CAM bias found in §7 was data/architecture-specific to our
+EfficientNet-B0, or something more fundamental.
+
+**Method:** ran both models' Grad-CAM side-by-side on the 4 flagged
+PNEUMONIA test images that showed neck/hardware activation in the
+original bias finding.
+
+**Result:**
+- TXRV's activation landed in more anatomically plausible regions
+  (lower lung, diaphragm, heart) than our model's shoulder/corner
+  activation — confirms our model's bias is real, consistent with
+  earlier findings.
+- However, TXRV's actual **predictions diverged sharply** from ground
+  truth on these same images (0.144, 0.014, 0.020, 0.581 — mostly
+  predicting NOT pneumonia on genuinely positive cases).
+
+**Confound identified:** the Kaggle dataset used for this project is
+**pediatric** chest X-rays (Guangzhou Women and Children's Medical
+Center). TorchXRayVision's pretrained weights are trained entirely on
+**adult** chest X-ray datasets. Pediatric anatomy (bone density, rib
+cage proportions, thymus shadow, mediastinal width) differs meaningfully
+from adult anatomy, so TXRV's low confidence and disagreement may
+reflect out-of-distribution failure on unfamiliar anatomy rather than
+correctly identifying our model's shortcut.
+
+**Decision:** did not adopt TXRV weights or switch to a DenseNet121
+backbone. The domain mismatch (adult-trained weights vs. pediatric
+data) undermines the core rationale for switching, and doesn't cleanly
+resolve whether TXRV's differing activation is "more correct" or just
+differently wrong. Returning to crop-based mitigation (§8) as the more
+controllable, already-partially-validated lever — next step is loosening
+the crop boundary (currently 25% top-crop) to recover specificity while
+retaining the neck/throat exclusion.
+
+---
+
+## 12. Open Infrastructure Items (carry forward to remaining conditions)
 
 1. **Recovery cell still hardcodes checkpoint paths** — needs to be made
    condition-aware / not silently reset to stale defaults after a disconnect
