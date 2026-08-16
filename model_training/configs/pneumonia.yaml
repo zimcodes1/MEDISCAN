@@ -13,3 +13,6 @@ training:
   pos_weight: 0.3704
 
   experimental: true
+hf_hub:
+  repo: "Rhishamah/mediscan-pneumonia"
+  commit_hash: "f31fffeac0caa11017df1b0948cc54f73a05033e"
