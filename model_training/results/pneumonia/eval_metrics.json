@@ -12,7 +12,7 @@
   },
   "test_set_size": 586,
   "preprocessing_version": "crop_thorax_v2_15pct_top_crop",
-  "onnx_parity_check_passed": null,
-  "onnx_parity_max_diff": null,
+  "onnx_parity_check_passed": true,
+  "onnx_parity_max_diff": 0.000001,
   "notes": "Metrics reflect the final 15%-crop model, adopted after the 25%-crop version caused a specificity regression (0.6772). See model_card.md for full bias mitigation history. Model marked experimental due to unresolved Grad-CAM bias findings."
 }

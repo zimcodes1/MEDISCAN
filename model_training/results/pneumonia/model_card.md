@@ -120,5 +120,6 @@ interpretability findings are still under review.
 
 ## Version
 - HF Hub commit hash: _(to be filled in after Phase 2.8 upload)_
-- Export date: _(to be filled in after Phase 2.6 ONNX export)_
+- Export date: 2026-08-16
+- ONNX parity check: passed, max diff 0.000001 (across 6 test images)
 - Preprocessing version: `crop_thorax` v2 (15% top-crop), see `preprocess.py`
