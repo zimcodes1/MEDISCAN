@@ -1,16 +1,18 @@
 {
   "condition": "pneumonia",
-  "accuracy": 0.942,
-  "sensitivity": 0.9346,
-  "specificity": 0.962,
-  "auc_roc": 0.9918,
+  "accuracy": 0.9352,
+  "sensitivity": 0.9252,
+  "specificity": 0.9620,
+  "auc_roc": 0.9907,
   "confusion_matrix": {
-    "true_positive": 400,
+    "true_positive": 396,
     "true_negative": 152,
     "false_positive": 6,
-    "false_negative": 28
+    "false_negative": 32
   },
   "test_set_size": 586,
+  "preprocessing_version": "crop_thorax_v2_15pct_top_crop",
   "onnx_parity_check_passed": null,
-  "onnx_parity_max_diff": null
+  "onnx_parity_max_diff": null,
+  "notes": "Metrics reflect the final 15%-crop model, adopted after the 25%-crop version caused a specificity regression (0.6772). See model_card.md for full bias mitigation history. Model marked experimental due to unresolved Grad-CAM bias findings."
 }
