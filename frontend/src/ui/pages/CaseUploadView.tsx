@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import PatientSearch from "../components/PatientSearch";
 import ScanDetailsForm from "../components/ScanDetailsForm";
 import AssignmentPriorityForm from "../components/AssignmentPriorityForm";
@@ -6,55 +5,51 @@ import UploadSuccessState from "../components/UploadSuccessState";
 import { Upload } from "lucide-react";
 import type { Patient } from "../../utils/types";
 
-export default function CaseUploadPage() {
-	//Set Previous page for the 404 back button handler to check
-	sessionStorage.setItem("lastPage", window.location.href);
-	// Set Page Title
-	useEffect(() => {
-		document.title = "New Upload - Mediscan AI";
-	}, []);
+interface CaseUploadPageProps {
+	uploadSuccess: boolean;
+	handleReset: () => void;
+	selectedPatient: Patient | null;
+	setSelectedPatient: (patient: Patient | null) => void;
+	handleSubmit: () => void;
+	scanType: string;
+	imageFile: File | null;
+	viewProjection: string;
+	scanDate: string;
+	clinicalNotes: string;
+	setScanDate: (date: string) => void;
+	setScanType: (type: string) => void;
+	setImageFile: (file: File | null) => void;
+	priority: "routine" | "urgent";
+	setPriority: (priority: "routine" | "urgent") => void;
+	setViewProjection: (projection: string) => void;
+	setClinicalNotes: (notes: string) => void;
+	assignedRadiologist: string;
+	setAssignedRadiologist: (radiologist: string) => void;
+	isFormValid: boolean;
+}
 
-	const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-	const [scanType, setScanType] = useState("chest-xray");
-	const [imageFile, setImageFile] = useState<File | null>(null);
-	const [viewProjection, setViewProjection] = useState("");
-	const [scanDate, setScanDate] = useState(
-		new Date().toISOString().split("T")[0],
-	);
-	const [clinicalNotes, setClinicalNotes] = useState("");
-	const [assignedRadiologist, setAssignedRadiologist] = useState("");
-	const [priority, setPriority] = useState<"routine" | "urgent">("routine");
-	const [uploadSuccess, setUploadSuccess] = useState(false);
-
-	const handleSubmit = () => {
-		// Validate and submit
-		if (
-			!selectedPatient ||
-			!imageFile ||
-			!viewProjection ||
-			!assignedRadiologist
-		) {
-			alert("Please fill in all required fields");
-			return;
-		}
-		// Simulate upload
-		setUploadSuccess(true);
-	};
-
-	const handleReset = () => {
-		setUploadSuccess(false);
-		setSelectedPatient(null);
-		setImageFile(null);
-		setViewProjection("");
-		setScanDate(new Date().toISOString().split("T")[0]);
-		setClinicalNotes("");
-		setAssignedRadiologist("");
-		setPriority("routine");
-	};
-
-	const isFormValid =
-		selectedPatient && imageFile && viewProjection && assignedRadiologist;
-
+export default function CaseUploadView({
+	uploadSuccess,
+	handleReset,
+	selectedPatient,
+	setSelectedPatient,
+	handleSubmit,
+	scanType,
+	imageFile,
+	viewProjection,
+	scanDate,
+	clinicalNotes,
+	setScanDate,
+	setScanType,
+	setImageFile,
+	priority,
+	setPriority,
+	setViewProjection,
+	setClinicalNotes,
+	assignedRadiologist,
+	setAssignedRadiologist,
+	isFormValid
+}: CaseUploadPageProps) {
 	return (
 		<div className="p-4 sm:p-8">
 			{/* Header */}

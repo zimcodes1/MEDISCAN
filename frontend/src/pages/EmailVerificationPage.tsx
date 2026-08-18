@@ -1,4 +1,4 @@
-import EmailVerificationPage from "../ui/pages/EmailVerificationPage";
+import EmailVerificationPage from "../ui/pages/EmailVerificationView";
 
 export default function emailVerificationPage() {
     return (

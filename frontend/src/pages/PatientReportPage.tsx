@@ -1,4 +1,4 @@
-import PatientReportPage from "../ui/pages/PatientReportPage";
+import PatientReportPage from "../ui/pages/PatientReportView";
 
 export default function patientReportPage() {
     return (

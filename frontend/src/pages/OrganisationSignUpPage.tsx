@@ -1,4 +1,4 @@
-import OrganisationSignupPage from "../ui/pages/OrganisationSignupPage";
+import OrganisationSignupPage from "../ui/pages/OrganisationSignupView";
 
 export default function organisationSignupPage() {
     return (

@@ -1,4 +1,4 @@
-import OrgOnboardingPage from "../ui/pages/OrgOnboardingPage";
+import OrgOnboardingPage from "../ui/pages/OrgOnboardingView";
 
 export default function orgOnboardingPage() {
     return (
