@@ -1,9 +1,10 @@
 # MediScan AI — Model Training Project Log
 
-> Covers: repo/branch setup through the Pneumonia crop-fix retrain.
-> Purpose: a single source of truth for what's been built, what broke,
-> and how it was fixed — so any teammate (or future you) can pick this
-> up without reconstructing context from chat history.
+> Covers: repo/branch setup through Pneumonia completion (trained, evaluated,
+> exported, uploaded to HF Hub) and the start of Cardiomegaly.
+> Purpose: a single source of truth for what's been built, what broke, and
+> how it was fixed — so any teammate can pick this up without reconstructing
+> context from chat history.
 
 ---
 
@@ -20,19 +21,23 @@
 ```
 model_training/
 ├── README.md                  — explains Git vs Drive split, branch strategy, training order
+├── PROJECT_LOG.md             — this file
+├── CARDIOMEGALY_GUIDE.md      — detailed Cardiomegaly training guide, reusing this pipeline
 ├── preprocessing/
 │   └── preprocess.py          — shared preprocessing pipeline (single source of truth)
 ├── notebooks/
-│   └── train_pneumonia.ipynb
+│   ├── train_pneumonia.ipynb
+│   └── train_cardiomegaly.ipynb   — in progress
 ├── configs/
 │   ├── pneumonia.yaml
 │   ├── cardiomegaly.yaml
 │   ├── nodule_mass.yaml
 │   └── tuberculosis.yaml
 └── results/
-    └── pneumonia/
-        ├── eval_metrics.json
-        └── model_card.md
+    ├── pneumonia/
+    │   ├── eval_metrics.json
+    │   └── model_card.md
+    └── cardiomegaly/          — not yet populated
 ```
 
 ### 1.3 Environment
@@ -50,8 +55,8 @@ model_training/
 
 ## 2. Key Infrastructure Lesson: Two Separate Repo Clones
 
-Early in the project, real confusion arose from having **two independent
-clones of the same GitHub repo**:
+Real confusion arose from having **two independent clones of the same GitHub
+repo**:
 
 1. **Local clone** — on Vincent's laptop, edited in VS Code, committed from
    a normal terminal.
@@ -70,6 +75,12 @@ writing `eval_metrics.json` via Python) must be pushed *from Colab*, then
 pulled on the laptop. Commits made by editing files *in VS Code locally*
 must be pushed from the laptop, then pulled into the Drive clone before
 Colab will see them. Mixing these up caused several of the issues below.
+
+**Recurring gotcha (happened again during Pneumonia wrap-up):** it's easy
+to finish work in Colab and forget the corresponding push, leaving the
+laptop repo behind. Before ending a session, or before a teammate needs to
+review work, explicitly check `git status` on both the laptop and (if
+relevant) the Drive clone.
 
 ---
 
@@ -90,43 +101,52 @@ can mean a **brand new VM** with nothing preserved except what's on Drive.
 - Nothing else — Kaggle auth tokens, Git identity config, and Grad-CAM/model
   setup all need to be redone per fresh session
 
-**Fix — a single "Full Recovery" cell** was built to consolidate: Drive
-mount, split.json load, Kaggle token check, repo clone/pull, device check,
-model rebuild + checkpoint load, DataLoader rebuild, Grad-CAM setup, and
-sample image selection — all in one cell, run top-to-bottom after any
-disconnect. This was iterated on multiple times as new "NameError: X is
-not defined" cases surfaced (`run_epoch`, `generate_gradcam`, `crop_thorax`,
-`numpy`/`matplotlib` imports were all missed on the first few versions).
+**Fix — a single "Full Recovery" cell** consolidates: Drive mount, split.json
+load, Kaggle token check, repo clone/pull, device check, model rebuild +
+checkpoint load, DataLoader rebuild, Grad-CAM setup, and sample image
+selection — run top-to-bottom after any disconnect.
 
-**Open item:** the recovery cell still needs `run_epoch`, `generate_gradcam`,
-and `visualize_gradcam` folded in — currently these are re-pasted manually
-after a disconnect. Worth moving these into an actual `training_utils.py`
-module in the repo (like `preprocess.py`) rather than living only in chat
-history or notebook cells that get lost on VM reset.
+**Known remaining gap:** the recovery cell hardcodes `checkpoint_dir` to a
+default path. When working with multiple checkpoint variants in the same
+session (e.g. baseline vs. cropped vs. re-cropped), re-running recovery
+after a disconnect silently resets `checkpoint_dir` back to the default —
+this caused a wasted retrain cycle during the Pneumonia crop-fix (§8.2).
+**Always explicitly re-set and print `checkpoint_dir`/`checkpoint_path`
+after recovery, don't trust cell defaults, when more than one checkpoint
+variant exists for a condition.**
+
+**Also unresolved:** `run_epoch`, `generate_gradcam`, `visualize_gradcam`,
+and any condition-specific helper (e.g. `crop_thorax` overrides) still need
+to be manually re-pasted after a disconnect — not yet folded into a shared
+`training_utils.py` module. Worth doing before Cardiomegaly gets deep into
+its own Grad-CAM cycle.
 
 ---
 
 ## 4. Dataset Acquisition & Split (Pneumonia)
 
 - **Source:** Kaggle Chest X-Ray Pneumonia (`paultimothymooney/chest-xray-pneumonia`)
-- **Access method:** Kaggle API via access token (`/root/.kaggle/access_token`),
-  not the older `kaggle.json` file method
+- **Access method:** Kaggle API via access token (`/root/.kaggle/access_token`)
 - **Extraction issue found:** the zip contains junk (`__MACOSX/`) and a
   fully duplicated nested `chest_xray/chest_xray/` folder — both removed
   before use
 - **Kaggle's built-in train/val/test split was NOT used** — its `val` folder
-  is only 16 images total, too small to be meaningful. Instead:
+  is only 16 images total. Instead:
   1. All images pooled regardless of Kaggle's folder split
   2. Full class distribution recorded: **NORMAL: 1583, PNEUMONIA: 4273**
      (ratio ≈ 1:2.7, imbalanced toward positive)
   3. Fresh stratified 80/10/10 split via `sklearn.train_test_split`,
      `random_state=42`
   4. Result: **Train 4684 / Val 586 / Test 586**, ratios held consistent
-     with pooled data across all three splits
-  5. Split saved permanently to Drive as `split.json` — the authoritative
-     record; never regenerated after this point
-  6. `pos_weight` computed from **train split only**: `1266/3418 = 0.3704`,
-     recorded in `configs/pneumonia.yaml`
+     across all three splits
+  5. Split saved permanently to Drive as `split.json` — authoritative record
+  6. `pos_weight` computed from **train split only**: `1266/3418 = 0.3704`
+
+**Known limitation of this approach (flagged for Cardiomegaly):** `split.json`
+stored filepaths only, with labels derived at runtime from folder-name
+substring matching (`'NORMAL' in path`). This is fragile and doesn't
+generalize to NIH14, where filenames don't encode class. Cardiomegaly's
+`split.json` should store `(filepath, label)` pairs directly instead.
 
 ---
 
@@ -136,19 +156,24 @@ Built function-by-function, tested in notebook cells before being
 consolidated into the actual repo file:
 
 1. `load_and_convert()` — load from disk, force RGB
-2. `resize()` — 224×224, bilinear
-3. `to_normalized_array()` — scale [0,1], ImageNet mean/std normalize
-4. `to_model_input()` — HWC→CHW, add batch dim → `(1, 3, 224, 224)`
-5. `apply_train_augmentation()` — random horizontal flip, ±10° rotation,
-   brightness/contrast jitter (train-only, via `torchvision.transforms`)
-6. `preprocess()` — combines all of the above
+2. `crop_thorax()` — crop out neck/shoulder region (added post-bias-finding,
+   see §7–8; final version crops top 15%, sides 5%, bottom 2%)
+3. `resize()` — 224×224, bilinear
+4. `to_normalized_array()` — scale [0,1], ImageNet mean/std normalize
+5. `to_model_input()` — HWC→CHW, add batch dim → `(1, 3, 224, 224)`
+6. `apply_train_augmentation()` — random horizontal flip, ±10° rotation,
+   brightness/contrast jitter (train-only)
+7. `preprocess()` — combines all of the above, in order
 
-**Issue found and fixed (§8 below):** a crop step (`crop_thorax`) was
-later added to address a Grad-CAM bias finding, and an editing mistake
-caused two conflicting `def preprocess(...)` definitions to exist in the
-same file simultaneously — Python silently used the second (older, no-crop)
-definition for every call, invalidating an entire retrain cycle before
-being caught. See §8.3.
+**Bug found and fixed:** an editing mistake caused two conflicting
+`def preprocess(...)` definitions to exist in the same file simultaneously
+when the crop step was first added — Python silently used the second (older,
+no-crop) definition for every call. This invalidated an entire retrain cycle
+before being caught by noticing bit-identical Grad-CAM output across
+supposedly different model versions. See §8.2–8.3 for the full story.
+**Lesson generalized:** always verify code changes actually took effect via
+`inspect.getsource()` on the live function object, not just by checking the
+file was pulled — file presence and active code can diverge.
 
 ---
 
@@ -157,9 +182,9 @@ being caught. See §8.3.
 **Architecture:** EfficientNet-B0 (ImageNet pretrained), classifier head
 replaced with a single linear output neuron (binary classification).
 
-**Stage 1** (frozen backbone, head only): Adam, lr=1e-3, 5 epochs
-**Stage 2** (unfreeze `features.7` + `features.8` + classifier): Adam,
-lr=1e-4, `ReduceLROnPlateau`, up to 5 epochs, early stopping patience 3
+**Stage 1** (frozen backbone): Adam, lr=1e-3, 5 epochs
+**Stage 2** (unfreeze `features.7`+`features.8`+classifier): Adam, lr=1e-4,
+`ReduceLROnPlateau`, up to 5 epochs, early stopping patience 3
 
 ### Baseline results (uncropped pipeline):
 | Stage | Best Val Loss | Best Val AUC-ROC |
@@ -175,201 +200,269 @@ lr=1e-4, `ReduceLROnPlateau`, up to 5 epochs, early stopping patience 3
 | Specificity | 0.9620 | — |
 | AUC-ROC | 0.9918 | >0.92 ✅ |
 
-Confusion matrix: TN=152, FP=6, FN=28, TP=400
-
-All numeric targets cleared comfortably. **However**, see §7 — the
-qualitative Grad-CAM check revealed a bias issue not visible in these
-aggregate metrics.
+Confusion matrix: TN=152, FP=6, FN=28, TP=400. All numeric targets cleared —
+but see §7, the qualitative Grad-CAM check revealed a bias issue not visible
+in these aggregate metrics.
 
 ---
 
 ## 7. Grad-CAM Bias Discovery
 
 Ran Grad-CAM (`pytorch-grad-cam`, target layer `model.features[-1]`) on
-9 test-set images (4–5 NORMAL, 4–5 PNEUMONIA).
+9 test-set images.
 
 **Findings:**
-- **NORMAL cases (4/4):** activation was concentrated (not diffuse, as
-  expected for negatives) over the heart/mediastinum and **neck region**
+- **NORMAL cases (4/4):** activation concentrated (not diffuse) over the
+  heart/mediastinum and **neck region**
 - **PNEUMONIA cases:** only 1 of 5 samples showed plausible lung-field
-  activation. The remaining 4 (confidence 0.822–0.948) showed activation
-  concentrated on the **neck/throat**, or directly on **visible medical
-  hardware** (ECG leads/tubing) rather than lung pathology
+  activation; the other 4 (confidence 0.822–0.948) showed activation on
+  **neck/throat** or directly on **visible medical hardware**
 
-**Likely cause:** documented, well-known risk with this specific Kaggle
-dataset — NORMAL and PNEUMONIA images were sourced from different pediatric
-patient batches with systematic positioning/hardware differences. The
-model likely learned a shortcut correlated with class label but clinically
-meaningless.
+**Likely cause:** NORMAL and PNEUMONIA images sourced from different
+pediatric patient batches with systematic positioning/hardware differences
+— a documented shortcut-learning risk for this dataset.
 
-**Action taken (per the implementation plan's explicit guidance for this
-situation):**
-- `configs/pneumonia.yaml`: `experimental: false` → `true`
-- `results/pneumonia/model_card.md`: bias statement documented in full
-  (dataset issue, specific activation pattern, confidence levels observed)
-- Decision made to attempt a mitigation (image cropping) rather than
-  ship as-is or discard the model
+**Action:** `configs/pneumonia.yaml` → `experimental: true`; bias documented
+in model card; decided to attempt mitigation rather than ship as-is.
 
 ---
 
 ## 8. Bias Mitigation Attempt: Thorax Cropping
 
-### 8.1 Approach chosen
-Added a `crop_thorax()` preprocessing step: crop out the top 25% of each
-image (neck/throat/shoulders), trim 2% off the bottom, and 5% off each
-side, before resizing to 224×224. Chosen over full lung segmentation
-(more robust but adds a whole new model dependency) as a faster first
-attempt, with segmentation as a fallback if cropping proved insufficient.
+### 8.1 First attempt — 25% top-crop
+Grad-CAM showed clear improvement (no neck/hardware activation across 8
+re-checked images), **but** test-set specificity collapsed from 96.20% to
+**67.72%** (51 of 158 NORMAL images misclassified, up from 6). The crop
+removed information needed to correctly identify NORMAL cases. **Not adopted.**
 
-Crop bounds were visually validated on 8 sample images before being wired
-into the real pipeline — confirmed the crop removed most neck/collar
-framing without clipping visible lung tissue at the top edge.
+### 8.2 Invalid retrain (silent staleness bug)
+A retrain was run and Grad-CAM re-checked, but probabilities came back
+**identical to 3 decimal places** vs. the original uncropped run — a
+statistical impossibility for two independently-trained models. Root cause,
+two compounding issues:
+1. The session's recovery cell hardcoded the *original* `checkpoint_dir`,
+   silently resetting it after a mid-session disconnect
+2. `preprocess.py` had **two `def preprocess` definitions** — the crop step
+   was added as a new function, but an old pre-crop version still existed
+   later in the file and silently overrode it
 
-### 8.2 First retrain attempt — INVALID (silent staleness bug)
-
-A retrain was run and Grad-CAM re-checked — but probabilities came back
-**identical to 3 decimal places** versus the original uncropped run
-(1.000, 0.948, 0.822, 0.880 in both). This is a statistical impossibility
-for two independently-initialized training runs, and was the tell that
-something was wrong, not a real result.
-
-**Root cause identified:** two separate issues compounded:
-1. The Colab session's "Full Recovery" cell hardcoded the *original*
-   `checkpoint_dir` path, silently resetting the variable back to the
-   pre-crop model's location after a mid-session disconnect
-2. `preprocess()` in the repo file had **two definitions** — the crop
-   step was added as a new function, but an old, pre-crop `def preprocess`
-   still existed later in the same file and silently overrode it (Python
-   uses the last definition when a function is defined twice)
-
-Net effect: the "cropped" retrain was actually trained on **uncropped**
-data the whole time, making the comparison meaningless.
+Net effect: the "cropped" retrain was actually trained on uncropped data.
 
 ### 8.3 Fix
+Rewrote `preprocess.py` with a single, correctly-ordered `preprocess()`.
+Verified via `!cat` (raw file) and `inspect.getsource()` (live function)
+before trusting any further test. Manually re-verified `checkpoint_dir`
+each session rather than trusting recovery-cell defaults.
 
-- Rewrote `preprocess.py` with a single, correctly-ordered `preprocess()`
-  definition, crop step properly included
-- Explicitly verified via `!cat` (raw file, not cached Python import) and
-  `inspect.getsource()` before trusting any further test
-- Manually re-pointed `checkpoint_dir` to `pneumonia_cropped/` each session
-  rather than trusting the stale recovery-cell default (recovery cell
-  still needs a permanent fix here — flagged as an open item)
+### 8.4 Second attempt — 25% crop, genuinely applied
+Confirmed real (probabilities now differed from prior runs). Val AUC 0.9858.
+Grad-CAM showed genuine improvement: no neck/throat activation, no hardware
+activation, across all 8 re-checked images. However, this was the *same*
+25% crop bound as §8.1's invalid run — the specificity question needed
+re-testing on genuinely cropped data.
 
-### 8.4 Second retrain — valid, genuinely cropped
+### 8.5 TorchXRayVision comparison (diagnostic detour)
+Compared against TorchXRayVision's pretrained DenseNet121 (NIH14+CheXpert+
+MIMIC-CXR+PadChest, all **adult** datasets) on 4 flagged PNEUMONIA images.
+TXRV's activation looked more anatomically plausible, but its predictions
+disagreed with ground truth on 3 of 4 genuinely-positive images (0.144,
+0.014, 0.020, 0.581). **Confound:** our dataset is pediatric; TXRV's weights
+are adult-only — divergence is ambiguous (could reflect correctly avoiding
+our shortcut, or just being out-of-distribution on pediatric anatomy).
+**Not adopted; inconclusive.**
 
+### 8.6 Third attempt — loosened to 15% top-crop (final, adopted)
+Rationale: 25% crop's specificity collapse suggested the crop was too
+aggressive, removing information needed for NORMAL classification.
+
+**Retrain results:**
 | Stage | Best Val Loss | Best Val AUC-ROC |
 |---|---|---|
-| Stage 1 (epoch 5) | 0.1210 | 0.9741 |
-| Stage 2 (epoch 3) | 0.0861 | 0.9858 |
+| Stage 1 (epoch 5) | 0.1278 | 0.9715 |
+| Stage 2 (epoch 5) | 0.0899 | 0.9866 |
 
-Small AUC decrease vs. the uncropped baseline (0.9917 → 0.9858) — expected
-and acceptable, since 25% of the image's visual information was deliberately
-removed.
+**Test-set evaluation — full three-way comparison:**
 
-**Re-ran Grad-CAM on this checkpoint — probabilities now genuinely differ**
-from the original run (confirmed real test this time). Results:
+| Metric | Baseline (0%) | 25% crop | **15% crop (final)** |
+|---|---|---|---|
+| Accuracy | 94.20% | 90.44% | **93.52%** |
+| Sensitivity | 93.46% | 98.83% | **92.52%** |
+| Specificity | 96.20% | 67.72% | **96.20%** |
+| AUC-ROC | 99.18% | 98.35% | **99.07%** |
 
-- **No activation on neck/throat** in any of the 8 re-checked images —
-  the primary failure mode from §7 appears resolved
-- **No activation on visible medical hardware**
-- NORMAL cases: activation now lands on heart/mediastinum region — still
-  somewhat concentrated rather than fully diffuse, but anatomically
-  plausible rather than being on the neck
-- PNEUMONIA cases: activation lands in upper and lower lung regions,
-  including at least one clear lower-lung-field hot spot consistent with
-  plausible consolidation-relevant anatomy
-- **Residual concern:** a couple of hot spots sit near the very top edge
-  of the new crop boundary — could be legitimate upper-lobe/apex signal,
-  or could be the model keying off the new crop edge itself. Not fully
-  resolved; worth watching in the test-set evaluation and potentially a
-  further-tightened crop if it persists.
+Specificity fully recovered to baseline level. Sensitivity dropped slightly
+(still well above the >90% target).
+
+**Grad-CAM re-check on the 15% crop — genuinely mixed result, documented
+honestly rather than declared a full success:**
+- 3 of 8 images (2 NORMAL, 1 PNEUMONIA) showed activation no longer touching
+  top/border regions, landing on plausible anatomy (mediastinum, cardiac
+  silhouette)
+- **5 of 8 images continued to show activation on shoulders, neck, image
+  borders, or — in one case — directly on visible medical hardware/tubing**,
+  essentially unchanged from the original finding
+
+**Conclusion:** cropping reduced but did not fully resolve the bias.
+Persistence of hardware/border activation even after two crop rounds
+suggests the shortcut may be partly a **global image property** (contrast,
+exposure, scanner characteristics differing systematically between source
+batches) rather than purely spatial — cropping cannot remove a global
+property. A complete fix would likely need lung segmentation or a cleaner/
+re-balanced dataset. Out of scope for current timeline.
+
+**Decision: adopted the 15% crop as final.** Kept `experimental: true`.
+Documented the full honest history in the model card rather than presenting
+the strong numeric metrics as if the bias were resolved.
+
+### 8.7 ViT/CheXpert comparison — considered, not pursued for Pneumonia
+`codewithdark/vit-chest-xray` (ViT-base fine-tuned on CheXpert, 5-class
+including Pneumonia and Cardiomegaly, 98.46% val accuracy) was identified
+as another possible comparison model. Same adult/pediatric domain-mismatch
+caveat as TXRV applies. **Decision: skip for Pneumonia (diminishing returns
+after two inconclusive/partial comparisons already), flag as a resource to
+try for Cardiomegaly instead**, where it's a native output class and the
+domain-mismatch concern may not apply depending on Cardiomegaly's actual
+data source (see CARDIOMEGALY_GUIDE.md §8).
+
+### 8.8 CheXpert as a root-cause dataset fix — flagged, not yet investigated
+Raised the hypothesis that the bias may be fundamentally a **dataset
+provenance problem** (two sub-collections functioning as a shortcut) rather
+than something crop-tuning alone can solve. CheXpert (224,316 images,
+65,240 patients, Stanford, adult population, 2002–2017) was identified as
+a possible alternative/supplementary training source — more patients and
+sites, less likely for "which sub-collection" to correlate with diagnosis.
+Not guaranteed clean either (NLP-extracted labels from reports, not fully
+hand-reviewed; has its own `Support Devices` label that could reintroduce
+a hardware-correlation risk in a different form).
+
+**Status: deferred.** Requires Stanford ML Group registration (not instant
+like Kaggle), an uncertain-label handling strategy, and filtering a ~439GB
+dataset down to a usable subset. If pursued, this would be a **new
+investigation / potential replacement** for the currently-uploaded Pneumonia
+model, not a modification of the existing artifact. Deprioritized in favor
+of completing Cardiomegaly first.
 
 ---
 
-## 9. Current Status (as of this document)
+## 9. ONNX Export + HF Hub Upload (Pneumonia — Complete)
 
-- ✅ Dataset acquired, cleaned, stratified split, `pos_weight` computed
-- ✅ Preprocessing pipeline built, tested, and (after the duplicate-function
-  fix) verified working correctly with cropping active
-- ✅ Baseline model trained, evaluated on test set, strong numeric results
-- ✅ Grad-CAM bias issue found and honestly documented
-- ✅ Crop-based mitigation implemented, validated as genuinely active,
-  and retrained
-- ✅ Second Grad-CAM check shows meaningful improvement — neck/hardware
-  bias pattern no longer appears
-- ⬜ **Not yet done:** test-set evaluation (accuracy/sensitivity/specificity/
-  confusion matrix) on the cropped-pipeline checkpoint — next immediate step
-- ⬜ Decision pending: proceed to ONNX export as `experimental` with this
-  crop fix, or iterate further on the crop boundary given the residual
-  top-edge concern
-- ⬜ ONNX export + parity check (Phase 2.6)
-- ⬜ Final model card update reflecting the crop fix and second Grad-CAM round
-- ⬜ Upload to Hugging Face Hub, commit hash recorded (Phase 2.8)
-- ⬜ Cardiomegaly, Lung Nodule/Mass, Tuberculosis — not yet started
+**Export:**
+- `torch.onnx.export(..., opset_version=17, dynamo=False)` — the default
+  dynamo-based exporter failed with `ModuleNotFoundError: onnxscript`;
+  `dynamo=False` forces the older, stable exporter path. **Apply this to
+  all future condition exports too.**
+- Parity check run on 6 test images (not just 1) — all passed, max diff
+  ≤ 0.000001, well under the ±0.001 threshold
+
+**HF Hub upload:**
+- Repo `Rhishamah/mediscan-pneumonia` did not exist yet — created via
+  `create_repo(..., exist_ok=True)` before uploading (a 404 on first
+  upload attempt was the signal this was needed)
+- Uploaded `mediscan_pneumonia.onnx`, `mediscan_pneumonia.pth`,
+  `model_card.md`
+- **Final commit hash:** `f31fffeac0caa11017df1b0948cc54f73a05033e`,
+  recorded in `configs/pneumonia.yaml`
+- Token handling: used `getpass()` for the HF token, not a hardcoded
+  string — same lesson as the GitHub token leak (§10 below)
+
+**This closes Phase 2 for Pneumonia entirely:** dataset split, preprocessing,
+training, evaluation, Grad-CAM bias investigation (with honest documentation
+of partial mitigation), ONNX export + parity, model card, HF Hub upload
+with commit hash — all done.
 
 ---
 
-## 11. TorchXRayVision / DenseNet121 Comparison (Explored, Not Adopted)
+## 10. Security Incident: Leaked GitHub Token (Resolved)
 
-Explored using TorchXRayVision's pretrained DenseNet121
-(`densenet121-res224-all`, trained on NIH ChestX-ray14 + CheXpert +
-MIMIC-CXR + PadChest) as a diagnostic baseline to check whether the
-Grad-CAM bias found in §7 was data/architecture-specific to our
-EfficientNet-B0, or something more fundamental.
+A classic GitHub PAT was hardcoded as a plaintext string literal in a saved
+notebook cell (`token = "ghp_..."`) and committed. GitHub's push protection
+caught it before it reached the remote (push was rejected both times it was
+attempted) — **the token never actually became public**, but was exposed
+locally and in the Drive clone.
 
-**Method:** ran both models' Grad-CAM side-by-side on the 4 flagged
-PNEUMONIA test images that showed neck/hardware activation in the
-original bias finding.
+**Response:**
+1. Token revoked immediately via GitHub settings
+2. `git reset --soft` to uncommit the token-containing commits (kept file
+   changes, discarded the bad history)
+3. Token replaced with a placeholder in the notebook, cell output cleared
+4. Recommitted clean, verified with `push protection` no longer blocking
+5. Same check performed on the Drive-cloned copy of the notebook
 
-**Result:**
-- TXRV's activation landed in more anatomically plausible regions
-  (lower lung, diaphragm, heart) than our model's shoulder/corner
-  activation — confirms our model's bias is real, consistent with
-  earlier findings.
-- However, TXRV's actual **predictions diverged sharply** from ground
-  truth on these same images (0.144, 0.014, 0.020, 0.581 — mostly
-  predicting NOT pneumonia on genuinely positive cases).
+**Also discovered along the way:** a fine-grained GitHub PAT **does not
+work** for pushing to `zimcodes1/MEDISCAN` (a teammate's repo) — fine-grained
+tokens need explicit per-repo access grants that weren't set up, and the
+resource-owner dropdown didn't even show `zimcodes1` as selectable. Classic
+PATs with `repo` scope work correctly for this cross-account collaborator
+setup and are the reliable choice going forward.
 
-**Confound identified:** the Kaggle dataset used for this project is
-**pediatric** chest X-rays (Guangzhou Women and Children's Medical
-Center). TorchXRayVision's pretrained weights are trained entirely on
-**adult** chest X-ray datasets. Pediatric anatomy (bone density, rib
-cage proportions, thymus shadow, mediastinal width) differs meaningfully
-from adult anatomy, so TXRV's low confidence and disagreement may
-reflect out-of-distribution failure on unfamiliar anatomy rather than
-correctly identifying our model's shortcut.
+**Also confirmed via testing (not just assumption):** Colab's native Secrets
+manager (`google.colab.userdata`) does **not** work through the VS Code
+Colab extension — calls to `userdata.get()` time out, since secrets can
+currently only be fetched from the Colab web UI. `getpass()` is the correct
+approach for any token needed inside a VS Code-connected Colab session.
 
-**Decision:** did not adopt TXRV weights or switch to a DenseNet121
-backbone. The domain mismatch (adult-trained weights vs. pediatric
-data) undermines the core rationale for switching, and doesn't cleanly
-resolve whether TXRV's differing activation is "more correct" or just
-differently wrong. Returning to crop-based mitigation (§8) as the more
-controllable, already-partially-validated lever — next step is loosening
-the crop boundary (currently 25% top-crop) to recover specificity while
-retaining the neck/throat exclusion.
+**Going forward rule:** never hardcode tokens as string literals in any
+cell that gets saved. Use `getpass()` for interactive entry every session.
+
+---
+
+## 11. Current Status
+
+### Pneumonia — ✅ COMPLETE
+- Dataset acquired, cleaned, stratified split, `pos_weight` computed
+- Preprocessing pipeline built and verified (post duplicate-function fix)
+- Trained (baseline + two crop iterations), evaluated on test set
+- Grad-CAM bias found, two mitigation rounds attempted, honestly documented
+  as partially-but-not-fully resolved
+- TorchXRayVision and ViT/CheXpert comparisons explored as diagnostic aids;
+  neither adopted, both documented
+- CheXpert flagged as a potential root-cause fix for later investigation
+- ONNX exported, parity-checked (6 images, max diff 0.000001)
+- Uploaded to HF Hub (`Rhishamah/mediscan-pneumonia`), commit hash recorded
+- Model card finalized with full honest bias-mitigation history
+- Marked `experimental: true`
+
+### Cardiomegaly — 🔶 IN PROGRESS (just started)
+- `CARDIOMEGALY_GUIDE.md` written — detailed reuse plan based on everything
+  learned from Pneumonia
+- `train_cardiomegaly.ipynb` created (started as a copy of the Pneumonia
+  notebook, then rebuilt from scratch cell-by-cell instead, to avoid
+  carrying over stale Pneumonia-specific outputs/cells)
+- Session recovery cell adapted for Cardiomegaly's split path — not yet
+  run/confirmed in a live session as of this log entry
+- Dataset acquisition (NIH14 labels CSV, Cardiomegaly filtering, negative
+  sampling) — not yet started
+- Everything downstream (split, preprocessing reuse, training, eval,
+  Grad-CAM, export, upload) — not yet started
+
+### Lung Nodule/Mass, Tuberculosis — ⬜ NOT STARTED
 
 ---
 
 ## 12. Open Infrastructure Items (carry forward to remaining conditions)
 
-1. **Recovery cell still hardcodes checkpoint paths** — needs to be made
-   condition-aware / not silently reset to stale defaults after a disconnect
+1. **Recovery cell hardcodes checkpoint paths** — needs to be condition-
+   and variant-aware; caused a wasted retrain cycle once already (§8.2)
 2. **`run_epoch`, `generate_gradcam`, `visualize_gradcam`, `crop_thorax`
-   overrides** should be consolidated into a proper `training_utils.py`
-   module in the repo, not re-pasted from chat after every disconnect
-3. **GitHub push protection caught a leaked classic PAT** mid-project —
-   token was revoked, notebook cleaned, and the lesson going forward:
-   never hardcode tokens as string literals in cells that get saved.
-   Use `getpass()` for interactive entry (Colab's native Secrets/`userdata`
-   manager does **not** work through the VS Code extension — confirmed via
-   testing, not just assumption)
-4. **Fine-grained GitHub PATs don't work for cross-account collaborator
-   repos** unless the resource owner grants explicit access — classic PATs
-   with `repo` scope are the reliable fallback for this project's setup
-   (personal account pushing to a teammate's repo)
-5. Before trusting *any* "before vs after" comparison in future conditions
-   (Cardiomegaly, Nodule/Mass, TB), explicitly verify: (a) the correct
-   checkpoint path is loaded, (b) the correct code version is actually
-   active via `inspect.getsource()`, and (c) output values have actually
-   changed from the previous run — don't assume a clean run means a valid
-   test, given what happened in §8.2
+   overrides** should move into a proper `training_utils.py` module in the
+   repo rather than being re-pasted from chat after every disconnect —
+   still not done, worth doing before Cardiomegaly's Grad-CAM cycle
+3. **`split.json` should store `(filepath, label)` pairs**, not filepaths
+   only with labels derived from folder-name string matching — required
+   for Cardiomegaly anyway since NIH14 filenames don't encode class, and
+   would be a good retroactive fix for Pneumonia too
+4. **GitHub push protection caught a leaked classic PAT** — resolved,
+   `getpass()` is now the standing rule for all tokens (GitHub and HF)
+5. **Fine-grained GitHub PATs don't work for cross-account collaborator
+   repos** — use classic PATs with `repo` scope for this project's setup
+6. **`torch.onnx.export` needs `dynamo=False`** — the default dynamo
+   exporter fails with a missing `onnxscript` dependency; apply this flag
+   for every future condition's export
+7. **Always verify code changes actually took effect** via
+   `inspect.getsource()` on the live function object before trusting any
+   "before vs. after" comparison — file presence on disk and active code
+   in memory can diverge (this is what caused §8.2's wasted cycle)
+8. **Before ending a session or handing off to a teammate, check `git
+   status`/confirm pushes on both the laptop and Colab/Drive clone** —
+   the Pneumonia notebook itself was left unpushed for a stretch before
+   being caught when a teammate wanted to review it
