@@ -344,7 +344,202 @@ of completing Cardiomegaly first.
 
 ---
 
-## 9. ONNX Export + HF Hub Upload (Pneumonia — Complete)
+## 9. CheXpert Pneumonia Retrain — Findings (Hypothesis Test)
+
+---
+
+### Hypothesis Being Tested
+
+The original Pneumonia model (trained on Kaggle's Chest X-Ray Pneumonia
+dataset) showed Grad-CAM activation on neck/throat/hardware regions rather
+than lung fields, for both NORMAL and PNEUMONIA cases, even after two
+rounds of crop-based mitigation (see §8). One hypothesis raised: this could
+be a **dataset provenance problem** specific to the Kaggle dataset — NORMAL
+and PNEUMONIA images sourced from different patient batches, creating a
+class-correlated shortcut unrelated to genuine pathology.
+
+**Test:** retrain the same architecture and recipe from scratch on
+**CheXpert** (different institution, different population, different
+labeling method, no crop applied) and check whether the same bias pattern
+appears.
+
+---
+
+### Dataset Construction
+
+- **Source:** CheXpert-v1.0-small, via Kaggle mirror (`ashery/chexpert`) —
+  224,316 images total, avoids the Stanford registration requirement of
+  the original CheXpert release
+- **Population:** adult, Stanford Hospital, 2002–2017, inpatient + outpatient
+  — a meaningfully different population from the Kaggle dataset's pediatric
+  source
+- **Labeling method:** NLP-extracted from radiology report text (positive/
+  negative/uncertain/unmentioned), not a clean per-image binary label
+- **Positive class:** `Pneumonia == 1.0` (6,039 images)
+- **Negative class:** `No Finding == 1.0` (22,381 available, sampled down
+  to 3x positive count = 18,117) — deliberately NOT using `Pneumonia == 0.0`
+  alone (only 2,799 available) or treating all NaN as negative (NaN means
+  "not mentioned," not confirmed-negative)
+- **View filter:** frontal only (excluded lateral views)
+- **Result after filtering:** 18,396 images, 15,131 unique patients,
+  ratio ≈ 2.9:1 negative:positive
+
+### Patient-level split (new consideration vs. Kaggle dataset)
+
+CheXpert has multiple images per patient across different studies —
+unlike the Kaggle dataset. A plain random or stratified image-level split
+risks the same patient appearing in both train and test, inflating
+apparent performance. Used `GroupShuffleSplit` grouped by `patient_id`
+instead:
+
+| Split | Images | Patients | Negative | Positive |
+|---|---|---|---|---|
+| Train | 14,740 | 12,104 | 10,944 | 3,796 |
+| Val | 1,840 | 1,513 | 1,384 | 456 |
+| Test | 1,816 | 1,514 | 1,393 | 423 |
+
+**Confirmed zero patient overlap** across all three splits. Per-split
+label ratios (2.88:1, 3.04:1, 3.29:1) stayed close to the overall 2.9:1
+ratio without needing explicit stratification.
+
+`pos_weight` computed from train split: **2.8830** (note: inverted
+direction vs. the Kaggle model's 0.3704, since Pneumonia is the minority
+class here rather than the majority).
+
+**Infrastructure improvement made here:** `split.json` stores `(filepath,
+label)` pairs directly, rather than filepaths-only with labels derived
+from folder-name string matching (the fragile approach used for the
+original Pneumonia split — flagged as a known gap in `PROJECT_LOG.md` §12).
+
+---
+
+### Preprocessing Change: Optional Crop Parameter
+
+Added `apply_crop` parameter to `preprocess()` in `preprocess.py`,
+defaulting to `True` (no change to existing Pneumonia/Cardiomegaly
+behavior). This run used `apply_crop=False` deliberately — testing the
+dataset-provenance hypothesis cleanly meant isolating the dataset variable
+from the crop variable, rather than applying a crop tuned for a different
+dataset's specific artifact locations.
+
+---
+
+### Training
+
+Identical architecture and recipe to the original Pneumonia model:
+EfficientNet-B0, ImageNet-pretrained, two-stage training (frozen head →
+unfreeze last 2 blocks). **Trained from scratch, not fine-tuned from the
+existing Kaggle-trained checkpoint** — a deliberate choice, since
+fine-tuning from weights that already learned a shortcut risked not fully
+un-learning it, muddying the test.
+
+| Stage | Best Val Loss | Best Val AUC-ROC |
+|---|---|---|
+| Stage 1 (epoch 4) | 0.7619 | 0.8215 |
+| Stage 2 (epoch 5) | 0.6874 | 0.8604 |
+
+**Note on loss magnitude:** losses here (0.68–0.86) are not directly
+comparable to the Kaggle model's losses (0.07–0.11) — `pos_weight=2.883`
+here vs. `pos_weight=0.370` there scales the loss differently. Compare
+AUC-ROC, not raw loss values, across the two models.
+
+### Test-set evaluation
+
+| Metric | Value | Kaggle model (15%-crop) for reference |
+|---|---|---|
+| Accuracy | 81.22% | 93.52% |
+| Sensitivity | 73.05% | 92.52% |
+| Specificity | 83.70% | 96.20% |
+| AUC-ROC | 86.10% | 99.07% |
+
+Confusion matrix: TN=1166, FP=227, FN=114, TP=309 (n=1816)
+
+**This model, on these numbers alone, would not meet the implementation
+plan's stated targets** (accuracy >88%, sensitivity >90%, AUC-ROC >0.92).
+This is expected given CheXpert's noisier NLP-extracted labels and broader,
+more heterogeneous patient population — a harder task than the Kaggle
+dataset's clean pediatric binary split, not a training failure. Numeric
+performance was secondary to the actual goal of this experiment (testing
+the bias hypothesis), but it does mean this model is not currently a
+viable drop-in replacement on performance grounds alone, independent of
+the Grad-CAM finding below.
+
+---
+
+### Grad-CAM Finding — Hypothesis NOT Supported
+
+Ran Grad-CAM on 8 test-set images (4 negative, 4 positive), uncropped
+input, same target layer (`model.features[-1]`).
+
+**Result: the model shows the same class of shortcut-learning behavior as
+the original Kaggle-trained model, on a completely different dataset —
+just with different specific artifacts.**
+
+| Failure pattern | Count (of 8) |
+|---|---|
+| Activation touching image top edge | 3 |
+| Direct overlap with visible tubing/wire hardware | 2 |
+| Activation on the "L" laterality marker (a radiology positioning label, not anatomy) | 4 |
+| Activation on shoulder/arm/axilla (non-lung anatomy) | 1 |
+| Genuinely plausible anatomical activation (lower chest / central mediastinum) | 2 (Images 3, 4) |
+
+The laterality-marker finding is new and notable — 4 of 8 images showed
+activation specifically on the "L" marker radiology technicians place on
+the film, a clear non-anatomical shortcut that has nothing to do with the
+Kaggle dataset's specific batch-provenance issue.
+
+**Conclusion: the original hypothesis — that the bias was a Kaggle-dataset-
+provenance problem specific to that dataset — is NOT supported by this
+result.** Retraining from scratch, on a different institution's data,
+different population, different labeling pipeline, with no crop applied,
+still produced shortcut-learning behavior. The specific artifact changed
+(neck/collar → laterality marker/hardware), but the underlying tendency
+toward non-anatomical shortcuts persisted.
+
+### Revised understanding
+
+This suggests the issue may be less "this one dataset has bad provenance"
+and more a **general property of chest X-ray classification** with this
+architecture/training recipe: markers, tubing, and positioning artifacts
+frequently correlate with diagnosis labels across datasets (sicker
+patients tend to have more visible hardware, different positioning
+protocols, etc.), giving models an easy non-anatomical shortcut to exploit
+regardless of source. A genuine fix likely requires something more
+structural than dataset selection — e.g., lung segmentation (physically
+isolating lung tissue from markers/hardware before the model ever sees
+them) or explicit shortcut-learning countermeasures during training —
+rather than continuing to search for a "cleaner" dataset.
+
+---
+
+### Status and Open Decision
+
+This CheXpert-trained model is **not currently a validated replacement**
+for the original Kaggle-trained Pneumonia model:
+- Numeric performance is below the original model's and below plan targets
+- The Grad-CAM bias this experiment set out to resolve is present here too,
+  in a different form
+
+**Decision needed from the team:** given this negative result,
+- (a) keep the original 15%-crop Kaggle-trained model as the working
+  Pneumonia artifact (already uploaded to HF Hub, `experimental`), and
+  treat this CheXpert experiment as a documented negative finding that
+  informs future bias-mitigation strategy (pointing toward segmentation
+  rather than dataset swapping), or
+- (b) invest further in the CheXpert model (more epochs, hyperparameter
+  tuning, addressing the sensitivity gap) despite the unresolved bias, or
+- (c) pursue lung segmentation as the next mitigation attempt, potentially
+  applied to either dataset
+
+This experiment's artifacts (checkpoint, config, split) are preserved at
+`configs/pneumonia_chexpert.yaml` and
+`MediScan_AI/training/models/pneumonia_chexpert/` on Drive regardless of
+which direction is chosen, since the negative result itself is valuable
+documentation.
+
+---
+
+## 10. ONNX Export + HF Hub Upload (Pneumonia — Complete)
 
 **Export:**
 - `torch.onnx.export(..., opset_version=17, dynamo=False)` — the default
@@ -372,7 +567,7 @@ with commit hash — all done.
 
 ---
 
-## 10. Security Incident: Leaked GitHub Token (Resolved)
+## 11. Security Incident: Leaked GitHub Token (Resolved)
 
 A classic GitHub PAT was hardcoded as a plaintext string literal in a saved
 notebook cell (`token = "ghp_..."`) and committed. GitHub's push protection
@@ -406,7 +601,7 @@ cell that gets saved. Use `getpass()` for interactive entry every session.
 
 ---
 
-## 11. Current Status
+## 12. Current Status
 
 ### Pneumonia — ✅ COMPLETE
 - Dataset acquired, cleaned, stratified split, `pos_weight` computed
@@ -416,11 +611,37 @@ cell that gets saved. Use `getpass()` for interactive entry every session.
   as partially-but-not-fully resolved
 - TorchXRayVision and ViT/CheXpert comparisons explored as diagnostic aids;
   neither adopted, both documented
-- CheXpert flagged as a potential root-cause fix for later investigation
+- CheXpert flagged as a potential root-cause fix, then actually investigated
+  (see §9) — retrained from scratch on CheXpert, uncropped, to test the
+  dataset-provenance hypothesis directly
 - ONNX exported, parity-checked (6 images, max diff 0.000001)
 - Uploaded to HF Hub (`Rhishamah/mediscan-pneumonia`), commit hash recorded
 - Model card finalized with full honest bias-mitigation history
 - Marked `experimental: true`
+- **Original Kaggle-trained 15%-crop model remains the working artifact**
+  (see §9 — CheXpert retrain did not support the dataset-provenance
+  hypothesis and is not currently a validated replacement)
+
+### CheXpert Pneumonia Retrain — ✅ EXPERIMENT COMPLETE, NEGATIVE RESULT
+- Full pipeline built independently: NIH-style CSV filtering (Pneumonia
+  positive vs. No Finding negative), patient-level `GroupShuffleSplit`,
+  new `apply_crop` parameter added to `preprocess()`, trained from scratch
+  uncropped
+- Test metrics below plan targets (81.22% accuracy, 73.05% sensitivity,
+  86.10% AUC-ROC) — harder/noisier dataset than Kaggle's, as expected
+- **Grad-CAM showed the same class of shortcut-learning behavior as the
+  original model, on a completely different dataset** — different specific
+  artifact (laterality marker + hardware, vs. neck/collar), but the
+  underlying tendency persisted
+- **Conclusion: the "Kaggle-dataset-provenance" hypothesis is not
+  supported.** Revised understanding: this may be a more general property
+  of chest X-ray classification (artifacts correlating with diagnosis
+  across datasets) rather than a single-dataset issue — pointing toward
+  segmentation-based fixes as more promising than further dataset swapping
+- **Decision pending with team:** keep original model as-is (documented
+  negative finding informs future strategy), invest further in the
+  CheXpert model despite the unresolved bias, or pursue lung segmentation
+  next — see §9 for the full option breakdown
 
 ### Cardiomegaly — 🔶 IN PROGRESS (just started)
 - `CARDIOMEGALY_GUIDE.md` written — detailed reuse plan based on everything
@@ -439,7 +660,7 @@ cell that gets saved. Use `getpass()` for interactive entry every session.
 
 ---
 
-## 12. Open Infrastructure Items (carry forward to remaining conditions)
+## 13. Open Infrastructure Items (carry forward to remaining conditions)
 
 1. **Recovery cell hardcodes checkpoint paths** — needs to be condition-
    and variant-aware; caused a wasted retrain cycle once already (§8.2)
