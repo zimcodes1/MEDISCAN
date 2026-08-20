@@ -73,14 +73,20 @@ def to_model_input(arr):
     return arr.astype(np.float32)
 
 
-def preprocess(image_path, train=False):
+def preprocess(image_path, train=False, apply_crop=True):
     """Full pipeline. Returns array of shape (1, 3, 224, 224).
 
     Set train=True to apply augmentation (training only — never
     at inference time).
+    Set apply_crop=False to skip the thorax crop step — used when
+    testing whether a dataset's own bias is crop-independent (e.g.
+    the CheXpert retrain, to isolate the dataset variable from the
+    crop variable).
     """
     img = load_and_convert(image_path)
-    img = crop_thorax(img)
+
+    if apply_crop:
+        img = crop_thorax(img)
 
     if train:
         img = apply_train_augmentation(img)
