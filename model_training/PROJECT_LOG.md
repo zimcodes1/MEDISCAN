@@ -462,17 +462,111 @@ non-trivial cost against the crop approach's near-zero overhead. Framed
 as a team decision on whether the bias improvement justifies the added
 complexity, not a unilateral technical call.
 
-### Status
-Adopted as the new candidate final Pneumonia model, pending:
-- [ ] One clean, uninterrupted retrain (current Stage 2 was resumed after
-  a disconnect)
-- [ ] Decision on caching vs. live segmentation for production deployment
-- [ ] Model card and config updates
-- [ ] ONNX export + parity check — note: exporting a two-model pipeline
-  (segmentation + classifier) needs its own consideration; may require a
-  combined export or two separate ONNX models called in sequence by the
-  backend
-- [ ] HF Hub upload, commit hash recorded
+### Status (superseded by §10.1 below — reproducibility concern found)
+
+---
+
+## 10.1 Reproducibility Check — Important Negative Finding
+
+Following the initial segmentation result, the open item "run one clean,
+uninterrupted retrain" was carried out: preprocessing was moved to a
+pre-computed, cached pipeline (see below), and Stage 1 + Stage 2 were
+retrained from scratch on the exact same dataset, split, architecture,
+recipe, and `pos_weight` as the original segmentation run.
+
+### Caching infrastructure built for the clean retrain
+Since segmentation output is deterministic, crops were pre-computed once
+for all 5,856 images and cached to Drive as PNGs, with a `path_mapping.json`
+recording original-path → cached-path pairs. This removed the ~3.3 min/epoch
+live-segmentation cost and the `num_workers=0` DataLoader restriction from
+the earlier run. **A disconnect interrupted the caching process itself**
+partway through (3,345 of 5,856 done at the time of interruption); resumed
+by reconstructing progress from existing cached filenames (mapping file
+hadn't been saved yet) rather than restarting from zero, then completed
+the remaining 2,511 images with the mapping saved incrementally every 250
+images going forward — a more disconnect-resilient pattern than the
+original all-at-the-end save.
+
+### Clean retrain results
+
+| Stage | Best Val Loss | Best Val AUC-ROC |
+|---|---|---|
+| Stage 1 (epoch 5) | 0.1207 | 0.9705 |
+| Stage 2 (epoch 5) | 0.0768 | 0.9872 |
+
+(Stage 2 itself hit one more disconnect after epoch 4 — recovered cleanly
+this time by reloading the epoch-4 checkpoint and confirming val-metric
+reproduction before continuing for the final epoch, per the project's
+now-standard verification discipline.)
+
+### Test-set comparison — two independently trained segmentation models
+
+| Metric | Run 1 (interrupted Stage 2) | Run 2 (clean retrain) |
+|---|---|---|
+| Accuracy | 97.44% | 95.05% |
+| Sensitivity | 98.36% | 94.39% |
+| Specificity | 94.94% | 96.84% |
+| AUC-ROC | 99.64% | 99.18% |
+
+Both strong, both comfortably clear every plan target. Numeric performance
+alone does not distinguish these two runs meaningfully — normal run-to-run
+variance.
+
+### Grad-CAM comparison — the numbers diverge here, significantly
+
+Re-ran Grad-CAM on Run 2 using the **identical `random.seed(42)` 8-image
+sample** used for every prior Pneumonia Grad-CAM check, for direct
+comparability.
+
+**Run 1 result (already documented above):** 0 of 8 images showed
+top-edge, border, neck, or shoulder activation on this exact sample.
+
+**Run 2 result:**
+- **4 of 8** images showed activation touching the top image edge
+- **3 of 8** images showed activation over shoulder/clavicle regions
+- **1 of 8** showed activation touching both the top AND side edge
+  (corner activation)
+
+This is a **substantial regression** relative to Run 1 on the identical
+image sample, and looks qualitatively closer to the original pre-
+segmentation bias pattern than to Run 1's clean result.
+
+### Interpretation — this is a real, important finding, not a discardable outlier
+
+Two independently trained models — same architecture, same recipe, same
+cached preprocessing, same dataset and split — produced **meaningfully
+different Grad-CAM behavior** while both scoring well on standard metrics.
+This means:
+
+- **The bias reduction observed in Run 1 cannot be treated as a reliable,
+  deterministic property of the segmentation approach.** It may be
+  sensitive to random weight initialization, training dynamics, batch
+  ordering, or some other run-to-run variation not yet identified — not
+  something the segmentation crop itself guarantees.
+- **This directly undermines confidence in adopting segmentation as "the
+  fix"** for the other three conditions, since a mitigation that works in
+  one run and not in a near-identical rerun isn't dependable.
+- Segmentation may still meaningfully **reduce** the bias on average
+  relative to no mitigation at all (both segmentation runs still look
+  better than the original unmitigated baseline), but it does not appear
+  to **reliably eliminate** it the way Run 1's single check suggested.
+
+### Status — open, unresolved as of this log entry
+
+- [ ] Decide whether to run a third independent training pass to get a
+  better read on whether Run 1 or Run 2 is more representative, or
+  whether the variance itself is the real finding
+- [ ] Consider Grad-CAM checks on a larger sample size (val set, or 15-20+
+  images) for both runs, since n=8 may simply be too small to draw a
+  confident conclusion about either run individually
+- [ ] Revisit whether segmentation should be presented to the team as a
+  probabilistic improvement rather than a resolved fix
+- [ ] Neither segmentation checkpoint (Run 1 or Run 2) has been exported
+  to ONNX or uploaded to HF Hub yet — held pending this reproducibility
+  question being resolved, since exporting an unreliable "fix" as if it
+  were validated would be misleading
+- [ ] The 15%-crop model (§8.6, §11) remains the only fully exported and
+  uploaded Pneumonia artifact on HF Hub as of this entry
 
 ---
 
@@ -537,25 +631,33 @@ cell. Use `getpass()` for interactive entry every session.
 
 ## 13. Current Status
 
-### Pneumonia — 🔶 SEGMENTATION MODEL IS THE LEADING CANDIDATE, not yet finalized
+### Pneumonia — 🔶 UNRESOLVED — segmentation shows promise but failed reproducibility check
 - Kaggle dataset: acquired, cleaned, stratified split, `pos_weight` computed
 - Preprocessing pipeline: built, verified, extended twice (optional crop,
-  then segmentation-based cropping)
-- **Four full training variants completed and compared:** baseline
-  (uncropped), 25% crop, 15% crop, segmentation-based
-- Grad-CAM bias investigated across all four variants with increasing
-  rigor (9 → 8 → 8 → 24 images reviewed)
+  then segmentation-based cropping), plus a caching layer added for
+  training efficiency
+- **Five full training variants completed and compared:** baseline
+  (uncropped), 25% crop, 15% crop, segmentation-based (Run 1), and a
+  second independent segmentation-based retrain (Run 2, §10.1)
+- Grad-CAM bias investigated across variants with increasing rigor
+  (9 → 8 → 8 → 24 → 8 images reviewed)
 - **CheXpert dataset-swap experiment:** completed, hypothesis not
   supported, valuable negative result documented (§9)
-- **Segmentation-based retrain:** completed, strongest result on both
-  numeric metrics and Grad-CAM anatomical correctness (§10) — current
-  leading candidate for final model, pending: clean uninterrupted retrain,
-  caching decision, ONNX export (two-model pipeline consideration), model
-  card finalization, HF Hub upload
+- **Segmentation-based approach:** Run 1 showed the strongest result of
+  any variant (24 images, minimal residual artifact activation). Run 2,
+  a from-scratch reproduction with the same recipe/data/architecture,
+  showed a substantial regression on the identical Grad-CAM sample
+  (4 of 8 top-edge/border activations, vs. 0 of 8 in Run 1) despite
+  similarly strong numeric metrics in both runs. **This means the
+  bias-reduction benefit of segmentation cannot currently be treated as
+  reliable/reproducible — an open, unresolved finding (§10.1) requiring
+  further investigation before segmentation can be recommended as a
+  dependable fix**, including for future use on Cardiomegaly/Nodule-Mass/TB
 - 15%-crop model remains the only version fully exported and uploaded to
-  HF Hub so far (`Rhishamah/mediscan-pneumonia`, commit
-  `f31fffeac0caa11017df1b0948cc54f73a05033e`) — will need to be superseded
-  if segmentation is finalized as the team's choice
+  HF Hub (`Rhishamah/mediscan-pneumonia`, commit
+  `f31fffeac0caa11017df1b0948cc54f73a05033e`) — neither segmentation run
+  has been exported/uploaded, deliberately held pending the reproducibility
+  question
 - ViT backbone swap considered and explicitly declined — evidence from
   the CheXpert experiment argued against an architecture-level cause,
   and a backbone swap would add Grad-CAM tooling cost without a clear
