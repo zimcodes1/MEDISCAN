@@ -551,22 +551,120 @@ This means:
   better than the original unmitigated baseline), but it does not appear
   to **reliably eliminate** it the way Run 1's single check suggested.
 
-### Status — open, unresolved as of this log entry
-
-- [ ] Decide whether to run a third independent training pass to get a
-  better read on whether Run 1 or Run 2 is more representative, or
-  whether the variance itself is the real finding
-- [ ] Consider Grad-CAM checks on a larger sample size (val set, or 15-20+
-  images) for both runs, since n=8 may simply be too small to draw a
-  confident conclusion about either run individually
+### Status — open, unresolved as of this log entry (see §10.2 — corrected further)
+- [x] ~~Decide whether to run a third independent training pass~~ — superseded
+  by the larger-sample check below, which resolved the question differently
+  than expected
+- [x] Consider Grad-CAM checks on a larger sample size — done, see §10.2
 - [ ] Revisit whether segmentation should be presented to the team as a
   probabilistic improvement rather than a resolved fix
 - [ ] Neither segmentation checkpoint (Run 1 or Run 2) has been exported
   to ONNX or uploaded to HF Hub yet — held pending this reproducibility
-  question being resolved, since exporting an unreliable "fix" as if it
-  were validated would be misleading
+  question being resolved
 - [ ] The 15%-crop model (§8.6, §11) remains the only fully exported and
   uploaded Pneumonia artifact on HF Hub as of this entry
+
+---
+
+## 10.2 Larger-Sample Grad-CAM Check — Corrected Conclusion (Supersedes §10.1's Framing)
+
+### What was done
+Rather than a third training run, tested whether the Run 1 vs. Run 2
+divergence in §10.1 was a genuine reproducibility problem or an artifact
+of too-small a Grad-CAM sample (n=8 throughout the project up to this
+point). Built a quantitative, threshold-based border-activation check
+(checks whether heatmap intensity in the outer 15% of the image exceeds
+0.7) and ran it across a larger, shared 30-image sample (15 NORMAL, 15
+PNEUMONIA) against **both** existing segmentation checkpoints.
+
+### Initial result and a false alarm
+Automated check: **Run 1: 29/30 (96.7%) border-flagged, Run 2: 25/30
+(83.3%) border-flagged.** This directly contradicted the earlier visual
+finding that Run 1 showed 0/8 border activations — a large enough gap to
+suspect the automated metric itself was broken (e.g. flagging normal
+gradient falloff near a centered hot spot as "border activation," since
+Grad-CAM heatmaps are typically normalized such that a 0.7 threshold is
+easy to cross even far from the true peak).
+
+**This suspicion was WRONG.** Direct visual inspection of three "flagged"
+Run 1 images confirmed genuine, unambiguous border/collar activation —
+sharp-cored, top-edge-spanning hot spots over neck/collar anatomy,
+structurally distinct (separated by a cold gap) from a second, separate
+hot spot over actual lung tissue. Not gradient falloff. The automated
+check was correct; the earlier assumption that it must be miscalibrated
+was the error.
+
+### The real explanation: a sampling methodology flaw
+
+Investigating why this contradicted the earlier "Run 1: 0/8" result
+surfaced a genuine bug in how "same seed, directly comparable sample"
+was being interpreted throughout this project:
+
+```python
+random.seed(42)
+sample = random.sample(population, n)
+```
+
+**`random.sample()` with the same seed but a different `n` does NOT
+return a nested/consistent subset across calls** — Python's sampling
+algorithm's internal random state consumption depends on both the
+population and `n` together, so `random.sample(x, 4)` and
+`random.sample(x, 15)` under `seed(42)` select **different specific
+images**, not overlapping ones. Every earlier claim in this log of
+"same seed=42, directly comparable to the original bias-discovery
+sample" was only true when `n_per_class` was held constant (4 → 4);
+it broke silently whenever a check used a different `n_per_class`
+(e.g. this investigation's `n_per_class=15`).
+
+### Corrected conclusion
+
+The original "Run 1: 0/8 border activations" finding was very likely
+**small-sample luck** — a genuine 8-image draw that happened not to
+catch the border-activation pattern, not evidence the pattern was
+actually absent from Run 1's behavior. The larger, more statistically
+meaningful 30-image check shows **both segmentation runs exhibit
+substantial, comparable rates of border/collar artifact activation**
+(Run 1: 96.7%, Run 2: 83.3% — both high, roughly the same order of
+magnitude once measured properly).
+
+**Revised understanding: segmentation-based cropping has NOT reliably
+eliminated the bias.** The apparent success in §10 was very likely an
+artifact of evaluating too small a sample, not a genuine property of
+the segmentation approach. This is a significant walk-back from §10's
+original framing ("strongest result across every mitigation attempt")
+and from §10.1's framing of the issue as primarily a "reproducibility
+concern between two runs" — the more accurate framing is that **neither
+run actually resolved the bias**, and the earlier appearance that Run 1
+had done so did not hold up under closer, larger-sample scrutiny.
+
+### Process lesson (added to §14 open items)
+
+All small-sample (n=8-9) Grad-CAM checks throughout this project —
+including the original bias-discovery finding, both crop-percentage
+checks, and the CheXpert experiment — should be treated with more
+caution than they were at the time. They were useful for surfacing
+directional signal (e.g. "something is wrong here") but are not reliable
+enough sample sizes to confirm a fix actually worked. **Going forward,
+any claim that a mitigation "resolved" or "significantly improved"
+Grad-CAM behavior should be validated on a larger sample (20-30+ images)
+before being written up as a conclusion**, not just the initial 8-image
+gut-check. Additionally: **never rely on a fixed `random.seed()` alone
+for sample comparability across calls with different `n`** — either
+fix both the seed AND `n`, or explicitly slice/reuse the exact same
+list of filepaths across comparisons.
+
+### Status
+- [ ] Segmentation should NOT currently be presented to the team as a
+  validated fix — it does not appear to reliably outperform the
+  documented-and-shipped 15%-crop model on the metric that actually
+  matters (Grad-CAM anatomical correctness), despite better raw accuracy
+  numbers
+- [ ] Neither segmentation checkpoint will be exported/uploaded pending
+  further investigation or a decision to abandon this direction
+- [ ] Worth deciding with the team: continue investigating segmentation
+  with corrected, larger-sample methodology, or accept the 15%-crop
+  model's documented partial-mitigation status as the practical stopping
+  point for Pneumonia and move fully to Cardiomegaly
 
 ---
 
@@ -631,37 +729,43 @@ cell. Use `getpass()` for interactive entry every session.
 
 ## 13. Current Status
 
-### Pneumonia — 🔶 UNRESOLVED — segmentation shows promise but failed reproducibility check
+### Pneumonia — 🔶 UNRESOLVED — segmentation does not appear to reliably fix the bias
 - Kaggle dataset: acquired, cleaned, stratified split, `pos_weight` computed
 - Preprocessing pipeline: built, verified, extended twice (optional crop,
   then segmentation-based cropping), plus a caching layer added for
   training efficiency
 - **Five full training variants completed and compared:** baseline
   (uncropped), 25% crop, 15% crop, segmentation-based (Run 1), and a
-  second independent segmentation-based retrain (Run 2, §10.1)
-- Grad-CAM bias investigated across variants with increasing rigor
-  (9 → 8 → 8 → 24 → 8 images reviewed)
+  second independent segmentation-based retrain (Run 2)
+- Grad-CAM bias investigated across variants with increasing rigor and,
+  eventually, corrected methodology (9 → 8 → 8 → 24 → 8 → 30 images
+  reviewed; see §10.2 for a methodology correction affecting sample
+  comparability across different `n` values with the same random seed)
 - **CheXpert dataset-swap experiment:** completed, hypothesis not
   supported, valuable negative result documented (§9)
-- **Segmentation-based approach:** Run 1 showed the strongest result of
-  any variant (24 images, minimal residual artifact activation). Run 2,
-  a from-scratch reproduction with the same recipe/data/architecture,
-  showed a substantial regression on the identical Grad-CAM sample
-  (4 of 8 top-edge/border activations, vs. 0 of 8 in Run 1) despite
-  similarly strong numeric metrics in both runs. **This means the
-  bias-reduction benefit of segmentation cannot currently be treated as
-  reliable/reproducible — an open, unresolved finding (§10.1) requiring
-  further investigation before segmentation can be recommended as a
-  dependable fix**, including for future use on Cardiomegaly/Nodule-Mass/TB
+- **Segmentation-based approach — corrected conclusion (§10.2):** an
+  initial small-sample check (Run 1, n=8) suggested segmentation nearly
+  eliminated the bias, the strongest result of any variant tried. A larger,
+  properly-controlled 30-image check across both segmentation runs showed
+  this did not hold up — both runs show substantial border/collar artifact
+  activation (96.7% and 83.3% of images respectively) when measured
+  properly. **Current assessment: segmentation-based cropping does not
+  reliably resolve the Grad-CAM bias**, despite producing the strongest
+  raw accuracy/AUC numbers of any variant tried. The earlier positive
+  finding is attributed to an insufficient sample size, not a real property
+  of the approach.
 - 15%-crop model remains the only version fully exported and uploaded to
   HF Hub (`Rhishamah/mediscan-pneumonia`, commit
   `f31fffeac0caa11017df1b0948cc54f73a05033e`) — neither segmentation run
-  has been exported/uploaded, deliberately held pending the reproducibility
-  question
+  has been exported/uploaded, and given §10.2's finding, may not be adopted
 - ViT backbone swap considered and explicitly declined — evidence from
   the CheXpert experiment argued against an architecture-level cause,
   and a backbone swap would add Grad-CAM tooling cost without a clear
   signal it would help
+- **Team decision needed:** continue investigating (with corrected,
+  larger-sample methodology going forward) or accept the 15%-crop model's
+  documented partial-mitigation, `experimental` status as the practical
+  stopping point for Pneumonia and move fully to Cardiomegaly
 
 ### Cardiomegaly — 🔶 IN PROGRESS (paused to focus on finishing Pneumonia)
 - `CARDIOMEGALY_GUIDE.md` written, includes a flagged note about
