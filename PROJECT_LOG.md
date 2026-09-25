@@ -12,7 +12,6 @@
 ## 1. Project Setup
 
 ### 1.1 Branch strategy
-
 - Single long-lived branch for all four conditions: `training/model-development`
 - Rationale: only lightweight artifacts (code, configs, results, model cards)
   are tracked in Git — raw datasets and model weights live in Google Drive
@@ -45,7 +44,6 @@ model_training/
 ```
 
 ### 1.3 Environment
-
 - **Compute:** Google Colab, T4 GPU
 - **Editor:** VS Code, connected to Colab via the official Google Colab
   VS Code extension (direct kernel connection, no manual SSH tunneling needed)
@@ -65,13 +63,13 @@ from a normal terminal), and a **Drive clone** at
 so the Colab runtime's Python code could import real, committed project
 files rather than redefining everything in scratch notebook cells).
 
-**Why both are needed:** Colab's GPU runtime (`/content/`) is a _different
-machine_ from your laptop and cannot see your laptop's filesystem. Colab
-_can_ see Google Drive once mounted.
+**Why both are needed:** Colab's GPU runtime (`/content/`) is a *different
+machine* from your laptop and cannot see your laptop's filesystem. Colab
+*can* see Google Drive once mounted.
 
-**The rule that emerged:** commits made _from inside a Colab cell_ must be
-pushed _from Colab_, then pulled on the laptop. Commits made by editing
-files _in VS Code locally_ must be pushed from the laptop, then pulled into
+**The rule that emerged:** commits made *from inside a Colab cell* must be
+pushed *from Colab*, then pulled on the laptop. Commits made by editing
+files *in VS Code locally* must be pushed from the laptop, then pulled into
 the Drive clone before Colab will see them. Mixing these up caused several
 issues over the course of the project — including forgetting to push the
 Pneumonia notebook entirely before a teammate wanted to review it.
@@ -96,7 +94,6 @@ checkpoint load, DataLoader rebuild, Grad-CAM setup, and sample image
 selection — run top-to-bottom after any disconnect.
 
 **Known remaining gaps:**
-
 - Recovery cell hardcodes `checkpoint_dir` to a default path — caused a
   wasted retrain cycle during the Pneumonia crop-fix (§8.2). Always
   explicitly re-set and print `checkpoint_dir`/`checkpoint_path` after
@@ -143,7 +140,6 @@ Core pipeline: `load_and_convert()` → (optional cropping step, see below)
 all of the above.
 
 **Evolution of the cropping/isolation step:**
-
 1. `crop_thorax()` — fixed-percentage crop, added after the original
    Grad-CAM bias finding (§7), tuned through two iterations (§8)
 2. `apply_crop` parameter added to `preprocess()` — allows skipping the
@@ -170,19 +166,18 @@ EfficientNet-B0 (ImageNet pretrained), single linear output neuron.
 Stage 1 (frozen backbone, lr=1e-3, 5 epochs) → Stage 2 (unfreeze
 `features.7`+`features.8`, lr=1e-4, `ReduceLROnPlateau`, up to 5 epochs).
 
-| Stage             | Best Val Loss | Best Val AUC-ROC |
-| ----------------- | ------------- | ---------------- |
-| Stage 1 (epoch 5) | 0.1147        | 0.9775           |
-| Stage 2 (epoch 5) | 0.0693        | 0.9917           |
+| Stage | Best Val Loss | Best Val AUC-ROC |
+|---|---|---|
+| Stage 1 (epoch 5) | 0.1147 | 0.9775 |
+| Stage 2 (epoch 5) | 0.0693 | 0.9917 |
 
 ### Test-set evaluation
-
-| Metric      | Value  | Target   |
-| ----------- | ------ | -------- |
-| Accuracy    | 0.9420 | >0.88 ✅ |
+| Metric | Value | Target |
+|---|---|---|
+| Accuracy | 0.9420 | >0.88 ✅ |
 | Sensitivity | 0.9346 | >0.90 ✅ |
-| Specificity | 0.9620 | —        |
-| AUC-ROC     | 0.9918 | >0.92 ✅ |
+| Specificity | 0.9620 | — |
+| AUC-ROC | 0.9918 | >0.92 ✅ |
 
 All numeric targets cleared — but §7's Grad-CAM check revealed a bias
 issue not visible in these aggregate metrics.
@@ -207,36 +202,31 @@ decided to attempt mitigation.
 ## 8. Bias Mitigation Attempt 1: Thorax Cropping
 
 ### 8.1 First attempt — 25% top-crop
-
 Grad-CAM improved (no neck/hardware activation across 8 re-checked images),
 **but** test-set specificity collapsed from 96.20% to **67.72%** (51 of 158
 NORMAL images misclassified, up from 6). **Not adopted.**
 
 ### 8.2 Invalid retrain (silent staleness bug)
-
 A retrain's Grad-CAM came back bit-identical to the original uncropped
 run — statistically impossible for independently-trained models. Root
 cause, two compounding issues: (1) the session's recovery cell hardcoded
-the _original_ `checkpoint_dir`, silently resetting it after a disconnect;
+the *original* `checkpoint_dir`, silently resetting it after a disconnect;
 (2) `preprocess.py` had two `def preprocess` definitions, the older
 no-crop one silently winning. Net effect: the "cropped" retrain was
 actually trained on uncropped data.
 
 ### 8.3 Fix
-
 Rewrote `preprocess.py` with a single, correctly-ordered `preprocess()`.
 Verified via `!cat` (raw file) and `inspect.getsource()` (live function)
 before trusting any further test.
 
 ### 8.4 Second attempt — 25% crop, genuinely applied
-
 Confirmed real this time (probabilities differed from prior runs). Val
 AUC 0.9858. Grad-CAM showed genuine improvement — no neck/throat/hardware
 activation across all 8 re-checked images. Same 25% bound as §8.1, so the
 specificity question needed re-testing on genuinely cropped data.
 
 ### 8.5 TorchXRayVision comparison (diagnostic detour)
-
 Compared against TXRV's pretrained DenseNet121 (adult-only training data)
 on 4 flagged images. TXRV's activation looked more plausible, but its
 predictions disagreed with ground truth on 3 of 4 genuinely-positive
@@ -244,15 +234,14 @@ images. **Confound:** adult-trained weights on pediatric data — ambiguous
 result. **Not adopted; inconclusive.**
 
 ### 8.6 Third attempt — loosened to 15% top-crop
-
 Retrain: Stage 2 best val AUC 0.9866.
 
-| Metric      | Baseline (0%) | 25% crop | 15% crop |
-| ----------- | ------------- | -------- | -------- |
-| Accuracy    | 94.20%        | 90.44%   | 93.52%   |
-| Sensitivity | 93.46%        | 98.83%   | 92.52%   |
-| Specificity | 96.20%        | 67.72%   | 96.20%   |
-| AUC-ROC     | 99.18%        | 98.35%   | 99.07%   |
+| Metric | Baseline (0%) | 25% crop | 15% crop |
+|---|---|---|---|
+| Accuracy | 94.20% | 90.44% | 93.52% |
+| Sensitivity | 93.46% | 98.83% | 92.52% |
+| Specificity | 96.20% | 67.72% | 96.20% |
+| AUC-ROC | 99.18% | 98.35% | 99.07% |
 
 Specificity fully recovered. Grad-CAM re-check: **5 of 8 images still
 showed activation on shoulders, neck, borders, or hardware** — essentially
@@ -265,7 +254,6 @@ remove. **Adopted as the interim final version at the time** (kept
 by §10.
 
 ### 8.7 ViT/CheXpert comparison — considered, not pursued for Pneumonia
-
 `codewithdark/vit-chest-xray` (ViT-base, CheXpert-trained, native
 Cardiomegaly + Pneumonia classes) flagged as a possible comparison tool,
 same adult/pediatric caveat as TXRV. Decision: skip for Pneumonia
@@ -277,13 +265,11 @@ Cardiomegaly instead where the domain-mismatch concern may not apply.
 ## 9. CheXpert Pneumonia Retrain — Findings (Hypothesis Test)
 
 ### Hypothesis
-
 Test whether the bias was a **Kaggle-dataset-provenance problem**
 specifically, by retraining from scratch on CheXpert (different
 institution, population, labeling method, no crop applied).
 
 ### Dataset construction
-
 - CheXpert-v1.0-small via Kaggle mirror (`ashery/chexpert`) — avoided the
   Stanford registration requirement
 - Positive: `Pneumonia == 1.0` (6,039). Negative: `No Finding == 1.0`
@@ -298,35 +284,31 @@ institution, population, labeling method, no crop applied).
 - `pos_weight` from train split: **2.8830** (inverted vs. Kaggle's 0.3704,
   since Pneumonia is the minority class here)
 - **Infrastructure improvement:** this `split.json` stores `(filepath,
-label)` pairs directly, fixing the fragility flagged in §4
+  label)` pairs directly, fixing the fragility flagged in §4
 
 ### Preprocessing change
-
 Added `apply_crop` parameter to `preprocess()`, defaulting `True` (no
 change to existing behavior elsewhere). This run used `apply_crop=False`
 to isolate the dataset variable cleanly.
 
 ### Training and evaluation
-
 Trained from scratch (not fine-tuned from the Kaggle checkpoint — avoids
 inheriting any existing shortcut). Stage 2 best val AUC 0.8604.
 
-| Metric      | Value  | Kaggle 15%-crop (reference) |
-| ----------- | ------ | --------------------------- |
-| Accuracy    | 81.22% | 93.52%                      |
-| Sensitivity | 73.05% | 92.52%                      |
-| Specificity | 83.70% | 96.20%                      |
-| AUC-ROC     | 86.10% | 99.07%                      |
+| Metric | Value | Kaggle 15%-crop (reference) |
+|---|---|---|
+| Accuracy | 81.22% | 93.52% |
+| Sensitivity | 73.05% | 92.52% |
+| Specificity | 83.70% | 96.20% |
+| AUC-ROC | 86.10% | 99.07% |
 
 Below plan targets — expected given CheXpert's noisier NLP-extracted
 labels and broader population, not a training failure.
 
 ### Grad-CAM finding — hypothesis NOT supported
-
 8 images reviewed (4 negative, 4 positive), uncropped. Result: **the same
 class of shortcut-learning behavior appeared, on a completely different
 dataset** — different specific artifact this time:
-
 - Top-edge touching: 3 of 8
 - Overlap with tubing/wire hardware: 2 of 8
 - Activation on the "L" laterality marker (a positioning label, not
@@ -334,7 +316,6 @@ dataset** — different specific artifact this time:
 - Genuinely plausible anatomical activation: only 2 of 8
 
 ### Conclusion
-
 The dataset-provenance hypothesis was **not supported**. A completely
 different dataset, population, and labeling pipeline still produced
 artifact-based shortcuts. **Revised understanding:** this may be a more
@@ -354,14 +335,12 @@ pending the segmentation attempt below.
 ## 10. Bias Mitigation Attempt 2: Lung Segmentation (Successful)
 
 ### Rationale
-
 Following §9's conclusion, tested whether physically isolating lung tissue
 via an actual segmentation model — rather than approximating "where the
 lungs probably are" with a fixed crop rectangle — could succeed where both
 crop attempts and the dataset swap could not.
 
 ### Segmentation model
-
 - **Model:** `ianpan/chest-x-ray-basic` (Hugging Face), 22.2M params,
   trained on CheXpert + NIH combined (335,516 images, 96,385 patients),
   segments left lung, right lung, heart. Reported Dice: 0.957 (right lung),
@@ -372,7 +351,6 @@ crop attempts and the dataset swap could not.
   more transferable task across populations than disease classification.
 
 ### Infrastructure issue 1: `transformers` v5 incompatibility
-
 Loading via `trust_remote_code=True` failed:
 `AttributeError: 'CXRModel' object has no attribute 'all_tied_weights_keys'`.
 Confirmed via a widely-reported, currently-open issue: `transformers` v5.x
@@ -383,7 +361,6 @@ loading. **Does not persist across session resets — must be reapplied
 (with a kernel restart) every fresh Colab VM.**
 
 ### Infrastructure issue 2: mask/image coordinate mismatch
-
 Initial mask visualization looked badly misaligned. Diagnosed (correctly,
 by Vincent, before confirming with code) as a likely coordinate/resize
 mismatch rather than a genuinely bad model — confirmed: the segmentation
@@ -394,7 +371,6 @@ interpolation=cv2.INTER_NEAREST)` before overlay — nearest-neighbor
 specifically, since the mask holds discrete class labels.
 
 ### Systematic bottom-truncation finding and fix
-
 After the coordinate fix, a second real pattern emerged on careful visual
 review (again first spotted qualitatively, then confirmed quantitatively):
 the lung mask consistently stopped short of the true lower lung boundary
@@ -407,7 +383,6 @@ sides. Re-check confirmed this successfully captured the previously-cut
 region.
 
 ### Performance cost
-
 Segmentation requires a live second neural network per image (unlike the
 near-free `crop_thorax()`). Measured: **~42ms/image**, ~3.3 min/epoch
 overhead on the 4,684-image train split. Used live (uncached) for this
@@ -419,7 +394,6 @@ is deterministic, no reason to re-run every epoch) — reduces cost from
 implemented as of this log entry.
 
 ### Training
-
 Retrained from scratch on the original Kaggle dataset/split (same
 `pos_weight` 0.3704 as baseline/crop variants — directly comparable
 results). A Colab disconnect occurred mid-Stage-2 (after epoch 2 of a
@@ -429,19 +403,19 @@ rather than restarting Stage 2 entirely. Not perfectly equivalent to an
 uninterrupted run (optimizer momentum reset), but converged strongly
 regardless.
 
-| Stage                      | Best Val Loss | Best Val AUC-ROC |
-| -------------------------- | ------------- | ---------------- |
-| Stage 1 (epoch 4)          | 0.1289        | 0.9710           |
-| Stage 2 (epoch 3, resumed) | 0.0539        | 0.9933           |
+| Stage | Best Val Loss | Best Val AUC-ROC |
+|---|---|---|
+| Stage 1 (epoch 4) | 0.1289 | 0.9710 |
+| Stage 2 (epoch 3, resumed) | 0.0539 | 0.9933 |
 
 ### Test-set evaluation — full four-way comparison
 
-| Metric      | Baseline | 25% crop | 15% crop | **Segmentation** |
-| ----------- | -------- | -------- | -------- | ---------------- |
-| Accuracy    | 94.20%   | 90.44%   | 93.52%   | **97.44%**       |
-| Sensitivity | 93.46%   | 98.83%   | 92.52%   | **98.36%**       |
-| Specificity | 96.20%   | 67.72%   | 96.20%   | **94.94%**       |
-| AUC-ROC     | 99.18%   | 98.35%   | 99.07%   | **99.64%**       |
+| Metric | Baseline | 25% crop | 15% crop | **Segmentation** |
+|---|---|---|---|---|
+| Accuracy | 94.20% | 90.44% | 93.52% | **97.44%** |
+| Sensitivity | 93.46% | 98.83% | 92.52% | **98.36%** |
+| Specificity | 96.20% | 67.72% | 96.20% | **94.94%** |
+| AUC-ROC | 99.18% | 98.35% | 99.07% | **99.64%** |
 
 Strongest numeric result across every variant — no specificity collapse,
 no sensitivity trade-off. Confusion matrix: TN=150, FP=8, FN=7, TP=421.
@@ -463,7 +437,6 @@ showed artifacts. 8 PNEUMONIA — 5 of 8 clean anatomical activation only;
 activation** alongside (not instead of) genuine lung-field signal.
 
 **Combined tally (24 images):**
-
 - 0 of 24 showed the original neck/collar/shoulder pattern
 - 0 of 24 showed the top-edge-touching pattern from either crop attempt
 - ~3 of 24 (all PNEUMONIA) showed minor secondary marker activation —
@@ -472,7 +445,6 @@ activation** alongside (not instead of) genuine lung-field signal.
 - 21 of 24 showed clean anatomical activation with no artifact component
 
 ### Conclusion
-
 **The strongest result across every mitigation attempt.** Not claimed as
 a perfect, zero-artifact result — a small residual marker-activation
 pattern remains in a minority of cases at n=24, worth continued
@@ -482,7 +454,6 @@ only minor secondary activation rather than the dominant signal it was
 in every previous attempt.
 
 ### Deployment cost — the real tradeoff
-
 Unlike crop-based approaches, this requires a **second model in the
 production inference pipeline**, adding inference latency, a second
 dependency/failure point, and deployment complexity — a concern a
@@ -504,7 +475,6 @@ retrained from scratch on the exact same dataset, split, architecture,
 recipe, and `pos_weight` as the original segmentation run.
 
 ### Caching infrastructure built for the clean retrain
-
 Since segmentation output is deterministic, crops were pre-computed once
 for all 5,856 images and cached to Drive as PNGs, with a `path_mapping.json`
 recording original-path → cached-path pairs. This removed the ~3.3 min/epoch
@@ -519,10 +489,10 @@ original all-at-the-end save.
 
 ### Clean retrain results
 
-| Stage             | Best Val Loss | Best Val AUC-ROC |
-| ----------------- | ------------- | ---------------- |
-| Stage 1 (epoch 5) | 0.1207        | 0.9705           |
-| Stage 2 (epoch 5) | 0.0768        | 0.9872           |
+| Stage | Best Val Loss | Best Val AUC-ROC |
+|---|---|---|
+| Stage 1 (epoch 5) | 0.1207 | 0.9705 |
+| Stage 2 (epoch 5) | 0.0768 | 0.9872 |
 
 (Stage 2 itself hit one more disconnect after epoch 4 — recovered cleanly
 this time by reloading the epoch-4 checkpoint and confirming val-metric
@@ -531,12 +501,12 @@ now-standard verification discipline.)
 
 ### Test-set comparison — two independently trained segmentation models
 
-| Metric      | Run 1 (interrupted Stage 2) | Run 2 (clean retrain) |
-| ----------- | --------------------------- | --------------------- |
-| Accuracy    | 97.44%                      | 95.05%                |
-| Sensitivity | 98.36%                      | 94.39%                |
-| Specificity | 94.94%                      | 96.84%                |
-| AUC-ROC     | 99.64%                      | 99.18%                |
+| Metric | Run 1 (interrupted Stage 2) | Run 2 (clean retrain) |
+|---|---|---|
+| Accuracy | 97.44% | 95.05% |
+| Sensitivity | 98.36% | 94.39% |
+| Specificity | 94.94% | 96.84% |
+| AUC-ROC | 99.64% | 99.18% |
 
 Both strong, both comfortably clear every plan target. Numeric performance
 alone does not distinguish these two runs meaningfully — normal run-to-run
@@ -552,7 +522,6 @@ comparability.
 top-edge, border, neck, or shoulder activation on this exact sample.
 
 **Run 2 result:**
-
 - **4 of 8** images showed activation touching the top image edge
 - **3 of 8** images showed activation over shoulder/clavicle regions
 - **1 of 8** showed activation touching both the top AND side edge
@@ -583,25 +552,23 @@ This means:
   to **reliably eliminate** it the way Run 1's single check suggested.
 
 ### Status — open, unresolved as of this log entry (see §10.2 — corrected further)
-
 - [x] ~~Decide whether to run a third independent training pass~~ — superseded
-      by the larger-sample check below, which resolved the question differently
-      than expected
+  by the larger-sample check below, which resolved the question differently
+  than expected
 - [x] Consider Grad-CAM checks on a larger sample size — done, see §10.2
 - [ ] Revisit whether segmentation should be presented to the team as a
-      probabilistic improvement rather than a resolved fix
+  probabilistic improvement rather than a resolved fix
 - [ ] Neither segmentation checkpoint (Run 1 or Run 2) has been exported
-      to ONNX or uploaded to HF Hub yet — held pending this reproducibility
-      question being resolved
+  to ONNX or uploaded to HF Hub yet — held pending this reproducibility
+  question being resolved
 - [ ] The 15%-crop model (§8.6, §11) remains the only fully exported and
-      uploaded Pneumonia artifact on HF Hub as of this entry
+  uploaded Pneumonia artifact on HF Hub as of this entry
 
 ---
 
 ## 10.2 Larger-Sample Grad-CAM Check — Corrected Conclusion (Supersedes §10.1's Framing)
 
 ### What was done
-
 Rather than a third training run, tested whether the Run 1 vs. Run 2
 divergence in §10.1 was a genuine reproducibility problem or an artifact
 of too-small a Grad-CAM sample (n=8 throughout the project up to this
@@ -611,7 +578,6 @@ point). Built a quantitative, threshold-based border-activation check
 PNEUMONIA) against **both** existing segmentation checkpoints.
 
 ### Initial result and a false alarm
-
 Automated check: **Run 1: 29/30 (96.7%) border-flagged, Run 2: 25/30
 (83.3%) border-flagged.** This directly contradicted the earlier visual
 finding that Run 1 showed 0/8 border activations — a large enough gap to
@@ -688,30 +654,28 @@ fix both the seed AND `n`, or explicitly slice/reuse the exact same
 list of filepaths across comparisons.
 
 ### Status
-
 - [ ] Segmentation should NOT currently be presented to the team as a
-      validated fix — it does not appear to reliably outperform the
-      documented-and-shipped 15%-crop model on the metric that actually
-      matters (Grad-CAM anatomical correctness), despite better raw accuracy
-      numbers
+  validated fix — it does not appear to reliably outperform the
+  documented-and-shipped 15%-crop model on the metric that actually
+  matters (Grad-CAM anatomical correctness), despite better raw accuracy
+  numbers
 - [ ] Neither segmentation checkpoint will be exported/uploaded pending
-      further investigation or a decision to abandon this direction
+  further investigation or a decision to abandon this direction
 - [ ] Worth deciding with the team: continue investigating segmentation
-      with corrected, larger-sample methodology, or accept the 15%-crop
-      model's documented partial-mitigation status as the practical stopping
-      point for Pneumonia and move fully to Cardiomegaly
+  with corrected, larger-sample methodology, or accept the 15%-crop
+  model's documented partial-mitigation status as the practical stopping
+  point for Pneumonia and move fully to Cardiomegaly
 
 ---
 
 ## 11. ONNX Export + HF Hub Upload (Original 15%-Crop Model — Complete)
 
-_Note: this section documents the export/upload of the 15%-crop model
+*Note: this section documents the export/upload of the 15%-crop model
 (§8.6), completed before the segmentation experiment (§10) began. The
 segmentation model's export/upload is still pending per §10's status list
-above._
+above.*
 
 **Export:**
-
 - `torch.onnx.export(..., opset_version=17, dynamo=False)` — the default
   dynamo-based exporter failed with `ModuleNotFoundError: onnxscript`;
   `dynamo=False` forces the older, stable exporter path. **Apply this to
@@ -719,9 +683,8 @@ above._
 - Parity check run on 6 test images — all passed, max diff ≤ 0.000001
 
 **HF Hub upload:**
-
 - Repo `Rhishamah/mediscan-pneumonia` created via `create_repo(...,
-exist_ok=True)` (a 404 on first upload attempt was the signal this was
+  exist_ok=True)` (a 404 on first upload attempt was the signal this was
   needed)
 - Uploaded `mediscan_pneumonia.onnx`, `mediscan_pneumonia.pth`,
   `model_card.md`
@@ -767,7 +730,6 @@ cell. Use `getpass()` for interactive entry every session.
 ## 13. Current Status
 
 ### Pneumonia — 🔶 UNRESOLVED — segmentation does not appear to reliably fix the bias
-
 - Kaggle dataset: acquired, cleaned, stratified split, `pos_weight` computed
 - Preprocessing pipeline: built, verified, extended twice (optional crop,
   then segmentation-based cropping), plus a caching layer added for
@@ -806,7 +768,6 @@ cell. Use `getpass()` for interactive entry every session.
   stopping point for Pneumonia and move fully to Cardiomegaly
 
 ### Cardiomegaly — 🔶 IN PROGRESS (paused to focus on finishing Pneumonia)
-
 - `CARDIOMEGALY_GUIDE.md` written, includes a flagged note about
   `codewithdark/vit-chest-xray` as a possible future comparison resource
 - `train_cardiomegaly.ipynb` created (rebuilt from scratch rather than
@@ -846,7 +807,7 @@ cell. Use `getpass()` for interactive entry every session.
    "before vs. after" comparison — file presence and active code can
    diverge (caused §8.2's wasted cycle)
 9. **Before ending a session or handing off to a teammate, check `git
-status`/confirm pushes on both the laptop and Colab/Drive clone** —
+   status`/confirm pushes on both the laptop and Colab/Drive clone** —
    the Pneumonia notebook was left unpushed for a stretch before a
    teammate wanted to review it
 10. **Segmentation-based preprocessing is not yet cached** — currently
@@ -857,32 +818,3 @@ status`/confirm pushes on both the laptop and Colab/Drive clone** —
 11. **Exporting a two-model pipeline (segmentation + classifier) to ONNX**
     is unresolved — needs a decision on combined vs. sequential export
     before Phase 2.6 can be completed for the segmentation-based model
-
-## [Sprint Update] Architecture Pivot: Bypassing Shortcut Bias via Pre-trained Transfers & Local API Setup
-
-### 1. Problem Statement & Retrospective
-
-- **Issue Encountered**: Models trained directly on the Kaggle `chest-xray-pneumonia` dataset experienced severe dataset bias / shortcut learning. Grad-CAM diagnostic visualizations confirmed models were attending to spurious shortcuts (text annotations like "L/R", image borders, and patient positioning) rather than pathological lung features.
-- **Secondary Failure**: Attempting to remediate via image cropping (15% boundary cut) and complete semantic segmentation (ISNet) proved computationally infeasible due to long epoch requirements (48+ epochs) given approaching submission deadlines. 7 trained iterations failed validation benchmarks.
-
-### 2. Architectural Pivot & Key Technical Decisions
-
-To ensure reliable clinical visual grounds and hit project deadlines, the model pipeline was transitioned from training from scratch to leveraging multi-institutional pre-trained transfer models:
-
-- **Pneumonia, Cardiomegaly & Lung Nodule/Mass**: Adopted **TorchXRayVision** (`densenet121-res224-all`), a multi-dataset DenseNet model pre-trained on millions of standardized multi-center chest X-rays (NIH, CheXpert, MIMIC-CXR).
-- **Tuberculosis Detection**: Integrated a PyTorch **MobileViT** Vision Transformer (`Jesteban247/mobilevit_small-chest_xray`).
-- **Offline Model Artifact Management**: Pulled model weight artifacts into local repository storage (`/models`) to decouple deployment from network connectivity and guarantee zero runtime download latency.
-- **In-Memory Visual Explainability (Grad-CAM)**: Configured `pytorch-grad-cam` hooks targeting the final DenseNet convolutional block (`features[-1]`). Heatmaps are dynamically overlayed on normalized input frames and Base64-encoded inside the API JSON payload to eliminate disk write bottlenecks.
-
-### 3. Deliverables Completed
-
-- [x] Evaluated and verified TorchXRayVision and MobileViT models against Kaggle validation sets.
-- [x] Generated model weights (`densenet121_xrv.pt` and `tb_classifier/model.safetensors`) via Kaggle pipeline and synchronized locally into `/models`.
-- [x] Constructed single-endpoint FastAPI application (`app.py`) handling multi-model inference and automated Base64 Grad-CAM heatmap generation.
-- [x] Created `BACKEND_INTEGRATION_GUIDE.md` detailing the schema contract for frontend consumption.
-
-### 4. Immediate Next Steps
-
-- [ ] Connect frontend client upload interface to local `POST /predict` endpoint.
-- [ ] Render Base64 Grad-CAM heatmaps conditionally based on prediction thresholds (>50%).
-- [ ] Perform end-to-end integration testing using test DICOM/JPEG files.
