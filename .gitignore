@@ -5,3 +5,11 @@ frontend/Mediscan/package-lock.json
 .codex
 design/
 IMGS/
+
+# backend (FastAPI)
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
