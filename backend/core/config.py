@@ -40,6 +40,11 @@ class Settings(BaseSettings):
 
     # --- Uploads ---
     max_upload_mb: int = 10
+    max_image_pixels: int = 50_000_000  # decompression-bomb guard (~7000 x 7000)
+    min_image_side: int = 64
+
+    # --- Storage (local disk for development; object storage in step 5) ---
+    storage_local_dir: Path = Path(__file__).resolve().parents[2] / "storage_data"
 
     # ---- Derived database settings ----
     @property

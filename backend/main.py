@@ -8,8 +8,10 @@ from sqlalchemy import text
 
 from backend.core.config import get_settings
 from backend.core.database import dispose_engine, engine
-from backend.core.errors import AuthError
-from backend.routers import admin, auth
+from backend.core.errors import AppError
+from backend.routers import admin, auth, inference, patients, scans
+from backend.services.inference_service import build_inference_service
+from backend.services.storage_service import build_storage_service
 
 settings = get_settings()
 logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO)
@@ -22,9 +24,12 @@ async def lifespan(app: FastAPI):
         "Starting %s (env=%s, inference=%s)",
         settings.app_name, settings.environment, settings.inference_backend,
     )
-    # Step 4: load the inference service here ONCE (mock or torch) and attach
-    # it to app.state.inference so requests never load models themselves.
+    # Models load ONCE here, never inside a request.
+    app.state.inference = build_inference_service(settings)
+    await app.state.inference.startup()
+    app.state.storage = build_storage_service(settings)
     yield
+    await app.state.inference.shutdown()
     await dispose_engine()
 
 
@@ -46,14 +51,17 @@ app.add_middleware(
 )
 
 
-@app.exception_handler(AuthError)
-async def auth_error_handler(request, exc: AuthError):
+@app.exception_handler(AppError)
+async def app_error_handler(request, exc: AppError):
     headers = {"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None
     return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=headers)
 
 
 app.include_router(auth.router)
 app.include_router(admin.router)
+app.include_router(patients.router)
+app.include_router(inference.router)
+app.include_router(scans.router)
 
 
 @app.get("/health", tags=["health"])

@@ -13,3 +13,6 @@ venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# local scan storage (dev)
+storage_data/

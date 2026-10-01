@@ -2,7 +2,7 @@
 import uuid
 
 import jwt
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -10,6 +10,8 @@ from backend.core import security
 from backend.core.database import get_session
 from backend.core.errors import AuthError
 from backend.models import User, UserRole
+from backend.services.inference_service import InferenceService
+from backend.services.storage_service import StorageService
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -42,3 +44,11 @@ def require_role(*roles: UserRole):
 
 
 require_admin = require_role(UserRole.admin)
+
+
+def get_inference(request: Request) -> InferenceService:
+    return request.app.state.inference  # loaded once in the app lifespan
+
+
+def get_storage(request: Request) -> StorageService:
+    return request.app.state.storage
