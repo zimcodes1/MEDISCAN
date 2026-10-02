@@ -37,3 +37,10 @@ def test_sqlite_is_left_alone():
 def test_short_jwt_secret_rejected():
     with pytest.raises(Exception):
         Settings(_env_file=None, database_url=NEON, jwt_secret_key="short")
+
+
+def test_validation_errors_never_echo_secret_values():
+    with pytest.raises(Exception) as e:
+        Settings(_env_file=None, database_url="postgresql://u:topsecretpw@h/db",
+                 jwt_secret_key="hunter2hunter2")  # too short
+    assert "hunter2" not in str(e.value) and "topsecretpw" not in str(e.value)

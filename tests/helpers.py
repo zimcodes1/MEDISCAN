@@ -53,5 +53,18 @@ def jpeg_bytes(seed: int = 0, size=(128, 128), exif: bool = False) -> bytes:
     return buf.getvalue()
 
 
+async def create_patient(client, headers) -> str:
+    r = await client.post("/patients", headers=headers, json={"sex": "female", "year_of_birth": 1980})
+    assert r.status_code == 201
+    return r.json()["id"]
+
+
+async def predict_saved(client, headers, patient_id, seed: int = 1) -> dict:
+    r = await client.post("/predict", headers=headers, files=upload(png_bytes(seed)),
+                          data={"patient_id": patient_id})
+    assert r.status_code == 200 and r.json()["saved"]
+    return r.json()
+
+
 def upload(data: bytes, name="xray.png", mime="image/png") -> dict:
     return {"file": (name, data, mime)}

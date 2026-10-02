@@ -6,9 +6,11 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-that-is-at-least-32-cha
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("BCRYPT_ROUNDS", "4")  # fast hashing in tests
 
+import boto3  # noqa: E402
 import pytest  # noqa: E402
 import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
+from moto import mock_aws  # noqa: E402
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
 from sqlmodel import SQLModel  # noqa: E402
@@ -19,7 +21,7 @@ from backend.core import rate_limit  # noqa: E402
 from backend.core.database import get_session  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.services.inference_service import MockInferenceService  # noqa: E402
-from backend.services.storage_service import LocalStorage  # noqa: E402
+from backend.services.storage_service import LocalStorage, S3Storage  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -43,6 +45,27 @@ async def db():
 @pytest_asyncio.fixture
 async def storage(tmp_path):
     return LocalStorage(tmp_path / "storage")
+
+
+@pytest_asyncio.fixture
+async def s3_storage():
+    """S3Storage against moto's in-memory fake S3 (no network, no real bucket)."""
+    with mock_aws():
+        boto3.client("s3", region_name="us-east-1").create_bucket(Bucket="test-bucket")
+        yield S3Storage(endpoint_url=None, bucket="test-bucket", access_key_id="test",
+                        secret_access_key="test", region="us-east-1")
+
+
+@pytest_asyncio.fixture(params=["local", "s3"])
+async def any_storage(request, tmp_path):
+    """Runs a test once per storage implementation."""
+    if request.param == "local":
+        yield LocalStorage(tmp_path / "any")
+        return
+    with mock_aws():
+        boto3.client("s3", region_name="us-east-1").create_bucket(Bucket="test-bucket")
+        yield S3Storage(endpoint_url=None, bucket="test-bucket", access_key_id="test",
+                        secret_access_key="test", region="us-east-1")
 
 
 @pytest_asyncio.fixture
