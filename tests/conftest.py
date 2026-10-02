@@ -1,5 +1,4 @@
 import os
-import backend
 
 # Must be set before backend.* is imported (settings are read at import time).
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
@@ -17,6 +16,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 import backend.models  # noqa: E402,F401
 from backend.core.database import get_session  # noqa: E402
 from backend.main import app  # noqa: E402
+from backend.services.inference_service import MockInferenceService  # noqa: E402
+from backend.services.storage_service import LocalStorage  # noqa: E402
 
 
 @pytest_asyncio.fixture
@@ -30,12 +31,19 @@ async def db():
 
 
 @pytest_asyncio.fixture
-async def client(db):
+async def storage(tmp_path):
+    return LocalStorage(tmp_path / "storage")
+
+
+@pytest_asyncio.fixture
+async def client(db, storage):
     async def _override():
         async with db() as s:
             yield s
 
     app.dependency_overrides[get_session] = _override
+    app.state.inference = MockInferenceService()  # lifespan does not run in tests
+    app.state.storage = storage
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
         yield c
     app.dependency_overrides.clear()

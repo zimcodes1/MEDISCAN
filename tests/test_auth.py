@@ -4,26 +4,7 @@ from sqlmodel import select
 
 from backend.core import security
 from backend.models import AuditLog, RefreshToken, User, UserRole
-
-PW = "correct-horse-battery"
-
-
-async def make_user(db, email="dr@example.com", *, role=UserRole.clinician,
-                    approved=True, active=True) -> User:
-    async with db() as s:
-        u = User(email=email, full_name="Dr X", hashed_password=security.hash_password(PW),
-                 role=role, is_approved=approved, is_active=active)
-        s.add(u)
-        await s.commit()
-        return u
-
-
-async def login(client, email="dr@example.com", password=PW):
-    return await client.post("/auth/login", json={"email": email, "password": password})
-
-
-def bearer(token: str) -> dict:
-    return {"Authorization": f"Bearer {token}"}
+from tests.helpers import PW, bearer, login, make_user
 
 
 # ---------- unit ----------
