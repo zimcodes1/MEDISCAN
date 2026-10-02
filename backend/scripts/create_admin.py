@@ -1,5 +1,4 @@
-"""Create the first (already approved) admin account.
-
+"""
     python -m backend.scripts.create_admin --email you@example.com --name "Your Name"
 """
 import argparse

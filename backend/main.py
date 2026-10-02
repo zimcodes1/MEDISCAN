@@ -11,7 +11,7 @@ from backend.core.database import dispose_engine, engine
 from backend.core.errors import AppError
 from backend.routers import admin, auth, inference, patients, scans
 from backend.services.inference_service import build_inference_service
-from backend.services.storage_service import build_storage_service
+from backend.services.storage_service import build_storage_service, describe_storage_error
 
 settings = get_settings()
 logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO)
@@ -28,6 +28,11 @@ async def lifespan(app: FastAPI):
     app.state.inference = build_inference_service(settings)
     await app.state.inference.startup()
     app.state.storage = build_storage_service(settings)
+    try:  # loud but non-fatal: the app can still serve auth, patients, stateless predict
+        await app.state.storage.check()
+        logger.info("Storage OK (%s)", settings.storage_backend)
+    except Exception as exc:
+        logger.error("STORAGE CHECK FAILED: %s", describe_storage_error(exc))
     yield
     await app.state.inference.shutdown()
     await dispose_engine()

@@ -8,6 +8,7 @@ from backend.models import Scan, ScanStatus
 
 
 class StoredFindingOut(BaseModel):
+    id: uuid.UUID
     condition: str
     score: float
     confidence_pct: float
@@ -41,7 +42,7 @@ class ScanOut(BaseModel):
             created_at=scan.created_at, disclaimer=DISCLAIMER,
             findings=[
                 StoredFindingOut(
-                    condition=f.condition, score=f.score,
+                    id=f.id, condition=f.condition, score=f.score,
                     confidence_pct=round(f.score * 100, 1),
                     has_heatmap=f.heatmap_key is not None,
                     model_name=f.model_name, model_version=f.model_version,

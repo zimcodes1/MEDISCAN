@@ -108,9 +108,10 @@ REGISTER_PER_IP = SlidingWindowLimiter("register_ip", 10, 60 * 60)
 REFRESH_PER_IP = SlidingWindowLimiter("refresh_ip", 30, 60)  # refresh + logout
 PREDICT_PER_USER = SlidingWindowLimiter("predict_user", 10, 60)
 PREDICT_INFLIGHT = InFlightLimiter("predict_inflight")
+IMAGE_PER_USER = SlidingWindowLimiter("image_user", 120, 60)  # image + heatmap reads
 
 _ALL = [LOGIN_PER_IP, LOGIN_PER_ACCOUNT, REGISTER_PER_IP, REFRESH_PER_IP,
-        PREDICT_PER_USER, PREDICT_INFLIGHT]
+        PREDICT_PER_USER, PREDICT_INFLIGHT, IMAGE_PER_USER]
 
 
 def reset_all() -> None:

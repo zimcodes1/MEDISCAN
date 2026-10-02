@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL, make_url
 
@@ -12,7 +12,8 @@ ENV_FILE = Path(__file__).resolve().parents[2] / ".env"  # project-root .env
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore"
+        env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore",
+        hide_input_in_errors=True,  # config errors must never echo secrets into logs
     )
 
     # --- App ---
@@ -52,6 +53,32 @@ class Settings(BaseSettings):
 
     # --- Storage (local disk for development; object storage in step 5) ---
     storage_local_dir: Path = Path(__file__).resolve().parents[2] / "storage_data"
+    storage_backend: Literal["local", "s3"] = "local"
+    # Any S3-compatible provider: Cloudflare R2, Backblaze B2, AWS S3, MinIO...
+    s3_endpoint_url: str | None = None  # e.g. https://<account-id>.r2.cloudflarestorage.com
+    s3_bucket: str | None = None
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: SecretStr | None = None  # never printed in logs/repr
+    s3_region: str = "auto"  # R2 uses "auto"; AWS needs a real region
+
+    @model_validator(mode="after")
+    def _check_storage(self) -> "Settings":
+        if self.storage_backend == "s3":
+            missing = [
+                name.upper() for name in ("s3_bucket", "s3_access_key_id", "s3_secret_access_key")
+                if not getattr(self, name)
+            ]
+            if missing:
+                raise ValueError("STORAGE_BACKEND=s3 requires: " + ", ".join(missing))
+            url = self.s3_endpoint_url
+            if url and not url.startswith(("https://", "http://localhost", "http://127.0.0.1")):
+                raise ValueError("S3_ENDPOINT_URL must use https://")
+        elif self.environment == "production":
+            raise ValueError(
+                "STORAGE_BACKEND=local is not allowed when ENVIRONMENT=production "
+                "(container disks are ephemeral and unencrypted). Use STORAGE_BACKEND=s3."
+            )
+        return self
 
     # ---- Derived database settings ----
     @property
