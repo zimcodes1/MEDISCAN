@@ -48,13 +48,16 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
+    expose_headers=["Retry-After"],  # lets browser code read it on 429/503
 )
 
 
 @app.exception_handler(AppError)
 async def app_error_handler(request, exc: AppError):
-    headers = {"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None
-    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=headers)
+    headers = dict(exc.headers or {})
+    if exc.status_code == 401:
+        headers.setdefault("WWW-Authenticate", "Bearer")
+    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=headers or None)
 
 
 app.include_router(auth.router)

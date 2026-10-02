@@ -5,6 +5,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from backend.core.database import get_session
 from backend.core.deps import get_current_user
+from backend.core.net import client_ip
 from backend.models import User
 from backend.schemas.patient import PatientCreate, PatientOut
 from backend.services import patient_service
@@ -18,7 +19,7 @@ async def create_patient(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    ip = request.client.host if request.client else None
+    ip = client_ip(request)
     return await patient_service.create_patient(session, user, body, ip)
 
 

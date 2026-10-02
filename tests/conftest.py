@@ -6,6 +6,7 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-that-is-at-least-32-cha
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("BCRYPT_ROUNDS", "4")  # fast hashing in tests
 
+import pytest  # noqa: E402
 import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine  # noqa: E402
@@ -14,10 +15,19 @@ from sqlmodel import SQLModel  # noqa: E402
 from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 
 import backend.models  # noqa: E402,F401
+from backend.core import rate_limit  # noqa: E402
 from backend.core.database import get_session  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.services.inference_service import MockInferenceService  # noqa: E402
 from backend.services.storage_service import LocalStorage  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limits():
+    """Limiter state is process-global: start every test from a clean slate."""
+    rate_limit.reset_all()
+    yield
+    rate_limit.reset_all()
 
 
 @pytest_asyncio.fixture

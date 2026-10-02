@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from backend.core.database import get_session
 from backend.core.deps import require_admin
+from backend.core.net import client_ip as _ip
 from backend.models import User
 from backend.schemas.auth import UserPublic
 from backend.services import auth_service
@@ -14,8 +15,6 @@ from backend.services import auth_service
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-def _ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
 
 
 @router.get("/users", response_model=list[UserPublic])

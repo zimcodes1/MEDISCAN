@@ -5,6 +5,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from backend.core.database import get_session
 from backend.core.deps import get_current_user
+from backend.core.net import client_ip
 from backend.models import User
 from backend.schemas.scan import ScanOut
 from backend.services import scan_service
@@ -32,6 +33,6 @@ async def get_scan(
 ):
     scan = await scan_service.get_accessible_scan(session, user, scan_id)
     audit(session, "scan.view", user_id=user.id, resource_type="scan",
-          resource_id=scan.id, ip=request.client.host if request.client else None)
+          resource_id=scan.id, ip=client_ip(request))
     await session.commit()  # who viewed which scan
     return ScanOut.from_scan(scan)

@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     max_image_pixels: int = 50_000_000  # decompression-bomb guard (~7000 x 7000)
     min_image_side: int = 64
 
+    # --- Abuse protection ---
+    rate_limit_enabled: bool = True
+    # Reverse proxies in front of the app. 0 = use the socket address and ignore
+    # X-Forwarded-For (safe default). See backend/core/net.py before changing.
+    trusted_proxy_hops: int = Field(default=0, ge=0, le=5)
+    max_inflight_predictions: int = Field(default=4, ge=1)
+
     # --- Storage (local disk for development; object storage in step 5) ---
     storage_local_dir: Path = Path(__file__).resolve().parents[2] / "storage_data"
 

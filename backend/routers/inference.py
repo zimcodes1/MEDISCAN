@@ -11,6 +11,8 @@ from backend.core.constants import DISCLAIMER
 from backend.core.database import get_session
 from backend.core.deps import get_current_user, get_inference, get_storage
 from backend.core.errors import AppError
+from backend.core.net import client_ip
+from backend.core.rate_limit import PREDICT_INFLIGHT, PREDICT_PER_USER
 from backend.models import User
 from backend.schemas.inference import FindingOut, PredictResponse
 from backend.services import scan_service
@@ -38,32 +40,34 @@ async def predict(
     storage: StorageService = Depends(get_storage),
 ):
     settings = get_settings()
+    PREDICT_PER_USER.check(str(user.id))
 
     declared = request.headers.get("content-length")
     if declared and declared.isdigit() and int(declared) > settings.max_upload_bytes + 1024 * 1024:
         raise AppError(413, f"File too large (maximum {settings.max_upload_mb} MB)")
 
-    # Fail fast on access before doing any expensive work.
-    patient = await get_accessible_patient(session, user, patient_id) if patient_id else None
+    async with PREDICT_INFLIGHT.slot():
+        # Fail fast on access before doing any expensive work.
+        patient = await get_accessible_patient(session, user, patient_id) if patient_id else None
 
-    raw = await read_upload(file, settings.max_upload_bytes)
-    validated = await run_in_threadpool(
-        validate_image, raw, settings.max_image_pixels, settings.min_image_side
-    )
-
-    try:
-        results = await inference.predict(validated.image)
-    except Exception:
-        logger.exception("Inference failed")
-        raise AppError(500, "Inference failed")
-
-    scan = None
-    if patient is not None:
-        scan = await scan_service.save_scan(
-            session, storage, user=user, patient=patient,
-            image_png=validated.png_bytes, image_sha256=validated.sha256,
-            results=results, ip=request.client.host if request.client else None,
+        raw = await read_upload(file, settings.max_upload_bytes)
+        validated = await run_in_threadpool(
+            validate_image, raw, settings.max_image_pixels, settings.min_image_side
         )
+
+        try:
+            results = await inference.predict(validated.image)
+        except Exception:
+            logger.exception("Inference failed")
+            raise AppError(500, "Inference failed")
+
+        scan = None
+        if patient is not None:
+            scan = await scan_service.save_scan(
+                session, storage, user=user, patient=patient,
+                image_png=validated.png_bytes, image_sha256=validated.sha256,
+                results=results, ip=client_ip(request),
+            )
 
     return PredictResponse(
         scan_id=scan.id if scan else None,
