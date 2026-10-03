@@ -1,33 +1,14 @@
 """Inference behind an interface, so the API works identically with the mock
-(local development) and the real PyTorch service (Hugging Face Space)."""
+(local development), the real PyTorch service, or a remote inference service
+(Modal)."""
 import hashlib
 import io
-from dataclasses import dataclass
-from typing import Protocol
 
 from PIL import Image, ImageDraw, ImageFilter
 from starlette.concurrency import run_in_threadpool
 
 from backend.core.config import Settings
-
-
-@dataclass(frozen=True)
-class FindingResult:
-    condition: str
-    score: float  # raw model output in [0, 1]; NOT a calibrated probability
-    model_name: str
-    model_version: str
-    experimental: bool = False
-    heatmap_png: bytes | None = None  # RGBA overlay; None when the model has no heatmap
-
-
-class InferenceService(Protocol):
-    backend_name: str
-
-    async def startup(self) -> None: ...
-    async def shutdown(self) -> None: ...
-    async def predict(self, image: Image.Image) -> list[FindingResult]: ...
-
+from backend.services.inference_types import FindingResult, InferenceService  # noqa: F401  (re-exported)
 
 # ---------------------------------------------------------------- mock
 MOCK_VERSION = "mock-0.1"
@@ -65,7 +46,7 @@ class MockInferenceService:
     async def shutdown(self) -> None:
         pass
 
-    async def predict(self, image: Image.Image) -> list[FindingResult]:
+    async def predict(self, image: Image.Image, png_bytes: bytes | None = None) -> list[FindingResult]:
         return await run_in_threadpool(self._predict_sync, image)
 
     def _predict_sync(self, image: Image.Image) -> list[FindingResult]:
@@ -93,7 +74,14 @@ class MockInferenceService:
 def build_inference_service(settings: Settings) -> InferenceService:
     if settings.inference_backend == "mock":
         return MockInferenceService()
-    raise RuntimeError(
-        "INFERENCE_BACKEND=torch is not implemented yet (step 6). "
-        "Set INFERENCE_BACKEND=mock for local development."
-    )
+    if settings.inference_backend == "remote":
+        from backend.services.remote_inference import RemoteInferenceService
+
+        return RemoteInferenceService(
+            settings.inference_url,
+            settings.inference_token.get_secret_value(),
+            timeout=settings.inference_timeout_seconds,
+        )
+    from backend.services.torch_inference import EngineConfig, TorchEngine, TorchInferenceService
+
+    return TorchInferenceService(TorchEngine(EngineConfig.from_settings(settings)))

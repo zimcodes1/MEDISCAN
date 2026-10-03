@@ -12,12 +12,13 @@ from backend.core.database import get_session
 from backend.core.deps import get_current_user, get_inference, get_storage
 from backend.core.errors import AppError
 from backend.core.net import client_ip
-from backend.core.rate_limit import PREDICT_INFLIGHT, PREDICT_PER_USER
+from backend.core.rate_limit import PREDICT_INFLIGHT, PREDICT_PER_USER, WARMUP_PER_USER
 from backend.models import User
 from backend.schemas.inference import FindingOut, PredictResponse
 from backend.services import scan_service
 from backend.services.inference_service import InferenceService
 from backend.services.patient_service import get_accessible_patient
+from backend.services.remote_inference import RemoteInferenceError
 from backend.services.storage_service import StorageService
 from backend.services.upload_validation import read_upload, validate_image
 
@@ -56,7 +57,13 @@ async def predict(
         )
 
         try:
-            results = await inference.predict(validated.image)
+            results = await inference.predict(validated.image, png_bytes=validated.png_bytes)
+        except RemoteInferenceError:
+            logger.exception("Remote inference unavailable")
+            raise AppError(
+                503, "The analysis service is starting up or unavailable. Please try again in a minute.",
+                headers={"Retry-After": "30"},
+            )
         except Exception:
             logger.exception("Inference failed")
             raise AppError(500, "Inference failed")
@@ -87,3 +94,18 @@ async def predict(
             for r in results
         ],
     )
+
+
+@router.post("/predict/warmup", status_code=202)
+async def warmup(
+    user: User = Depends(get_current_user),
+    inference: InferenceService = Depends(get_inference),
+) -> dict:
+    """Call when the upload screen opens: wakes a sleeping analysis service so
+    the user's real request does not wait for a cold start. Returns at once."""
+    WARMUP_PER_USER.check(str(user.id))
+    wake = getattr(inference, "warmup", None)
+    if wake is None:
+        return {"status": "ready"}
+    await wake()
+    return {"status": "warming"}

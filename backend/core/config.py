@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL, make_url
 
@@ -37,12 +37,31 @@ class Settings(BaseSettings):
     bcrypt_rounds: int = Field(default=12, ge=4, le=15)
 
     # --- Inference ---
-    inference_backend: Literal["mock", "torch"] = "mock"
+    inference_backend: Literal["mock", "torch", "remote"] = "mock"
 
     # --- Uploads ---
     max_upload_mb: int = 10
     max_image_pixels: int = 50_000_000  # decompression-bomb guard (~7000 x 7000)
     min_image_side: int = 64
+
+    # --- Remote inference (INFERENCE_BACKEND=remote): the models run elsewhere, e.g. Modal ---
+    inference_url: str | None = None
+    inference_token: SecretStr | None = None  # shared secret; also set on the inference service
+    inference_timeout_seconds: float = Field(default=120.0, ge=5, le=600)  # covers a cold start
+
+    # --- Torch inference (only used when INFERENCE_BACKEND=torch) ---
+    torch_threads: int = Field(default=2, ge=1, le=32)  # HF CPU basic has 2 vCPUs
+    gradcam_enabled: bool = True
+    # Hugging Face repo id of the tuberculosis classifier. Unset = TB analysis disabled.
+    tb_model_id: str | None = None
+    tb_model_revision: str | None = None  # pin to a commit hash for reproducibility
+    tb_positive_label: str | None = None  # label meaning "tuberculosis" if it cannot be inferred
+
+    @field_validator("tb_model_id", "tb_model_revision", "tb_positive_label",
+                     "inference_url", "inference_token", mode="before")
+    @classmethod
+    def _blank_is_none(cls, v):
+        return None if isinstance(v, str) and not v.strip() else v
 
     # --- Abuse protection ---
     rate_limit_enabled: bool = True
@@ -78,6 +97,18 @@ class Settings(BaseSettings):
                 "STORAGE_BACKEND=local is not allowed when ENVIRONMENT=production "
                 "(container disks are ephemeral and unencrypted). Use STORAGE_BACKEND=s3."
             )
+        return self
+
+    @model_validator(mode="after")
+    def _check_inference(self) -> "Settings":
+        if self.inference_backend == "remote":
+            missing = [n.upper() for n in ("inference_url", "inference_token") if not getattr(self, n)]
+            if missing:
+                raise ValueError("INFERENCE_BACKEND=remote requires: " + ", ".join(missing))
+            if not self.inference_url.startswith(("https://", "http://localhost", "http://127.0.0.1")):
+                raise ValueError("INFERENCE_URL must use https://")
+            if len(self.inference_token.get_secret_value()) < 32:
+                raise ValueError("INFERENCE_TOKEN must be at least 32 characters")
         return self
 
     # ---- Derived database settings ----
