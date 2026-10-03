@@ -18,7 +18,7 @@ __pycache__/
 storage_data/
 
 # model weights and training artifacts
-models/
+/models/
 model_training/
 build/
 
