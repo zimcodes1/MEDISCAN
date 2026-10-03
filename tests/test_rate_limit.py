@@ -168,7 +168,7 @@ async def test_inflight_gate_refuses_overload_and_releases_slots(client, db, mon
         def __init__(self):
             self.started, self.release = asyncio.Event(), asyncio.Event()
 
-        async def predict(self, image):
+        async def predict(self, image, png_bytes=None):
             self.started.set()
             await self.release.wait()
             return await super().predict(image)
@@ -179,7 +179,7 @@ async def test_inflight_gate_refuses_overload_and_releases_slots(client, db, mon
     h = await token_for(client, db)
 
     first = asyncio.create_task(client.post("/predict", headers=h, files=upload(png_bytes(1))))
-    await slow.started.wait()
+    await asyncio.wait_for(slow.started.wait(), timeout=5)  # fail fast instead of hanging
     busy = await client.post("/predict", headers=h, files=upload(png_bytes(2)))
     assert busy.status_code == 503 and busy.headers["retry-after"] == "5"
 
