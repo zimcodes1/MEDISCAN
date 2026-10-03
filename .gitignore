@@ -16,3 +16,16 @@ __pycache__/
 
 # local scan storage (dev)
 storage_data/
+
+# model weights and training artifacts
+models/
+model_training/
+build/
+
+# duplicate backend-level config files (root-level versions are canonical)
+backend/env.example
+backend/requirements.txt
+backend/requirements-ml.txt
+
+# credentials and notes
+pass/
