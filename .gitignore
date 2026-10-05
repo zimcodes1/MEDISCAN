@@ -29,3 +29,19 @@ backend/requirements-ml.txt
 
 # credentials and notes
 pass/
+
+
+# Ignore heavy ML model weight files everywhere
+*.pt
+*.pth
+*.h5
+*.onnx
+*.bin
+*.safetensors
+*.ckpt
+*.pb
+
+/models/
+!backend/models/
+!backend/models/**
+
