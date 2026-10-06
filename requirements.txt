@@ -1,6 +1,5 @@
 # Runtime dependencies (no PyTorch: enough for INFERENCE_BACKEND=mock)
-fastapi>=0.115
-uvicorn[standard]>=0.30
+fastapi[standard]>=0.115
 sqlmodel>=0.0.22
 asyncpg>=0.29
 alembic>=1.13

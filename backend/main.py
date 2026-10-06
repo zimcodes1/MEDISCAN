@@ -47,6 +47,10 @@ app = FastAPI(
     openapi_url=None if settings.is_production else "/openapi.json",
 )
 
+origins = [
+    "http://localhost:3000",
+    "https://mediscan-ng.vercel.app",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
