@@ -45,3 +45,14 @@ pass/
 !backend/models/
 !backend/models/**
 
+.python-version
+Claude-MEDISCAN AI backend architecture decisions-20261003-1423.md
+backend/.env.local.cors
+backend/models/__pycache__/
+docs/
+eval_metrics_pneumonia_final.json
+frontend/.env.example
+model_card_pneumonia_final.md
+pyproject.toml
+segmentation_findings.md
+train dataset ISNetPneumoniaDatasetUpdatedWork.md
