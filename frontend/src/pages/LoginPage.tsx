@@ -31,7 +31,7 @@ export default function LoginPage() {
         read: false,
         time: new Date().toISOString(),
       });
-      navigate("/");
+        navigate("/dashboard");
     } catch (err: any) {
       setError(err?.message ?? "Sign in failed");
     } finally {
