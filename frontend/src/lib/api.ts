@@ -38,7 +38,13 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ detail?: string }>) => {
-    const message = error.response?.data?.detail ?? "Request failed";
+    const detail = error.response?.data?.detail;
+    const message =
+      typeof detail === "string"
+        ? detail
+        : detail !== undefined
+          ? JSON.stringify(detail)
+          : "Request failed";
     if (error.response?.status === 401) {
       clearAuthTokens();
       // don't forcibly redirect during background refresh; let caller handle

@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Activity, AlertTriangle, CheckCircle2, ChevronRight, ImageIcon, Info } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronRight,
+  ImageIcon,
+  Info,
+} from "lucide-react";
 import { ActivityLog } from "../components/dashboard/ActivityLogs";
 import SystemStats from "../components/dashboard/SystemStats";
 import StatCard from "../components/dashboard/StatCard";
@@ -35,7 +42,8 @@ export default function DashboardPage() {
               // ignore patient lookup failures
             }
 
-            const finding = s.findings && s.findings.length ? s.findings[0] : undefined;
+            const finding =
+              s.findings && s.findings.length ? s.findings[0] : undefined;
             return {
               id: s.id,
               patientName,
@@ -43,18 +51,30 @@ export default function DashboardPage() {
               modality: "Chest X-Ray",
               projection: "PA",
               uploadedBy: "",
-              uploadedAt: new Date(s.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-              priority: (s as any).priority ?? (s.status === "flagged" ? "urgent" : "routine"),
+              uploadedAt: new Date(s.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              priority:
+                (s as any).priority ??
+                (s.status === "flagged" ? "urgent" : "routine"),
               status: (s.status as any) ?? "processing",
-              confidence: finding ? Math.round((finding.confidence_pct ?? (finding.score * 100)) as number) : null,
+              confidence: finding
+                ? Math.round(
+                    (finding.confidence_pct ?? finding.score * 100) as number,
+                  )
+                : null,
               prediction: finding ? finding.condition : null,
             } as ScanQueueItem;
           }),
         );
 
         if (mounted) setQueue(mapped);
-      } catch (err) {
+      } catch (err: any) {
         console.error("failed to load scans", err);
+        // show a visible error so developers see the backend message
+        // eslint-disable-next-line no-alert
+        alert(`DashboardPage.tsx: failed to load scans\n${err?.message ?? String(err)}`);
       }
     }
 
@@ -65,7 +85,9 @@ export default function DashboardPage() {
   }, []);
 
   const pending = queue.filter((s) => s.status !== "reviewed");
-  const urgent = queue.filter((s) => s.priority === "urgent" && s.status !== "reviewed");
+  const urgent = queue.filter(
+    (s) => s.priority === "urgent" && s.status !== "reviewed",
+  );
   const flagged = queue.filter((s) => s.status === "flagged");
   const reviewed = queue.filter((s) => s.status === "reviewed");
 
@@ -73,7 +95,9 @@ export default function DashboardPage() {
     <div className="p-4 sm:p-8 space-y-7">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display">Good morning, Dr. Nwosu</h1>
+        <h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display">
+          Good morning, Dr. Nwosu
+        </h1>
         <p className="text-brand-text-muted text-sm mt-1">
           {new Date().toLocaleDateString("en-NG", {
             weekday: "long",
@@ -89,17 +113,44 @@ export default function DashboardPage() {
       <div className="flex items-center gap-2.5 bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2.5 text-amber-500 text-xs">
         <AlertTriangle size={14} className="shrink-0" />
         <p className="leading-snug">
-          <span className="font-bold uppercase tracking-wider mr-1">AI Support Notice:</span>
-          All findings are preliminary clinical decision-support data and must be verified by a clinician.
+          <span className="font-bold uppercase tracking-wider mr-1">
+            AI Support Notice:
+          </span>
+          All findings are preliminary clinical decision-support data and must
+          be verified by a clinician.
         </p>
       </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard label="Pending Review" value={pending.length} sub="In your queue" icon={<ImageIcon size={18} />} accent="blue" />
-        <StatCard label="Urgent" value={urgent.length} sub="High priority" icon={<AlertTriangle size={18} />} accent="amber" />
-        <StatCard label="AI Flagged" value={flagged.length} sub="Possible findings" icon={<Activity size={18} />} accent="red" />
-        <StatCard label="Reviewed Today" value={reviewed.length} sub="Signed off" icon={<CheckCircle2 size={18} />} accent="green" />
+        <StatCard
+          label="Pending Review"
+          value={pending.length}
+          sub="In your queue"
+          icon={<ImageIcon size={18} />}
+          accent="blue"
+        />
+        <StatCard
+          label="Urgent"
+          value={urgent.length}
+          sub="High priority"
+          icon={<AlertTriangle size={18} />}
+          accent="amber"
+        />
+        <StatCard
+          label="AI Flagged"
+          value={flagged.length}
+          sub="Possible findings"
+          icon={<Activity size={18} />}
+          accent="red"
+        />
+        <StatCard
+          label="Reviewed Today"
+          value={reviewed.length}
+          sub="Signed off"
+          icon={<CheckCircle2 size={18} />}
+          accent="green"
+        />
       </div>
 
       {/* Main Content Grid */}
@@ -109,16 +160,26 @@ export default function DashboardPage() {
           <div className="max-sm:w-150 bg-brand-card/60 backdrop-blur-md rounded-2xl border border-brand-border/60 overflow-hidden shadow-lg">
             <div className="flex items-center justify-between px-6 py-5 border-b border-brand-border/40">
               <div>
-                <h2 className="text-brand-text text-base font-bold font-display">Scan Queue</h2>
+                <h2 className="text-brand-text text-base font-bold font-display">
+                  Scan Queue
+                </h2>
                 <div className="flex items-center gap-2 mt-1">
-                  <p className="text-brand-text-muted text-xs">{pending.length} pending · {urgent.length} urgent</p>
+                  <p className="text-brand-text-muted text-xs">
+                    {pending.length} pending · {urgent.length} urgent
+                  </p>
                   <span className="w-1 h-1 bg-brand-text-muted/40 rounded-full" />
-                  <p className="hidden sm:flex text-[10px] text-brand-primary font-bold  items-center gap-1"><Info size={11} /> Click row to review</p>
+                  <p className="hidden sm:flex text-[10px] text-brand-primary font-bold  items-center gap-1">
+                    <Info size={11} /> Click row to review
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="text-brand-text-muted text-xs font-semibold hover:text-brand-primary transition-colors px-3 py-1.5 rounded-xl hover:bg-brand-border/40">All</button>
-                <button className="text-rose-400 text-xs font-extrabold bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-xl active:scale-95 transition-all">Urgent first</button>
+                <button className="text-brand-text-muted text-xs font-semibold hover:text-brand-primary transition-colors px-3 py-1.5 rounded-xl hover:bg-brand-border/40">
+                  All
+                </button>
+                <button className="text-rose-400 text-xs font-extrabold bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-xl active:scale-95 transition-all">
+                  Urgent first
+                </button>
               </div>
             </div>
 
@@ -132,12 +193,18 @@ export default function DashboardPage() {
 
             {/* Rows */}
             <div className="p-4 space-y-2">
-              {queue.map((scan) => (<ScanRow key={scan.id} scan={scan} />))}
+              {queue.map((scan) => (
+                <ScanRow key={scan.id} scan={scan} />
+              ))}
             </div>
 
             <div className="px-6 py-4.5 border-t border-brand-border/40 bg-brand-card/30 flex justify-between items-center">
-              <p className="text-brand-text-muted/50 text-xs font-medium">Showing {queue.length} scans</p>
-              <button className="text-brand-primary text-xs font-bold hover:text-brand-primary-hover flex items-center gap-1 transition-colors">View full queue <ChevronRight size={14} /></button>
+              <p className="text-brand-text-muted/50 text-xs font-medium">
+                Showing {queue.length} scans
+              </p>
+              <button className="text-brand-primary text-xs font-bold hover:text-brand-primary-hover flex items-center gap-1 transition-colors">
+                View full queue <ChevronRight size={14} />
+              </button>
             </div>
           </div>
         </div>
