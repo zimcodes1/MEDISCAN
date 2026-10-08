@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2, Hourglass, RefreshCw, ShieldCheck, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type ScanStatus = "flagged" | "processing" | "ready" | "reviewed";
 type Priority = "urgent" | "routine";
@@ -65,6 +66,7 @@ export default function ScanRow({ scan }: ScanRowProps) {
     const status = STATUS_CONFIG[scan.status];
     const isReviewed = scan.status === "reviewed";
     const initials = getInitials(scan.patientName);
+    const navigate = useNavigate();
     
     // AI Verdict style configuration
     const confidenceColor = scan.confidence !== null && scan.confidence >= 80 
@@ -75,6 +77,7 @@ export default function ScanRow({ scan }: ScanRowProps) {
 
     return (
         <div
+            onClick={() => navigate(`/scans/${scan.id}`)}
             className={`grid grid-cols-12 gap-4 items-center px-5 py-4 rounded-xl border border-brand-border/40 transition-all duration-300 cursor-pointer ${
                 isReviewed 
                     ? "bg-brand-card/20 opacity-50 hover:opacity-75" 

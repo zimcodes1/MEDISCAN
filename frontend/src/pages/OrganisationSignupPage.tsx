@@ -9,6 +9,8 @@ import {
 	ArrowRight,
 	Loader,
 } from "lucide-react";
+import { registerUser } from "../lib/auth";
+import { useNotifications } from "../contexts/NotificationsContext";
 import { NigerianStates as states } from "../utils/DummyData";
 export default function OrganisationSignupPage() {
 	//Set Previous page for the 404 back button handler to check
@@ -85,11 +87,18 @@ export default function OrganisationSignupPage() {
 
 		setLoading(true);
 
+		const { add } = useNotifications();
+
 		try {
-			navigate("/verify-email", {
-				state: { email: formData.workEmail, organisationId: 8 },
+			const res = await registerUser({
+				email: formData.workEmail,
+				full_name: formData.adminFullName,
+				password: formData.password,
 			});
-		} catch (error) {
+			add({ id: String(Date.now()), message: "Registration submitted; awaiting admin approval", read: false, time: new Date().toISOString() });
+			navigate("/verify-email", { state: { email: formData.workEmail } });
+		} catch (err: any) {
+			setErrors((prev) => ({ ...prev, submit: err.message ?? "Registration failed" }));
 		} finally {
 			setLoading(false);
 		}
