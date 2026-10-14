@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, StopCircle } from "lucide-react";
 import { loginUser } from "../lib/auth";
 import { useNotifications } from "../contexts/NotificationsContext";
+import { useAuth } from "../contexts/AuthContext";
 export default function LoginPage() {
   //Set Previous page for the 404 back button handler to check
   sessionStorage.setItem("lastPage", window.location.href);
@@ -12,7 +13,13 @@ export default function LoginPage() {
   }, []);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { refetch } = useAuth();
   const { add } = useNotifications();
+  // ProtectedRoute passes where the user was headed in location.state.from
+  const from =
+    (location.state as { from?: { pathname: string } } | null)?.from
+      ?.pathname ?? "/dashboard";
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -25,13 +32,15 @@ export default function LoginPage() {
 
     try {
       await loginUser({ email, password });
+      // load the user into AuthContext first, or ProtectedRoute bounces us back here
+      await refetch();
       add({
         id: String(Date.now()),
         message: "Signed in successfully",
         read: false,
         time: new Date().toISOString(),
       });
-        navigate("/dashboard");
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.message ?? "Sign in failed");
     } finally {

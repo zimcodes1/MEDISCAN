@@ -12,6 +12,7 @@ import PatientReportPage from "./pages/PatientReportPage";
 import PatientReportViewPage from "./pages/PatientReportViewPage";
 import SettingsPage from "./pages/SettingsPage";
 import MainLayout from "./components/MainLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 import LostPage from "./pages/404";
 
 function App() {
@@ -27,21 +28,25 @@ function App() {
 					path="/staff/accept-invite"
 					element={<StaffInviteAcceptancePage />}
 				/>
-				<Route path="*" element={<LostPage />} />
 
-				{/* Shared Main Layout for Dashboard & Standard Pages */}
-				<Route element={<MainLayout />}>
-					<Route path="/dashboard" element={<DashboardPage />} />
-					<Route path="/case-upload" element={<CaseUploadPage />} />
-					<Route path="/neural-analysis" element={<NeuralAnalysisPage />} />
-					<Route path="/patient-reports" element={<PatientReportPage />} />
-					<Route
-						path="/patient-reports/:reportId"
-						element={<PatientReportViewPage />}
-					/>
+				{/* Everything below requires a signed-in user */}
+				<Route element={<ProtectedRoute />}>
+					{/* Shared Main Layout for Dashboard & Standard Pages */}
+					<Route element={<MainLayout />}>
+						<Route path="/dashboard" element={<DashboardPage />} />
+						<Route path="/case-upload" element={<CaseUploadPage />} />
+						<Route path="/neural-analysis" element={<NeuralAnalysisPage />} />
+						<Route path="/patient-reports" element={<PatientReportPage />} />
+						<Route
+							path="/patient-reports/:reportId"
+							element={<PatientReportViewPage />}
+						/>
+					</Route>
+
+					<Route path="/settings" element={<SettingsPage />} />
 				</Route>
 
-				<Route path="/settings" element={<SettingsPage />} />
+				<Route path="*" element={<LostPage />} />
 			</Routes>
 		</Router>
 	);

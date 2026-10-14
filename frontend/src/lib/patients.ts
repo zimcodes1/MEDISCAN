@@ -8,6 +8,17 @@ export interface PatientRecord {
   created_at: string;
 }
 
+/** Age in years from year of birth, or null if unknown. */
+export function patientAge(yearOfBirth: number | null): number | null {
+  return yearOfBirth ? new Date().getFullYear() - yearOfBirth : null;
+}
+
+/** e.g. "F · 34y" — falls back to "—" for missing values. */
+export function patientSummary(p: PatientRecord): string {
+  const age = patientAge(p.year_of_birth);
+  return `${p.sex ?? "—"} · ${age !== null ? `${age}y` : "—"}`;
+}
+
 export async function listPatients(params: {
   limit?: number;
   offset?: number;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -11,10 +11,12 @@ import { ActivityLog } from "../components/dashboard/ActivityLogs";
 import SystemStats from "../components/dashboard/SystemStats";
 import StatCard from "../components/dashboard/StatCard";
 import ScanRow, { type ScanQueueItem } from "../components/dashboard/ScanRow";
-import { listAllScans, type ScanRecord } from "../lib/scans";
+import { listAllScans } from "../lib/scans";
 import { getPatient, type PatientRecord } from "../lib/patients";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   // Set Previous page for the 404 back button handler to check
   sessionStorage.setItem("lastPage", window.location.href);
 
@@ -74,7 +76,9 @@ export default function DashboardPage() {
         console.error("failed to load scans", err);
         // show a visible error so developers see the backend message
         // eslint-disable-next-line no-alert
-        alert(`DashboardPage.tsx: failed to load scans\n${err?.message ?? String(err)}`);
+        alert(
+          `DashboardPage.tsx: failed to load scans\n${err?.message ?? String(err)}`,
+        );
       }
     }
 
@@ -96,7 +100,7 @@ export default function DashboardPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display">
-          Good morning, Dr. Nwosu
+          Welcome back{user ? `, ${user.full_name}` : ""}
         </h1>
         <p className="text-brand-text-muted text-sm mt-1">
           {new Date().toLocaleDateString("en-NG", {

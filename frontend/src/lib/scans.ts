@@ -29,7 +29,9 @@ export async function listScans(
   return data;
 }
 
-export async function listAllScans(params: { limit?: number; offset?: number } = {}): Promise<ScanRecord[]> {
+export async function listAllScans(
+  params: { limit?: number; offset?: number } = {},
+): Promise<ScanRecord[]> {
   const { data } = await api.get<ScanRecord[]>("/scans", { params });
   return data;
 }

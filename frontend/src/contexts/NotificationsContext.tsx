@@ -1,6 +1,17 @@
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
-type NotificationItem = { id: string; message: string; read?: boolean; time?: string };
+type NotificationItem = {
+  id: string;
+  message: string;
+  read?: boolean;
+  time?: string;
+};
 
 const NotificationsContext = createContext<{
   notifications: NotificationItem[];
@@ -8,19 +19,30 @@ const NotificationsContext = createContext<{
   markRead: (id: string) => void;
 }>({ notifications: [], add: () => {}, markRead: () => {} });
 
-export function NotificationsProvider({ children }: { children: React.ReactNode }) {
+export function NotificationsProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  function add(n: NotificationItem) {
+  const add = useCallback((n: NotificationItem) => {
     setNotifications((prev) => [n, ...prev]);
-  }
+  }, []);
 
-  function markRead(id: string) {
-    setNotifications((prev) => prev.map((p) => (p.id === id ? { ...p, read: true } : p)));
-  }
+  const markRead = useCallback((id: string) => {
+    setNotifications((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, read: true } : p)),
+    );
+  }, []);
+
+  const value = useMemo(
+    () => ({ notifications, add, markRead }),
+    [notifications, add, markRead],
+  );
 
   return (
-    <NotificationsContext.Provider value={{ notifications, add, markRead }}>
+    <NotificationsContext.Provider value={value}>
       {children}
     </NotificationsContext.Provider>
   );
