@@ -80,7 +80,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
               {user?.full_name ?? ""}
             </p>
             <p className="text-brand-text-muted text-[9px] font-bold uppercase tracking-wider">
-              Radiology Specialist
+              {user?.role ?? ""}
             </p>
           </div>
 

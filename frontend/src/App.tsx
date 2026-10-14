@@ -13,6 +13,9 @@ import PatientReportViewPage from "./pages/PatientReportViewPage";
 import SettingsPage from "./pages/SettingsPage";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PatientsPage from "./pages/PatientsPage";
+import NewPatientPage from "./pages/NewPatientPage";
+import PatientDetailPage from "./pages/PatientDetailPage";
 import LostPage from "./pages/404";
 
 function App() {
@@ -34,6 +37,13 @@ function App() {
 					{/* Shared Main Layout for Dashboard & Standard Pages */}
 					<Route element={<MainLayout />}>
 						<Route path="/dashboard" element={<DashboardPage />} />
+						<Route path="/patients" element={<PatientsPage />} />
+						<Route path="/patients/new" element={<NewPatientPage />} />
+						<Route
+							path="/patients/:patientId"
+							element={<PatientDetailPage />}
+						/>
+						<Route path="/scans/:scanId" element={<NeuralAnalysisPage />} />
 						<Route path="/case-upload" element={<CaseUploadPage />} />
 						<Route path="/neural-analysis" element={<NeuralAnalysisPage />} />
 						<Route path="/patient-reports" element={<PatientReportPage />} />

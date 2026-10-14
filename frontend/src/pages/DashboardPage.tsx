@@ -12,7 +12,9 @@ import SystemStats from "../components/dashboard/SystemStats";
 import StatCard from "../components/dashboard/StatCard";
 import ScanRow, { type ScanQueueItem } from "../components/dashboard/ScanRow";
 import { listAllScans } from "../lib/scans";
-import { getPatient, type PatientRecord } from "../lib/patients";
+import { getPatient } from "../lib/patients";
+import RecentPatients from "../components/dashboard/RecentPatients";
+import { EmptyState, ErrorState, LoadingState } from "../components/PageStatus";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function DashboardPage() {
@@ -25,6 +27,9 @@ export default function DashboardPage() {
   }, []);
 
   const [queue, setQueue] = useState<ScanQueueItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -32,17 +37,19 @@ export default function DashboardPage() {
     async function loadQueue() {
       try {
         const scans = await listAllScans({ limit: 50 });
+
+        // One lookup per unique patient instead of one per scan.
+        const ids = [...new Set(scans.map((s) => s.patient_id).filter(Boolean))];
+        const lookups = await Promise.allSettled(ids.map((id) => getPatient(id)));
+        const codes = new Map<string, string>();
+        lookups.forEach((r, i) => {
+          if (r.status === "fulfilled") codes.set(ids[i], r.value.patient_code);
+        });
+
         const mapped: ScanQueueItem[] = await Promise.all(
           scans.map(async (s) => {
-            let patientName = s.patient_id ?? "Unknown";
-            let patientCode = s.patient_id ?? "";
-            try {
-              const p: PatientRecord = await getPatient(s.patient_id);
-              patientName = p.patient_code;
-              patientCode = p.patient_code;
-            } catch (e) {
-              // ignore patient lookup failures
-            }
+            const patientCode = codes.get(s.patient_id) ?? s.patient_id ?? "Unknown";
+            const patientName = patientCode;
 
             const finding =
               s.findings && s.findings.length ? s.findings[0] : undefined;
@@ -72,13 +79,12 @@ export default function DashboardPage() {
         );
 
         if (mounted) setQueue(mapped);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("failed to load scans", err);
-        // show a visible error so developers see the backend message
-        // eslint-disable-next-line no-alert
-        alert(
-          `DashboardPage.tsx: failed to load scans\n${err?.message ?? String(err)}`,
-        );
+        if (mounted)
+          setLoadError(err instanceof Error ? err.message : String(err));
+      } finally {
+        if (mounted) setLoading(false);
       }
     }
 
@@ -86,7 +92,13 @@ export default function DashboardPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [reloadKey]);
+
+  function retryQueue() {
+    setLoading(true);
+    setLoadError(null);
+    setReloadKey((k) => k + 1);
+  }
 
   const pending = queue.filter((s) => s.status !== "reviewed");
   const urgent = queue.filter(
@@ -197,9 +209,18 @@ export default function DashboardPage() {
 
             {/* Rows */}
             <div className="p-4 space-y-2">
-              {queue.map((scan) => (
-                <ScanRow key={scan.id} scan={scan} />
-              ))}
+              {loading ? (
+                <LoadingState label="Loading scans…" />
+              ) : loadError ? (
+                <ErrorState message={loadError} onRetry={retryQueue} />
+              ) : queue.length === 0 ? (
+                <EmptyState
+                  title="No scans yet"
+                  hint="Upload a chest X-ray and it will appear in your queue."
+                />
+              ) : (
+                queue.map((scan) => <ScanRow key={scan.id} scan={scan} />)
+              )}
             </div>
 
             <div className="px-6 py-4.5 border-t border-brand-border/40 bg-brand-card/30 flex justify-between items-center">
@@ -215,6 +236,7 @@ export default function DashboardPage() {
 
         {/* Right column */}
         <div className="space-y-6">
+          <RecentPatients />
           <SystemStats />
           <ActivityLog />
         </div>

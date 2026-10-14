@@ -1,5 +1,6 @@
 import { Search, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   listPatients,
   patientSummary,
@@ -112,12 +113,12 @@ export default function PatientSearch({
                   <p className="text-brand-text-muted/70 text-sm mb-3">
                     Patient not found
                   </p>
-                  <a
-                    href="/patients/new"
+                  <Link
+                    to="/patients/new"
                     className="text-brand-primary hover:text-brand-primary-hover hover:underline text-sm font-bold transition-colors"
                   >
                     + Register new patient
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>

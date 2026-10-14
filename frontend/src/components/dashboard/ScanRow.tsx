@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-type ScanStatus = "flagged" | "processing" | "ready" | "reviewed";
 type Priority = "urgent" | "routine";
 
 export interface ScanQueueItem {
@@ -20,7 +19,7 @@ export interface ScanQueueItem {
   uploadedBy: string;
   uploadedAt: string;
   priority: Priority;
-  status: ScanStatus;
+  status: string; // backend value; unknown values get a neutral style
   confidence: number | null;
   prediction: string | null;
 }
@@ -30,7 +29,7 @@ interface ScanRowProps {
 }
 
 const STATUS_CONFIG: Record<
-  ScanStatus,
+  string,
   {
     label: string;
     color: string;
@@ -79,7 +78,17 @@ function getInitials(name: string) {
 }
 
 export default function ScanRow({ scan }: ScanRowProps) {
-  const status = STATUS_CONFIG[scan.status];
+  // Fall back for any status the backend sends that we don't style yet,
+  // otherwise one unexpected value crashes the whole dashboard.
+  const status = STATUS_CONFIG[scan.status] ?? {
+    label: scan.status
+      ? scan.status.charAt(0).toUpperCase() + scan.status.slice(1)
+      : "Unknown",
+    color: "text-brand-text-muted",
+    bg: "bg-brand-card/40",
+    border: "border-brand-border/40",
+    icon: <Hourglass size={13} />,
+  };
   const isReviewed = scan.status === "reviewed";
   const initials = getInitials(scan.patientName);
   const navigate = useNavigate();
@@ -160,7 +169,7 @@ export default function ScanRow({ scan }: ScanRowProps) {
         ) : (
           <span className="inline-flex items-center gap-1.5 text-brand-text-muted/50 text-xs">
             <Hourglass size={12} />
-            Analysing
+            {scan.status === "processing" ? "Analysing" : "No findings"}
           </span>
         )}
         <ChevronRight

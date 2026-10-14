@@ -67,6 +67,23 @@ function redirectToLogin() {
   }
 }
 
+/** Turn a FastAPI `detail` (string, or a list of validation errors) into one readable line. */
+function formatDetail(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((d: { loc?: unknown[]; msg?: string }) => {
+        const field = Array.isArray(d?.loc)
+          ? d.loc.filter((p) => p !== "body").join(".")
+          : "";
+        const msg = d?.msg ?? JSON.stringify(d);
+        return field ? `${field}: ${msg}` : msg;
+      })
+      .join("; ");
+  }
+  return detail !== undefined ? JSON.stringify(detail) : "Request failed";
+}
+
 type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean };
 
 api.interceptors.response.use(
@@ -94,14 +111,9 @@ api.interceptors.response.use(
       }
     }
 
-    const detail = error.response?.data?.detail;
-    const message =
-      typeof detail === "string"
-        ? detail
-        : detail !== undefined
-          ? JSON.stringify(detail)
-          : "Request failed";
-    return Promise.reject(new Error(message));
+    return Promise.reject(
+      new Error(formatDetail(error.response?.data?.detail)),
+    );
   },
 );
 

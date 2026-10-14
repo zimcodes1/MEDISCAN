@@ -1,4 +1,4 @@
-import { LayoutDashboard, Upload, Brain, FileText, Settings, HelpCircle, Plus, X } from "lucide-react";
+import { LayoutDashboard, Users, Upload, Brain, FileText, Settings, HelpCircle, Plus, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "./svgs/Logo";
 
@@ -12,8 +12,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
 	const navItems = [
 		{ icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+		{ icon: Users, label: "Patients", path: "/patients" },
 		{ icon: Upload, label: "Case Upload", path: "/case-upload" },
-		{ icon: Brain, label: "Neural Analysis", path: "/neural-analysis" },
+		{ icon: Brain, label: "Neural Analysis", path: "/neural-analysis", also: ["/scans"] },
 		{ icon: FileText, label: "Patient Reports", path: "/patient-reports" },
 	];
 
@@ -60,7 +61,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 			<nav className="flex-1 px-3 space-y-1">
 				{navItems.map((item) => {
 					const Icon = item.icon;
-					const isActive = location.pathname === item.path;
+					const isActive = [item.path, ...(("also" in item && item.also) || [])].some(
+						(p) =>
+							location.pathname === p || location.pathname.startsWith(`${p}/`),
+					);
 					return (
 						<Link
 							key={item.path}
@@ -83,7 +87,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 			<nav className="px-3 pb-6 space-y-1">
 				{bottomItems.map((item) => {
 					const Icon = item.icon;
-					const isActive = location.pathname === item.path;
+					const isActive =
+						location.pathname === item.path ||
+						location.pathname.startsWith(`${item.path}/`);
 					return (
 						<Link
 							key={item.path}

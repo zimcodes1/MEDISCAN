@@ -13,10 +13,15 @@ export function patientAge(yearOfBirth: number | null): number | null {
   return yearOfBirth ? new Date().getFullYear() - yearOfBirth : null;
 }
 
+/** Backend stores "male" | "female" | "other" | "unknown"; show it capitalised. */
+export function formatSex(sex: string | null): string {
+  return sex ? sex.charAt(0).toUpperCase() + sex.slice(1) : "—";
+}
+
 /** e.g. "F · 34y" — falls back to "—" for missing values. */
 export function patientSummary(p: PatientRecord): string {
   const age = patientAge(p.year_of_birth);
-  return `${p.sex ?? "—"} · ${age !== null ? `${age}y` : "—"}`;
+  return `${formatSex(p.sex)} · ${age !== null ? `${age}y` : "—"}`;
 }
 
 export async function listPatients(params: {

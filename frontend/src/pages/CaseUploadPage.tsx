@@ -4,12 +4,14 @@ import ScanDetailsForm from "../components/ScanDetailsForm";
 import AssignmentPriorityForm from "../components/AssignmentPriorityForm";
 import UploadSuccessState from "../components/UploadSuccessState";
 import { Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { PatientRecord } from "../lib/patients";
 import { useAuth } from "../contexts/AuthContext";
 import { predict } from "../lib/inference";
 import { useNotifications } from "../contexts/NotificationsContext";
 
 export default function CaseUploadPage() {
+  const navigate = useNavigate();
   //Set Previous page for the 404 back button handler to check
   sessionStorage.setItem("lastPage", window.location.href);
   // Set Page Title
@@ -94,7 +96,7 @@ export default function CaseUploadPage() {
 
       {uploadSuccess ? (
         <UploadSuccessState
-          onViewQueue={() => (window.location.href = "/dashboard")}
+          onViewQueue={() => navigate("/dashboard")}
           onUploadAnother={handleReset}
         />
       ) : (
