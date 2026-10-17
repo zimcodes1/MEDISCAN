@@ -1,4 +1,5 @@
-import { Search, Bell, HelpCircle, Menu } from "lucide-react";
+import { Search, Bell, HelpCircle, Menu, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import NotificationsPanel from "./NotificationsPanel";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,7 +9,12 @@ interface TopBarProps {
 }
 
 export default function TopBar({ onMenuClick }: TopBarProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
   const initials = (user?.full_name ?? "")
     .split(" ")
     .filter(Boolean)
@@ -87,6 +93,15 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
           <div className="flex shrink-0 items-center justify-center border border-brand-primary/30 bg-brand-primary/10 text-brand-primary text-xs font-bold w-10 h-10 rounded-full shadow-[0_0_15px_rgba(0,210,255,0.1)]">
             {initials || "?"}
           </div>
+
+          <button
+            onClick={handleLogout}
+            title="Sign out"
+            aria-label="Sign out"
+            className="p-2 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-rose-400 text-brand-text-muted transition-all duration-300 active:scale-95"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </header>

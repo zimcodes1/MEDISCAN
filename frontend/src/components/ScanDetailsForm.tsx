@@ -12,6 +12,8 @@ interface ScanDetailsFormProps {
 	onViewProjectionChange: (value: string) => void;
 	onScanDateChange: (value: string) => void;
 	onClinicalNotesChange: (value: string) => void;
+	/** Projection, date and notes are not stored by the backend yet. */
+	metadataDisabled?: boolean;
 }
 
 export default function ScanDetailsForm({
@@ -25,6 +27,7 @@ export default function ScanDetailsForm({
 	onViewProjectionChange,
 	onScanDateChange,
 	onClinicalNotesChange,
+	metadataDisabled = false,
 }: ScanDetailsFormProps) {
 	const [isDragging, setIsDragging] = useState(false);
 
@@ -95,12 +98,12 @@ export default function ScanDetailsForm({
 							<Upload size={32} className="text-brand-primary animate-pulse" />
 							<div>
 								<p className="text-brand-text font-bold mb-1 text-sm">Drag & drop or browse</p>
-								<p className="text-brand-text-muted/50 text-xs">JPEG, PNG, DICOM (.dcm)</p>
+								<p className="text-brand-text-muted/50 text-xs">JPEG or PNG</p>
 							</div>
 							<label className="inline-block">
 								<input
 									type="file"
-									accept=".jpg,.jpeg,.png,.dcm,.dicom"
+									accept=".jpg,.jpeg,.png"
 									onChange={handleFileInput}
 									className="hidden"
 								/>
@@ -131,6 +134,17 @@ export default function ScanDetailsForm({
 				)}
 			</div>
 
+			{metadataDisabled && (
+				<p className="text-amber-500 text-xs bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2.5 leading-snug">
+					Projection, date and notes are not saved yet. Only the image and
+					patient are stored with the scan.
+				</p>
+			)}
+
+			<fieldset
+				disabled={metadataDisabled}
+				className="space-y-6 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed"
+			>
 			{/* View/Projection */}
 			<div>
 				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
@@ -174,6 +188,7 @@ export default function ScanDetailsForm({
 					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 resize-none placeholder-brand-text-muted/40"
 				/>
 			</div>
+			</fieldset>
 		</div>
 	);
 }

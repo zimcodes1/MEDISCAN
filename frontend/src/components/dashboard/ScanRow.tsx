@@ -18,7 +18,7 @@ export interface ScanQueueItem {
   projection: string;
   uploadedBy: string;
   uploadedAt: string;
-  priority: Priority;
+  priority: Priority | null; // null until the backend tracks priority
   status: string; // backend value; unknown values get a neutral style
   confidence: number | null;
   prediction: string | null;
@@ -139,10 +139,12 @@ export default function ScanRow({ scan }: ScanRowProps) {
           <span className="inline-flex items-center text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-wider">
             Urgent
           </span>
-        ) : (
+        ) : scan.priority === "routine" ? (
           <span className="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-brand-card/60 text-brand-text-muted/70 border border-brand-border/40 uppercase tracking-wider">
             Routine
           </span>
+        ) : (
+          <span className="text-brand-text-muted/40 text-xs">—</span>
         )}
       </div>
 

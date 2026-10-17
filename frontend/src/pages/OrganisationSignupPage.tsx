@@ -67,8 +67,10 @@ export default function OrganisationSignupPage() {
     if (!formData.adminFullName.trim()) {
       newErrors.adminFullName = "Full name is required";
     }
-    if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+    // backend rule: 10-72 bytes
+    const passwordBytes = new TextEncoder().encode(formData.password).length;
+    if (passwordBytes < 10 || passwordBytes > 72) {
+      newErrors.password = "Password must be 10–72 characters";
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
@@ -100,7 +102,7 @@ export default function OrganisationSignupPage() {
         read: false,
         time: new Date().toISOString(),
       });
-      navigate("/verify-email", { state: { email: formData.workEmail } });
+      navigate("/pending-approval", { state: { email: formData.workEmail } });
     } catch (err: any) {
       setErrors((prev) => ({
         ...prev,

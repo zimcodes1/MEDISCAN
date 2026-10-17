@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Activity,
   AlertTriangle,
@@ -7,8 +8,6 @@ import {
   ImageIcon,
   Info,
 } from "lucide-react";
-import { ActivityLog } from "../components/dashboard/ActivityLogs";
-import SystemStats from "../components/dashboard/SystemStats";
 import StatCard from "../components/dashboard/StatCard";
 import ScanRow, { type ScanQueueItem } from "../components/dashboard/ScanRow";
 import { listAllScans } from "../lib/scans";
@@ -58,15 +57,14 @@ export default function DashboardPage() {
               patientName,
               patientCode,
               modality: "Chest X-Ray",
-              projection: "PA",
+              projection: "",
               uploadedBy: "",
               uploadedAt: new Date(s.created_at).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               }),
-              priority:
-                (s as any).priority ??
-                (s.status === "flagged" ? "urgent" : "routine"),
+              // null until the backend tracks priority
+              priority: (s as any).priority ?? null,
               status: (s.status as any) ?? "processing",
               confidence: finding
                 ? Math.round(
@@ -100,12 +98,10 @@ export default function DashboardPage() {
     setReloadKey((k) => k + 1);
   }
 
-  const pending = queue.filter((s) => s.status !== "reviewed");
-  const urgent = queue.filter(
-    (s) => s.priority === "urgent" && s.status !== "reviewed",
-  );
-  const flagged = queue.filter((s) => s.status === "flagged");
-  const reviewed = queue.filter((s) => s.status === "reviewed");
+  // The backend has no priority, flagged or reviewed state yet, so those cards
+  // show "—" instead of a misleading 0. They switch on when the data exists.
+  const hasPriority = queue.some((s) => s.priority !== null);
+  const urgent = queue.filter((s) => s.priority === "urgent");
 
   return (
     <div className="p-4 sm:p-8 space-y-7">
@@ -121,7 +117,6 @@ export default function DashboardPage() {
             month: "long",
             year: "numeric",
           })}
-          {" · "}Lagos University Teaching Hospital
         </p>
       </div>
 
@@ -140,30 +135,30 @@ export default function DashboardPage() {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
-          label="Pending Review"
-          value={pending.length}
-          sub="In your queue"
+          label="Scans"
+          value={queue.length}
+          sub="Most recent uploads"
           icon={<ImageIcon size={18} />}
           accent="blue"
         />
         <StatCard
           label="Urgent"
-          value={urgent.length}
-          sub="High priority"
+          value={hasPriority ? urgent.length : "—"}
+          sub={hasPriority ? "High priority" : "Not tracked yet"}
           icon={<AlertTriangle size={18} />}
           accent="amber"
         />
         <StatCard
           label="AI Flagged"
-          value={flagged.length}
-          sub="Possible findings"
+          value="—"
+          sub="Not tracked yet"
           icon={<Activity size={18} />}
           accent="red"
         />
         <StatCard
           label="Reviewed Today"
-          value={reviewed.length}
-          sub="Signed off"
+          value="—"
+          sub="Not tracked yet"
           icon={<CheckCircle2 size={18} />}
           accent="green"
         />
@@ -181,21 +176,13 @@ export default function DashboardPage() {
                 </h2>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-brand-text-muted text-xs">
-                    {pending.length} pending · {urgent.length} urgent
+                    {queue.length} scans
                   </p>
                   <span className="w-1 h-1 bg-brand-text-muted/40 rounded-full" />
                   <p className="hidden sm:flex text-[10px] text-brand-primary font-bold  items-center gap-1">
                     <Info size={11} /> Click row to review
                   </p>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="text-brand-text-muted text-xs font-semibold hover:text-brand-primary transition-colors px-3 py-1.5 rounded-xl hover:bg-brand-border/40">
-                  All
-                </button>
-                <button className="text-rose-400 text-xs font-extrabold bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-xl active:scale-95 transition-all">
-                  Urgent first
-                </button>
               </div>
             </div>
 
@@ -227,9 +214,12 @@ export default function DashboardPage() {
               <p className="text-brand-text-muted/50 text-xs font-medium">
                 Showing {queue.length} scans
               </p>
-              <button className="text-brand-primary text-xs font-bold hover:text-brand-primary-hover flex items-center gap-1 transition-colors">
-                View full queue <ChevronRight size={14} />
-              </button>
+              <Link
+                to="/neural-analysis"
+                className="text-brand-primary text-xs font-bold hover:text-brand-primary-hover flex items-center gap-1 transition-colors"
+              >
+                View all scans <ChevronRight size={14} />
+              </Link>
             </div>
           </div>
         </div>
@@ -237,8 +227,6 @@ export default function DashboardPage() {
         {/* Right column */}
         <div className="space-y-6">
           <RecentPatients />
-          <SystemStats />
-          <ActivityLog />
         </div>
       </div>
     </div>

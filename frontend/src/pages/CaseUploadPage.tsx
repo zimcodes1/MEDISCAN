@@ -10,6 +10,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { predict } from "../lib/inference";
 import { useNotifications } from "../contexts/NotificationsContext";
 
+// Flip to true once the backend stores projection, date, notes, priority and
+// assignment (they are not part of POST /predict yet).
+const METADATA_SAVED = false;
+
 export default function CaseUploadPage() {
   const navigate = useNavigate();
   //Set Previous page for the 404 back button handler to check
@@ -35,17 +39,20 @@ export default function CaseUploadPage() {
   const { add } = useNotifications();
   const { user } = useAuth();
 
-  const handleSubmit = async () => {
-    // Validate and submit
-    if (
-      !selectedPatient ||
-      !imageFile ||
-      !viewProjection ||
-      !assignedRadiologist
-    ) {
-      alert("Please fill in all required fields");
+  const handleImageFile = (file: File | null) => {
+    if (file && !["image/png", "image/jpeg"].includes(file.type)) {
+      add({
+        id: String(Date.now()),
+        message: "Only PNG or JPEG images are supported",
+        time: new Date().toLocaleTimeString(),
+      });
       return;
     }
+    setImageFile(file);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedPatient || !imageFile) return;
     try {
       if (!imageFile) throw new Error("No image file selected");
       const result = await predict(imageFile, selectedPatient?.id ?? undefined);
@@ -79,8 +86,7 @@ export default function CaseUploadPage() {
     setPriority("routine");
   };
 
-  const isFormValid =
-    selectedPatient && imageFile && viewProjection && assignedRadiologist;
+  const isFormValid = selectedPatient && imageFile;
 
   return (
     <div className="p-4 sm:p-8">
@@ -116,7 +122,8 @@ export default function CaseUploadPage() {
               scanDate={scanDate}
               clinicalNotes={clinicalNotes}
               onScanTypeChange={setScanType}
-              onImageFileChange={setImageFile}
+              onImageFileChange={handleImageFile}
+              metadataDisabled={!METADATA_SAVED}
               onViewProjectionChange={setViewProjection}
               onScanDateChange={setScanDate}
               onClinicalNotesChange={setClinicalNotes}
@@ -131,6 +138,7 @@ export default function CaseUploadPage() {
               onPriorityChange={setPriority}
               assignedRadiologist={assignedRadiologist}
               onAssignedRadiologistChange={setAssignedRadiologist}
+              disabled={!METADATA_SAVED}
             />
 
             {/* Submit Button */}
