@@ -8,6 +8,8 @@ interface AssignmentPriorityFormProps {
 	onAssignedRadiologistChange: (value: string) => void;
 	/** Assignment and priority are not stored by the backend yet. */
 	disabled?: boolean;
+	/** Assignable staff (GET /staff). */
+	staff?: { id: string; full_name: string; role?: string }[];
 }
 
 export default function AssignmentPriorityForm({
@@ -17,6 +19,7 @@ export default function AssignmentPriorityForm({
 	assignedRadiologist,
 	onAssignedRadiologistChange,
 	disabled = false,
+	staff = [],
 }: AssignmentPriorityFormProps) {
 	return (
 		<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
@@ -52,9 +55,13 @@ export default function AssignmentPriorityForm({
 					onChange={(e) => onAssignedRadiologistChange(e.target.value)}
 					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 				>
-					<option value="">Select radiologist...</option>
-					<option value="Dr. S. Chen">Dr. S. Chen</option>
-					<option value="Dr. A. Patel">Dr. A. Patel</option>
+					<option value="">Unassigned</option>
+					{staff.map((s) => (
+						<option key={s.id} value={s.id}>
+							{s.full_name}
+							{s.role ? ` (${s.role})` : ""}
+						</option>
+					))}
 				</select>
 			</div>
 

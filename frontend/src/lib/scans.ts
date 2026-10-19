@@ -13,6 +13,14 @@ export interface FindingRecord {
   experimental: boolean;
 }
 
+export type Priority = "routine" | "urgent";
+export type Projection = "pa" | "ap" | "lateral";
+export type ReviewStatus = "pending" | "reviewed";
+export interface PersonRef {
+  id: string;
+  full_name: string;
+}
+
 export interface ScanRecord {
   id: string;
   patient_id: string;
@@ -20,6 +28,17 @@ export interface ScanRecord {
   created_at: string;
   content_type?: string;
   size_bytes?: number;
+  // Scan-workflow fields (api-contract.md section 1). Absent until the backend adds them.
+  priority?: Priority;
+  projection?: Projection | null;
+  exam_date?: string | null;
+  clinical_notes?: string | null;
+  uploaded_by?: PersonRef | null;
+  assigned_to?: PersonRef | null;
+  review_status?: ReviewStatus;
+  reviewed_at?: string | null;
+  reviewed_by?: PersonRef | null;
+  is_flagged?: boolean;
   findings?: FindingRecord[];
   disclaimer?: string;
 }
@@ -88,4 +107,17 @@ export async function getHeatmapUrl(
     { responseType: "blob" },
   );
   return URL.createObjectURL(data);
+}
+
+/** api-contract.md section 3. Any user in the organisation may mark a scan reviewed. */
+export async function updateScan(
+  scanId: string,
+  patch: {
+    priority?: Priority;
+    assigned_to_id?: string | null;
+    review_status?: ReviewStatus;
+  },
+): Promise<ScanRecord> {
+  const { data } = await api.patch<ScanRecord>(`/scans/${scanId}`, patch);
+  return data;
 }

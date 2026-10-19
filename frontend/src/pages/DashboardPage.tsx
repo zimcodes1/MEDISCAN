@@ -10,11 +10,32 @@ import {
 } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import ScanRow, { type ScanQueueItem } from "../components/dashboard/ScanRow";
-import { listAllScans } from "../lib/scans";
+import { listAllScans, type ScanRecord } from "../lib/scans";
+import { getDashboardStats, type DashboardStats } from "../lib/dashboard";
+import { SCAN_WORKFLOW } from "../lib/features";
+import ActivityFeed from "../components/dashboard/ActivityFeed";
 import { getPatient } from "../lib/patients";
 import RecentPatients from "../components/dashboard/RecentPatients";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStatus";
 import { useAuth } from "../contexts/AuthContext";
+
+/** What the queue shows for a scan, combining inference and review state. */
+function queueStatus(s: ScanRecord): string {
+  if (s.status === "processing") return "processing";
+  if (s.review_status === "reviewed") return "reviewed";
+  if (s.is_flagged) return "flagged";
+  return s.status === "completed" ? "ready" : s.status;
+}
+
+/** Urgent first, then flagged, then newest. */
+function byUrgency(a: ScanRecord, b: ScanRecord): number {
+  const rank = (s: ScanRecord) =>
+    (s.priority === "urgent" ? 2 : 0) + (s.is_flagged ? 1 : 0);
+  return (
+    rank(b) - rank(a) ||
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -29,13 +50,25 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+
+  useEffect(() => {
+    if (!SCAN_WORKFLOW) return;
+    let active = true;
+    getDashboardStats()
+      .then((s) => active && setStats(s))
+      .catch(() => {}); // cards fall back to "—"
+    return () => {
+      active = false;
+    };
+  }, [reloadKey]);
 
   useEffect(() => {
     let mounted = true;
 
     async function loadQueue() {
       try {
-        const scans = await listAllScans({ limit: 50 });
+        const scans = (await listAllScans({ limit: 50 })).sort(byUrgency);
 
         // One lookup per unique patient instead of one per scan.
         const ids = [...new Set(scans.map((s) => s.patient_id).filter(Boolean))];
@@ -64,8 +97,8 @@ export default function DashboardPage() {
                 minute: "2-digit",
               }),
               // null until the backend tracks priority
-              priority: (s as any).priority ?? null,
-              status: (s.status as any) ?? "processing",
+              priority: s.priority ?? null,
+              status: queueStatus(s),
               confidence: finding
                 ? Math.round(
                     (finding.confidence_pct ?? finding.score * 100) as number,
@@ -98,8 +131,8 @@ export default function DashboardPage() {
     setReloadKey((k) => k + 1);
   }
 
-  // The backend has no priority, flagged or reviewed state yet, so those cards
-  // show "—" instead of a misleading 0. They switch on when the data exists.
+  // Without the scan workflow on the backend these cards show "—" instead of
+  // a misleading 0; with it, they come from GET /dashboard/stats.
   const hasPriority = queue.some((s) => s.priority !== null);
   const urgent = queue.filter((s) => s.priority === "urgent");
 
@@ -135,30 +168,30 @@ export default function DashboardPage() {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
-          label="Scans"
-          value={queue.length}
-          sub="Most recent uploads"
+          label={stats ? "Pending Review" : "Scans"}
+          value={stats ? stats.pending_review : queue.length}
+          sub={stats ? "Awaiting review" : "Most recent uploads"}
           icon={<ImageIcon size={18} />}
           accent="blue"
         />
         <StatCard
           label="Urgent"
-          value={hasPriority ? urgent.length : "—"}
-          sub={hasPriority ? "High priority" : "Not tracked yet"}
+          value={stats ? stats.urgent : hasPriority ? urgent.length : "—"}
+          sub={stats || hasPriority ? "High priority" : "Not tracked yet"}
           icon={<AlertTriangle size={18} />}
           accent="amber"
         />
         <StatCard
           label="AI Flagged"
-          value="—"
-          sub="Not tracked yet"
+          value={stats ? stats.flagged : "—"}
+          sub={stats ? "Above alert threshold" : "Not tracked yet"}
           icon={<Activity size={18} />}
           accent="red"
         />
         <StatCard
           label="Reviewed Today"
-          value="—"
-          sub="Not tracked yet"
+          value={stats ? stats.reviewed_today : "—"}
+          sub={stats ? "Signed off" : "Not tracked yet"}
           icon={<CheckCircle2 size={18} />}
           accent="green"
         />
@@ -227,6 +260,7 @@ export default function DashboardPage() {
         {/* Right column */}
         <div className="space-y-6">
           <RecentPatients />
+          {SCAN_WORKFLOW && <ActivityFeed />}
         </div>
       </div>
     </div>

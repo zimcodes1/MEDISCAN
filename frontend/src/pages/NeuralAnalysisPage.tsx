@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ChevronRight, ImageIcon } from "lucide-react";
 import ImageViewer from "../components/neural-analysis/ImageViewer";
 import AIOutputPanel from "../components/neural-analysis/AIOutputPanel";
+import ReviewPanel from "../components/neural-analysis/ReviewPanel";
 import StatusBadge from "../components/StatusBadge";
 import {
   EmptyState,
@@ -19,6 +20,8 @@ import {
   type ScanWithPatient,
 } from "../lib/scans";
 import { formatDateTime } from "../lib/format";
+import { listStaff, type StaffMember } from "../lib/staff";
+import { SCAN_WORKFLOW } from "../lib/features";
 
 /** /neural-analysis shows a scan picker; /scans/:scanId shows the analysis. */
 export default function NeuralAnalysisPage() {
@@ -46,6 +49,7 @@ function ScanAnalysis({ scanId }: { scanId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [heatmaps, setHeatmaps] = useState<Record<string, string>>({});
@@ -90,6 +94,18 @@ function ScanAnalysis({ scanId }: { scanId: string }) {
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [scanId, reloadKey]);
+
+  // Assignable staff for the review panel
+  useEffect(() => {
+    if (!SCAN_WORKFLOW) return;
+    let active = true;
+    listStaff()
+      .then((r) => active && setStaff(r))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const selected = scan?.findings?.find((f) => f.id === selectedId) ?? null;
   const selectedHasHeatmap = !!selected?.has_heatmap;
@@ -171,7 +187,7 @@ function ScanAnalysis({ scanId }: { scanId: string }) {
             />
           </div>
 
-          <div className="col-span-3 xl:col-span-1 glass-panel rounded-2xl p-4 sm:p-6 overflow-y-auto max-h-[600px] xl:max-h-[520px] hide-scrollbar">
+          <div className="col-span-3 xl:col-span-1 glass-panel rounded-2xl p-4 sm:p-6 overflow-y-auto max-h-[600px] xl:max-h-[520px] hide-scrollbar space-y-5">
             <AIOutputPanel
               findings={scan.findings ?? []}
               selectedFindingId={selectedId}
@@ -185,6 +201,15 @@ function ScanAnalysis({ scanId }: { scanId: string }) {
               disclaimer={scan.disclaimer}
               heatmapShown={!!heatmapUrl}
             />
+            {SCAN_WORKFLOW && (
+              <ReviewPanel
+                scan={scan}
+                staff={staff}
+                onUpdated={(updated) =>
+                  setScan((prev) => (prev ? { ...prev, ...updated } : updated))
+                }
+              />
+            )}
           </div>
         </div>
       )}

@@ -8,11 +8,14 @@ import { useNavigate } from "react-router-dom";
 import type { PatientRecord } from "../lib/patients";
 import { useAuth } from "../contexts/AuthContext";
 import { predict } from "../lib/inference";
+import { listStaff, type StaffMember } from "../lib/staff";
+import { SCAN_WORKFLOW } from "../lib/features";
+import type { Projection } from "../lib/scans";
 import { useNotifications } from "../contexts/NotificationsContext";
 
-// Flip to true once the backend stores projection, date, notes, priority and
-// assignment (they are not part of POST /predict yet).
-const METADATA_SAVED = false;
+// Projection, date, notes, priority and assignment are only stored when the
+// backend implements the scan workflow (see lib/features.ts).
+const METADATA_SAVED = SCAN_WORKFLOW;
 
 export default function CaseUploadPage() {
   const navigate = useNavigate();
@@ -38,6 +41,21 @@ export default function CaseUploadPage() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const { add } = useNotifications();
   const { user } = useAuth();
+  const [staff, setStaff] = useState<StaffMember[]>([]);
+
+  useEffect(() => {
+    if (!METADATA_SAVED) return;
+    let active = true;
+    // Prefer radiologists; fall back to everyone so assignment still works
+    // in organisations that have none yet.
+    listStaff("radiologist")
+      .then((r) => (r.length ? r : listStaff()))
+      .then((r) => active && setStaff(r))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleImageFile = (file: File | null) => {
     if (file && !["image/png", "image/jpeg"].includes(file.type)) {
@@ -55,7 +73,21 @@ export default function CaseUploadPage() {
     if (!selectedPatient || !imageFile) return;
     try {
       if (!imageFile) throw new Error("No image file selected");
-      const result = await predict(imageFile, selectedPatient?.id ?? undefined);
+      const result = await predict(
+        imageFile,
+        selectedPatient?.id ?? undefined,
+        METADATA_SAVED
+          ? {
+              priority,
+              projection: viewProjection
+                ? (viewProjection.toLowerCase() as Projection)
+                : undefined,
+              examDate: scanDate || undefined,
+              clinicalNotes: clinicalNotes.trim() || undefined,
+              assignedToId: assignedRadiologist || undefined,
+            }
+          : undefined,
+      );
       if (result.saved) {
         setUploadSuccess(true);
       } else {
@@ -139,6 +171,7 @@ export default function CaseUploadPage() {
               assignedRadiologist={assignedRadiologist}
               onAssignedRadiologistChange={setAssignedRadiologist}
               disabled={!METADATA_SAVED}
+              staff={staff}
             />
 
             {/* Submit Button */}
