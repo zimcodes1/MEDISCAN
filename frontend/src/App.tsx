@@ -13,8 +13,8 @@ import StaffInviteAcceptancePage from "./pages/StaffInviteAcceptancePage";
 import DashboardPage from "./pages/DashboardPage";
 import CaseUploadPage from "./pages/CaseUploadPage";
 import NeuralAnalysisPage from "./pages/NeuralAnalysisPage";
-import PatientReportPage from "./pages/PatientReportPage";
-import PatientReportViewPage from "./pages/PatientReportViewPage";
+import ReportsListPage from "./pages/ReportsListPage";
+import ReportEditorPage from "./pages/ReportEditorPage";
 import SettingsPage from "./pages/SettingsPage";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -56,10 +56,10 @@ function App() {
 						<Route path="/scans/:scanId" element={<NeuralAnalysisPage />} />
 						<Route path="/case-upload" element={<CaseUploadPage />} />
 						<Route path="/neural-analysis" element={<NeuralAnalysisPage />} />
-						<Route path="/patient-reports" element={<PatientReportPage />} />
+						<Route path="/patient-reports" element={<ReportsListPage />} />
 						<Route
-							path="/patient-reports/:reportId"
-							element={<PatientReportViewPage />}
+							path="/scans/:scanId/report"
+							element={<ReportEditorPage />}
 						/>
 					</Route>
 

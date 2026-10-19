@@ -111,9 +111,11 @@ api.interceptors.response.use(
       }
     }
 
-    return Promise.reject(
-      new Error(formatDetail(error.response?.data?.detail)),
-    );
+    const err = new Error(formatDetail(error.response?.data?.detail)) as Error & {
+      status?: number;
+    };
+    err.status = error.response?.status;
+    return Promise.reject(err);
   },
 );
 

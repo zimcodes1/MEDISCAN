@@ -13,6 +13,7 @@ import { api } from "../lib/api";
 
 const META_KEY = "shim:scan-meta";
 const EVENTS_KEY = "shim:events";
+const REPORTS_KEY = "shim:reports";
 
 // Placeholder operating points: the real values must come from each model's
 // validation results and be signed off clinically (see api-contract.md).
@@ -78,17 +79,32 @@ const defaultMeta = (): Meta => ({
   reviewed_by: null,
 });
 
-function isFlagged(scan: Json): boolean {
-  return (scan.findings ?? []).some(
-    (f: Json) =>
-      !f.experimental && f.score >= (FLAG_THRESHOLDS[f.condition] ?? FLAG_DEFAULT),
-  );
+function flagFinding(f: Json): boolean {
+  return !f.experimental && f.score >= (FLAG_THRESHOLDS[f.condition] ?? FLAG_DEFAULT);
 }
 
 function augment(scan: Json): Json {
   const meta = { ...defaultMeta(), ...read<Record<string, Meta>>(META_KEY, {})[scan.id] };
-  return { ...scan, ...meta, is_flagged: isFlagged(scan) };
+  const findings = scan.findings?.map((f: Json) => ({ ...f, flagged: flagFinding(f) }));
+  return { ...scan, ...meta, findings, is_flagged: (findings ?? []).some((f: Json) => f.flagged) };
 }
+
+// ---- reports (api-contract.md section 7) ----
+const REPORT_FIELDS = [
+  "lung_fields", "affected_side", "severity", "detailed_findings", "primary_impression",
+  "secondary_findings", "impression_narrative", "recommended_action", "follow_up_timeframe",
+  "follow_up_unit", "additional_notes", "ai_agreement", "ai_disagreement_reason",
+];
+const emptyReport = () => ({
+  lung_fields: [], affected_side: null, severity: null, detailed_findings: "",
+  primary_impression: null, secondary_findings: "", impression_narrative: "",
+  recommended_action: null, follow_up_timeframe: null, follow_up_unit: null,
+  additional_notes: "", ai_agreement: null, ai_disagreement_reason: null,
+});
+const stripReport = (r: Json): Json => {
+  const { _patient_code, ...rest } = r; // eslint-disable-line @typescript-eslint/no-unused-vars
+  return rest;
+};
 
 function addEvent(type: string, message: string, actor: Person | null, scanId: string | null) {
   const events = read<Evt[]>(EVENTS_KEY, []);
@@ -114,12 +130,12 @@ export function installShim() {
     config,
   });
   // Adapters (not axios core) are responsible for rejecting non-2xx responses.
-  const notFound = (config: InternalAxiosRequestConfig) => {
-    const response = respond(config, { detail: "Scan not found" }, 404);
-    return Promise.reject(
-      new axios.AxiosError("Not Found", "ERR_BAD_REQUEST", config, null, response),
+  const fail = (config: InternalAxiosRequestConfig, status: number, detail: string) =>
+    Promise.reject(
+      new axios.AxiosError(detail, "ERR_BAD_REQUEST", config, null, respond(config, { detail }, status)),
     );
-  };
+  const parseBody = (config: InternalAxiosRequestConfig): Json =>
+    typeof config.data === "string" ? JSON.parse(config.data) : (config.data ?? {});
 
   const realJson = async (config: InternalAxiosRequestConfig, url: string, params?: object) => {
     const r = await real({ ...config, url, method: "get", params, data: undefined });
@@ -170,15 +186,93 @@ export function installShim() {
       return respond(config, read<Evt[]>(EVENTS_KEY, []).slice(0, limit));
     }
 
-    const one = url.match(/^\/scans\/([^/]+)$/);
-    if (method === "patch" && one) {
-      const id = one[1];
-      const body = typeof config.data === "string" ? JSON.parse(config.data) : (config.data ?? {});
+    // ---- reports ----
+    const rep = url.match(/^\/scans\/([^/]+)\/report$/);
+    const fin = url.match(/^\/scans\/([^/]+)\/report\/finalise$/);
+    if (rep && method === "get") {
+      const r = read<Record<string, Json>>(REPORTS_KEY, {})[rep[1]];
+      return r ? respond(config, stripReport(r)) : fail(config, 404, "Report not found");
+    }
+    if (rep && method === "put") {
+      const id = rep[1];
       let scan: Json;
       try {
         scan = await realJson(config, `/scans/${id}`);
       } catch {
-        return notFound(config);
+        return fail(config, 404, "Scan not found");
+      }
+      const store = read<Record<string, Json>>(REPORTS_KEY, {});
+      const existing = store[id];
+      if (existing?.status === "final") return fail(config, 409, "Report is already submitted");
+      const body = parseBody(config);
+      const actor = await whoAmI(config);
+      const now = new Date().toISOString();
+      let patientCode = existing?._patient_code;
+      if (!patientCode) {
+        try {
+          patientCode = (await realJson(config, `/patients/${scan.patient_id}`)).patient_code;
+        } catch {
+          patientCode = "—";
+        }
+      }
+      const base = existing ?? {
+        id: `shim-rpt-${id}`, scan_id: id, author: actor ?? { id: "me", full_name: "You" },
+        status: "draft", ...emptyReport(), created_at: now, finalised_at: null,
+      };
+      const next: Json = { ...base, updated_at: now, _patient_code: patientCode };
+      for (const k of REPORT_FIELDS) if (k in body) next[k] = body[k];
+      store[id] = next;
+      write(REPORTS_KEY, store);
+      return respond(config, stripReport(next));
+    }
+    if (fin && method === "post") {
+      const id = fin[1];
+      const store = read<Record<string, Json>>(REPORTS_KEY, {});
+      const r = store[id];
+      if (!r) return fail(config, 404, "Report not found");
+      if (r.status === "final") return fail(config, 409, "Report is already submitted");
+      const missing: string[] = [];
+      if (!r.primary_impression) missing.push("primary_impression");
+      if (!r.recommended_action) missing.push("recommended_action");
+      if (!r.ai_agreement) missing.push("ai_agreement");
+      else if (r.ai_agreement !== "agree" && !r.ai_disagreement_reason) missing.push("ai_disagreement_reason");
+      if (missing.length) return fail(config, 422, `Missing: ${missing.join(", ")}`);
+      const actor = await whoAmI(config);
+      const now = new Date().toISOString();
+      r.status = "final";
+      r.finalised_at = now;
+      r.updated_at = now;
+      write(REPORTS_KEY, store);
+      // finalising a report marks the scan reviewed
+      const metas = read<Record<string, Meta>>(META_KEY, {});
+      metas[id] = { ...defaultMeta(), ...metas[id], review_status: "reviewed", reviewed_at: now, reviewed_by: actor };
+      write(META_KEY, metas);
+      addEvent("report_finalised", "Report submitted", actor, id);
+      return respond(config, stripReport(r));
+    }
+    if (method === "get" && url === "/reports") {
+      const { status, limit = 20, offset = 0 } = config.params ?? {};
+      const rows = Object.values(read<Record<string, Json>>(REPORTS_KEY, {}))
+        .filter((r) => !status || r.status === status)
+        .sort((a, b) => (b.updated_at as string).localeCompare(a.updated_at as string))
+        .slice(Number(offset), Number(offset) + Number(limit))
+        .map((r) => ({
+          id: r.id, scan_id: r.scan_id, patient_code: r._patient_code, status: r.status,
+          author: r.author, primary_impression: r.primary_impression,
+          created_at: r.created_at, updated_at: r.updated_at, finalised_at: r.finalised_at,
+        }));
+      return respond(config, rows);
+    }
+
+    const one = url.match(/^\/scans\/([^/]+)$/);
+    if (method === "patch" && one) {
+      const id = one[1];
+      const body = parseBody(config);
+      let scan: Json;
+      try {
+        scan = await realJson(config, `/scans/${id}`);
+      } catch {
+        return fail(config, 404, "Scan not found");
       }
       const store = read<Record<string, Meta>>(META_KEY, {});
       const meta: Meta = { ...defaultMeta(), ...store[id] };
@@ -250,5 +344,6 @@ export function installShim() {
   (globalThis as Json).__shimReset = () => {
     localStorage.removeItem(META_KEY);
     localStorage.removeItem(EVENTS_KEY);
+    localStorage.removeItem(REPORTS_KEY);
   };
 }

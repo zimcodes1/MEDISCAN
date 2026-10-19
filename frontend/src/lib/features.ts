@@ -9,3 +9,9 @@ export const API_SHIM =
  */
 export const SCAN_WORKFLOW =
   API_SHIM || import.meta.env.VITE_SCAN_WORKFLOW === "1";
+
+/**
+ * True when the backend implements reports (api-contract.md section 7).
+ * Set VITE_REPORTS=1 in .env.local once it does.
+ */
+export const REPORTS = API_SHIM || import.meta.env.VITE_REPORTS === "1";

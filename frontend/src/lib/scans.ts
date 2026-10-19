@@ -8,6 +8,8 @@ export interface FindingRecord {
   confidence_pct: number;
   /** Fetch the image with getHeatmapUrl(scanId, findingId). */
   has_heatmap: boolean;
+  /** non-experimental and at/above its condition threshold (api-contract.md section 1) */
+  flagged?: boolean;
   model_name: string;
   model_version: string;
   experimental: boolean;

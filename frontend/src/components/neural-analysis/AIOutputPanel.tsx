@@ -1,4 +1,6 @@
 import { AlertTriangle, Flame } from "lucide-react";
+import { Link } from "react-router-dom";
+import { REPORTS } from "../../lib/features";
 import type { FindingRecord } from "../../lib/scans";
 import { formatBytes, formatDateTime } from "../../lib/format";
 import StatusBadge from "../StatusBadge";
@@ -179,14 +181,22 @@ export default function AIOutputPanel({
         </div>
       </div>
 
-      {/* Reports are not wired to the backend yet */}
-      <button
-        disabled
-        title="Report writing is not connected to the backend yet"
-        className="w-full bg-brand-card/60 border border-brand-border/40 text-brand-text-muted py-3.5 rounded-xl font-extrabold text-sm opacity-60 cursor-not-allowed"
-      >
-        Write Report (coming soon)
-      </button>
+      {REPORTS ? (
+        <Link
+          to={`/scans/${scanId}/report`}
+          className="block w-full text-center bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3.5 rounded-xl font-extrabold text-sm hover:opacity-95 active:scale-95 transition-all"
+        >
+          Open Report
+        </Link>
+      ) : (
+        <button
+          disabled
+          title="Report writing is not connected to the backend yet"
+          className="w-full bg-brand-card/60 border border-brand-border/40 text-brand-text-muted py-3.5 rounded-xl font-extrabold text-sm opacity-60 cursor-not-allowed"
+        >
+          Write Report (coming soon)
+        </button>
+      )}
     </div>
   );
 }
