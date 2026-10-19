@@ -75,13 +75,17 @@ export default function SettingsPage() {
 				<TopBar onMenuClick={() => setIsSidebarOpen(true)} />
 
 				<main className="pt-16 p-4 sm:p-8 mt-5">
-					<div className="mb-6 bg-amber-500/5 border border-amber-500/20 text-amber-500 text-xs rounded-xl px-4 py-3 leading-snug">
-						<span className="font-bold uppercase tracking-wider mr-1">
-							Preview:
-						</span>
-						Settings are not connected to the backend yet. Your name and email
-						are real; everything else is sample data, and changes are not saved.
-					</div>
+					{/* Staff Management is live; every other section is still sample data */}
+					{activeSection !== "staff" && (
+						<div className="mb-6 bg-amber-500/5 border border-amber-500/20 text-amber-500 text-xs rounded-xl px-4 py-3 leading-snug">
+							<span className="font-bold uppercase tracking-wider mr-1">
+								Preview:
+							</span>
+							This section is not connected to the backend yet. Your name and
+							email are real; everything else is sample data, and changes are not
+							saved.
+						</div>
+					)}
 					<div className="flex gap-6">
 						{/* Content Area */}
 						<div className="flex-1 min-w-0">
