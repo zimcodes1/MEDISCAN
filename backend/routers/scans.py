@@ -22,12 +22,22 @@ router = APIRouter(prefix="/scans", tags=["scans"])
 
 @router.get("", response_model=list[ScanOut])
 async def list_scans(
-    patient_id: uuid.UUID,
+    # Optional: omitted (or "" / "null" from clients) lists the whole organisation.
+    patient_id_raw: str | None = Query(None, alias="patient_id"),
     limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    scans = await scan_service.list_scans(session, user, patient_id, limit, offset)
+    patient_id: uuid.UUID | None = None
+    if patient_id_raw not in (None, "", "null"):
+        try:
+            patient_id = uuid.UUID(patient_id_raw)
+        except ValueError:
+            raise AppError(422, "Invalid patient_id")
+    if patient_id is None:
+        scans = await scan_service.list_all_scans(session, user, limit, offset)
+    else:
+        scans = await scan_service.list_scans(session, user, patient_id, limit, offset)
     return [ScanOut.from_scan(s) for s in scans]
 
 

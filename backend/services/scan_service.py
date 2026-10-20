@@ -32,7 +32,7 @@ async def save_scan(
 ) -> Scan:
     """Stores image + heatmaps, then the DB rows. If anything fails, objects
     already written are removed so no orphans are left behind."""
-    user_id, patient_id = user.id, patient.id
+    user_id, patient_id, org_id = user.id, patient.id, patient.organisation_id
     scan_id = uuid.uuid4()
     image_key = f"scans/{scan_id}.png"  # UUID-only keys: nothing identifying
     written: list[str] = []
@@ -57,6 +57,7 @@ async def save_scan(
 
         scan = Scan(
             id=scan_id, patient_id=patient_id, uploaded_by_id=user_id,
+            organisation_id=org_id,
             image_key=image_key, image_sha256=image_sha256,
             content_type="image/png", size_bytes=len(image_png),
             status=ScanStatus.completed, findings=findings,
@@ -79,9 +80,8 @@ async def save_scan(
 
 async def get_accessible_scan(session: AsyncSession, user: User, scan_id: uuid.UUID) -> Scan:
     scan = await session.get(Scan, scan_id)
-    if scan is None:
-        raise AppError(404, "Scan not found")
-    await get_accessible_patient(session, user, scan.patient_id)  # 404 if not yours
+    if scan is None or scan.organisation_id != user.organisation_id:
+        raise AppError(404, "Scan not found")  # other organisation: same 404
     return scan
 
 
@@ -90,7 +90,19 @@ async def list_scans(
 ) -> list[Scan]:
     await get_accessible_patient(session, user, patient_id)
     stmt = (
-        select(Scan).where(Scan.patient_id == patient_id)
+        select(Scan)
+        .where(Scan.patient_id == patient_id, Scan.organisation_id == user.organisation_id)
+        .order_by(Scan.created_at.desc()).limit(limit).offset(offset)
+    )
+    return list((await session.exec(stmt)).all())
+
+
+async def list_all_scans(
+    session: AsyncSession, user: User, limit: int, offset: int
+) -> list[Scan]:
+    """Every scan in the caller's organisation, newest first."""
+    stmt = (
+        select(Scan).where(Scan.organisation_id == user.organisation_id)
         .order_by(Scan.created_at.desc()).limit(limit).offset(offset)
     )
     return list((await session.exec(stmt)).all())

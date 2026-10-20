@@ -12,7 +12,7 @@ from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from backend.models import (
-    Finding, Patient, RefreshToken, Scan, ScanStatus, User, UserRole,
+    Finding, Organisation, Patient, RefreshToken, Scan, ScanStatus, User, UserRole,
 )
 from backend.models.base import utcnow
 
@@ -34,8 +34,18 @@ async def session():
     await engine.dispose()
 
 
+async def make_org(session):
+    org = (await session.exec(select(Organisation))).first()
+    if org is None:
+        org = Organisation(name="Test Org", status="active")
+        session.add(org)
+        await session.commit()
+    return org
+
+
 async def make_user(session, email="dr@example.com"):
-    u = User(email=email, hashed_password="x", full_name="Dr Test")
+    org = await make_org(session)
+    u = User(email=email, hashed_password="x", full_name="Dr Test", organisation_id=org.id)
     session.add(u)
     await session.commit()
     return u
@@ -43,11 +53,11 @@ async def make_user(session, email="dr@example.com"):
 
 async def make_scan(session):
     u = await make_user(session)
-    p = Patient(patient_code="PT-0001", created_by_id=u.id)
+    p = Patient(patient_code="PT-0001", created_by_id=u.id, organisation_id=u.organisation_id)
     session.add(p)
     await session.commit()
     s = Scan(
-        patient_id=p.id, uploaded_by_id=u.id, image_key="scans/a.png",
+        patient_id=p.id, uploaded_by_id=u.id, organisation_id=p.organisation_id, image_key="scans/a.png",
         image_sha256="0" * 64, content_type="image/png", size_bytes=10,
         findings=[
             Finding(condition="Pneumonia", score=0.8, heatmap_key="h/a.png",
@@ -80,7 +90,8 @@ async def test_scan_loads_findings_and_tb_has_no_heatmap(session):
 
 async def test_email_unique(session):
     await make_user(session)
-    session.add(User(email="dr@example.com", hashed_password="x", full_name="B"))
+    org = await make_org(session)
+    session.add(User(email="dr@example.com", hashed_password="x", full_name="B", organisation_id=org.id))
     with pytest.raises(IntegrityError):
         await session.commit()
 

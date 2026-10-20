@@ -8,7 +8,7 @@ from sqlmodel import select
 from backend.core import rate_limit as rl
 from backend.main import app
 from backend.models import AuditLog, UserRole
-from tests.helpers import bearer, create_patient, predict_saved, token_for
+from tests.helpers import bearer, create_patient, make_org, predict_saved, token_for
 
 
 @pytest.fixture
@@ -59,15 +59,18 @@ async def test_tuberculosis_has_no_heatmap_and_bad_ids_404(client, scan, db):
     assert (await client.get(f"/scans/{sid}/findings/{foreign}/heatmap", headers=h)).status_code == 404
 
 
-async def test_images_require_auth_and_ownership(client, db, scan):
+async def test_images_require_auth_and_organisation(client, db, scan):
     sid, fid = scan["id"], finding(scan, "Cardiomegaly")["id"]
     urls = [f"/scans/{sid}/image", f"/scans/{sid}/findings/{fid}/heatmap"]
     for url in urls:
         assert (await client.get(url)).status_code == 401
-    b = await token_for(client, db, "b@example.com")
+    other_org = await make_org(db, "Other Org")
+    b = await token_for(client, db, "b@example.com", org=other_org)
+    colleague = await token_for(client, db, "colleague@example.com")  # same organisation
     admin = await token_for(client, db, "root@example.com", UserRole.admin)
     for url in urls:
-        assert (await client.get(url, headers=b)).status_code == 404  # not yours: no leak
+        assert (await client.get(url, headers=b)).status_code == 404  # other organisation: no leak
+        assert (await client.get(url, headers=colleague)).status_code == 200  # org-wide visibility
         assert (await client.get(url, headers=admin)).status_code == 200
 
 

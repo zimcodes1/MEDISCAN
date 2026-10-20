@@ -10,7 +10,8 @@ from backend.models.base import utcnow
 
 class UserRole(str, Enum):
     clinician = "clinician"
-    admin = "admin"
+    radiologist = "radiologist"
+    admin = "admin"  # organisation admin; NOT the platform operator
 
 
 class User(SQLModel, table=True):
@@ -24,6 +25,12 @@ class User(SQLModel, table=True):
     role: UserRole = Field(
         default=UserRole.clinician, sa_type=String(20), nullable=False
     )
+    organisation_id: uuid.UUID = Field(
+        foreign_key="organisations.id", index=True, nullable=False, ondelete="RESTRICT"
+    )
+    # The platform operator who approves new organisations. Separate from the
+    # organisation `admin` role; grants no access to other organisations' data.
+    is_platform_admin: bool = Field(default=False, nullable=False)
     # Self-registered accounts start unapproved; an admin must approve them.
     is_approved: bool = Field(default=False, nullable=False)
     # Admin kill-switch (deactivate/reactivate), separate from approval.

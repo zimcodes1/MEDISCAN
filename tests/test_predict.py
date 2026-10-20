@@ -10,7 +10,7 @@ from backend.core.config import get_settings
 from backend.main import app
 from backend.models import AuditLog, Finding, Scan, UserRole
 from backend.services.storage_service import LocalStorage
-from tests.helpers import jpeg_bytes, png_bytes, token_for, upload
+from tests.helpers import jpeg_bytes, make_org, png_bytes, token_for, upload
 
 CONDITIONS = ["Pneumonia", "Cardiomegaly", "Lung Nodule / Mass", "Tuberculosis"]
 
@@ -185,9 +185,10 @@ def test_local_storage_blocks_path_traversal(tmp_path):
 
 
 # ---------------------------------------------------------- access control
-async def test_patients_are_private_to_their_clinician(client, db):
+async def test_patients_are_private_to_their_organisation(client, db):
     a = await token_for(client, db, "a@example.com")
-    b = await token_for(client, db, "b@example.com")
+    colleague = await token_for(client, db, "colleague@example.com")
+    b = await token_for(client, db, "b@example.com", org=await make_org(db, "Other Org"))
     admin = await token_for(client, db, "root@example.com", UserRole.admin)
     pid = await new_patient(client, a)
 
@@ -197,12 +198,13 @@ async def test_patients_are_private_to_their_clinician(client, db):
     assert (await client.get(f"/patients/{pid}", headers=b)).status_code == 404
     assert [p["id"] for p in (await client.get("/patients", headers=b)).json()] == []
     assert [p["id"] for p in (await client.get("/patients", headers=a)).json()] == [pid]
+    assert (await client.get(f"/patients/{pid}", headers=colleague)).status_code == 200  # org-wide
     assert (await client.get(f"/patients/{pid}", headers=admin)).status_code == 200
 
 
-async def test_cannot_predict_into_or_read_someone_elses_patient(client, db, storage):
+async def test_cannot_predict_into_or_read_another_orgs_patient(client, db, storage):
     a = await token_for(client, db, "a@example.com")
-    b = await token_for(client, db, "b@example.com")
+    b = await token_for(client, db, "b@example.com", org=await make_org(db, "Other Org"))
     admin = await token_for(client, db, "root@example.com", UserRole.admin)
     pid = await new_patient(client, a)
     scan_id = (await predict(client, a, patient_id=pid)).json()["scan_id"]

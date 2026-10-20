@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 7
     bcrypt_rounds: int = Field(default=12, ge=4, le=15)
 
+    # --- Tenancy ---
+    # Name of the organisation created by migration 0003 for pre-existing data.
+    # TEMPORARY: until invitations/org registration ship, POST /auth/register
+    # puts new sign-ups here as pending users.
+    default_organisation_name: str = "Default Organisation"
+
     # --- Inference ---
     inference_backend: Literal["mock", "torch", "remote"] = "mock"
 

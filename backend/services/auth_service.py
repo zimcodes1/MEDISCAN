@@ -10,7 +10,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from backend.core import security
 from backend.core.config import get_settings
 from backend.core.errors import AuthError
-from backend.models import AuditLog, RefreshToken, User
+from backend.models import AuditLog, Organisation, RefreshToken, User
 from backend.models.base import utcnow
 from backend.schemas.auth import TokenResponse
 
@@ -55,7 +55,17 @@ async def register_user(
               resource_id=existing.id, ip=ip)
         await session.commit()
         return
-    user = User(email=email, full_name=full_name.strip(), hashed_password=pw_hash)
+    # TEMPORARY (removed when invitations ship): sign-ups join the default
+    # organisation as pending users that its admin must approve.
+    org = (await session.exec(
+        select(Organisation).where(Organisation.name == get_settings().default_organisation_name)
+    )).first()
+    if org is None:
+        raise AuthError(503, "Registration is not available")
+    user = User(
+        email=email, full_name=full_name.strip(), hashed_password=pw_hash,
+        organisation_id=org.id,
+    )
     session.add(user)
     try:
         await session.flush()
@@ -120,6 +130,9 @@ async def login(
         raise AuthError(403, "Account disabled")
     if not user.is_approved:
         raise AuthError(403, "Account pending administrator approval")
+    org = await session.get(Organisation, user.organisation_id)
+    if org is None or org.status != "active":
+        raise AuthError(403, "Organisation is not active")
 
     pair = _issue_token_pair(session, user)
     audit(session, "auth.login", user_id=user.id, resource_id=user.id, ip=ip)
@@ -152,7 +165,8 @@ async def refresh(session: AsyncSession, raw_token: str, ip: str | None) -> Toke
         raise AuthError(401, "Refresh token expired")
 
     user = await session.get(User, row.user_id)
-    if user is None or not user.is_active or not user.is_approved:
+    org = await session.get(Organisation, user.organisation_id) if user else None
+    if user is None or not user.is_active or not user.is_approved or org is None or org.status != "active":
         row.revoked_at = now
         await session.commit()
         raise AuthError(401, "Invalid refresh token")
@@ -177,15 +191,16 @@ async def logout(session: AsyncSession, raw_token: str, ip: str | None) -> None:
 
 
 # ---------- admin actions ----------
-async def _get_user_or_404(session: AsyncSession, user_id: uuid.UUID) -> User:
+async def _get_user_or_404(session: AsyncSession, admin: User, user_id: uuid.UUID) -> User:
     user = await session.get(User, user_id)
-    if user is None:
+    # Another organisation's user is indistinguishable from a missing one.
+    if user is None or user.organisation_id != admin.organisation_id:
         raise AuthError(404, "User not found")
     return user
 
 
 async def approve_user(session: AsyncSession, admin: User, user_id: uuid.UUID, ip: str | None) -> User:
-    user = await _get_user_or_404(session, user_id)
+    user = await _get_user_or_404(session, admin, user_id)
     user.is_approved = True
     audit(session, "user.approve", user_id=admin.id, resource_id=user.id, ip=ip)
     await session.commit()
@@ -195,7 +210,7 @@ async def approve_user(session: AsyncSession, admin: User, user_id: uuid.UUID, i
 async def deactivate_user(session: AsyncSession, admin: User, user_id: uuid.UUID, ip: str | None) -> User:
     if admin.id == user_id:
         raise AuthError(400, "You cannot deactivate your own account")
-    user = await _get_user_or_404(session, user_id)
+    user = await _get_user_or_404(session, admin, user_id)
     user.is_active = False
     await revoke_all_for_user(session, user.id)
     audit(session, "user.deactivate", user_id=admin.id, resource_id=user.id, ip=ip)
@@ -204,7 +219,7 @@ async def deactivate_user(session: AsyncSession, admin: User, user_id: uuid.UUID
 
 
 async def activate_user(session: AsyncSession, admin: User, user_id: uuid.UUID, ip: str | None) -> User:
-    user = await _get_user_or_404(session, user_id)
+    user = await _get_user_or_404(session, admin, user_id)
     user.is_active = True
     audit(session, "user.activate", user_id=admin.id, resource_id=user.id, ip=ip)
     await session.commit()

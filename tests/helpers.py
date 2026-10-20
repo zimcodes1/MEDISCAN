@@ -3,16 +3,35 @@ import io
 from PIL import Image
 
 from backend.core import security
-from backend.models import User, UserRole
+from sqlmodel import select
+
+from backend.core.config import get_settings
+from backend.models import Organisation, User, UserRole
 
 PW = "correct-horse-battery"
 
 
+async def make_org(db, name, status="active") -> Organisation:
+    async with db() as s:
+        org = Organisation(name=name, status=status)
+        s.add(org)
+        await s.commit()
+        return org
+
+
+async def default_org(db) -> Organisation:
+    """The organisation existing data is backfilled into (seeded by the db fixture)."""
+    async with db() as s:
+        name = get_settings().default_organisation_name
+        return (await s.exec(select(Organisation).where(Organisation.name == name))).one()
+
+
 async def make_user(db, email="dr@example.com", *, role=UserRole.clinician,
-                    approved=True, active=True) -> User:
+                    approved=True, active=True, org=None) -> User:
+    org = org or await default_org(db)
     async with db() as s:
         u = User(email=email, full_name="Dr X", hashed_password=security.hash_password(PW),
-                 role=role, is_approved=approved, is_active=active)
+                 role=role, is_approved=approved, is_active=active, organisation_id=org.id)
         s.add(u)
         await s.commit()
         return u
@@ -26,9 +45,9 @@ def bearer(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-async def token_for(client, db, email="dr@example.com", role=UserRole.clinician) -> dict:
+async def token_for(client, db, email="dr@example.com", role=UserRole.clinician, org=None) -> dict:
     """Create an approved user, log in, return ready-to-use auth headers."""
-    await make_user(db, email, role=role)
+    await make_user(db, email, role=role, org=org)
     return bearer((await login(client, email)).json()["access_token"])
 
 

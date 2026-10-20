@@ -19,7 +19,11 @@ class Patient(SQLModel, table=True):
     )
     sex: str | None = Field(default=None, sa_type=String(10))
     year_of_birth: int | None = Field(default=None)
-    # Owner clinician: clinicians only see their own patients, admins see all.
+    organisation_id: uuid.UUID = Field(
+        foreign_key="organisations.id", index=True, nullable=False, ondelete="RESTRICT"
+    )
+    # Who registered the patient (audit/attribution only; visibility is
+    # organisation-wide, not per clinician).
     created_by_id: uuid.UUID = Field(
         foreign_key="users.id", index=True, nullable=False, ondelete="RESTRICT"
     )

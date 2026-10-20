@@ -6,7 +6,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from backend.core.errors import AppError
-from backend.models import Patient, User, UserRole
+from backend.models import Patient, User
 from backend.schemas.patient import PatientCreate
 from backend.services.auth_service import audit
 
@@ -14,19 +14,15 @@ from backend.services.auth_service import audit
 _ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 
 
-def _is_admin(user: User) -> bool:
-    return UserRole(user.role) == UserRole.admin
-
-
 async def create_patient(
     session: AsyncSession, user: User, body: PatientCreate, ip: str | None
 ) -> Patient:
-    owner_id = user.id  # rollback() expires ORM objects; keep plain values
+    owner_id, org_id = user.id, user.organisation_id  # rollback() expires ORM objects; keep plain values
     for _ in range(5):
         code = "PT-" + "".join(secrets.choice(_ALPHABET) for _ in range(8))
         patient = Patient(
             patient_code=code, sex=body.sex, year_of_birth=body.year_of_birth,
-            created_by_id=owner_id,
+            created_by_id=owner_id, organisation_id=org_id,
         )
         session.add(patient)
         try:
@@ -44,10 +40,10 @@ async def create_patient(
 async def get_accessible_patient(
     session: AsyncSession, user: User, patient_id: uuid.UUID
 ) -> Patient:
-    """Clinicians see only their own patients; admins see all. A patient that
-    exists but is not yours is reported as 404 so its existence is not leaked."""
+    """Everyone in an organisation sees all of its patients. A patient in
+    another organisation is reported as 404 so its existence is not leaked."""
     patient = await session.get(Patient, patient_id)
-    if patient is None or (not _is_admin(user) and patient.created_by_id != user.id):
+    if patient is None or patient.organisation_id != user.organisation_id:
         raise AppError(404, "Patient not found")
     return patient
 
@@ -55,7 +51,8 @@ async def get_accessible_patient(
 async def list_patients(
     session: AsyncSession, user: User, limit: int, offset: int
 ) -> list[Patient]:
-    stmt = select(Patient).order_by(Patient.created_at.desc()).limit(limit).offset(offset)
-    if not _is_admin(user):
-        stmt = stmt.where(Patient.created_by_id == user.id)
+    stmt = (
+        select(Patient).where(Patient.organisation_id == user.organisation_id)
+        .order_by(Patient.created_at.desc()).limit(limit).offset(offset)
+    )
     return list((await session.exec(stmt)).all())

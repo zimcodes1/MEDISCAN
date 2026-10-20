@@ -9,7 +9,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from backend.core import security
 from backend.core.database import get_session
 from backend.core.errors import AuthError
-from backend.models import User, UserRole
+from backend.models import Organisation, User, UserRole
 from backend.services.inference_service import InferenceService
 from backend.services.storage_service import StorageService
 
@@ -30,6 +30,10 @@ async def get_current_user(
     # Re-check the DB every request so deactivation takes effect immediately.
     user = await session.get(User, user_id)
     if user is None or not user.is_active or not user.is_approved:
+        raise AuthError(401, "Invalid or expired token")
+    # A suspended (or still pending) organisation locks out every member at once.
+    org = await session.get(Organisation, user.organisation_id)
+    if org is None or org.status != "active":
         raise AuthError(401, "Invalid or expired token")
     return user
 

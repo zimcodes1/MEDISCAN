@@ -19,12 +19,19 @@ class Scan(SQLModel, table=True):
     only its key and integrity metadata are stored here."""
 
     __tablename__ = "scans"
-    __table_args__ = (Index("ix_scans_patient_created", "patient_id", "created_at"),)
+    __table_args__ = (
+        Index("ix_scans_patient_created", "patient_id", "created_at"),
+        Index("ix_scans_org_created", "organisation_id", "created_at"),
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     # Deleting a patient deletes their scans (supports erasure requests).
     patient_id: uuid.UUID = Field(
         foreign_key="patients.id", index=True, nullable=False, ondelete="CASCADE"
+    )
+    # Always copied from the patient on save, never taken from request input.
+    organisation_id: uuid.UUID = Field(
+        foreign_key="organisations.id", index=True, nullable=False, ondelete="RESTRICT"
     )
     uploaded_by_id: uuid.UUID = Field(
         foreign_key="users.id", index=True, nullable=False, ondelete="RESTRICT"

@@ -20,10 +20,13 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 @router.get("/users", response_model=list[UserPublic])
 async def list_users(
     status: Literal["pending", "all"] = "pending",
-    _admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin),
     session: AsyncSession = Depends(get_session),
 ):
-    stmt = select(User).order_by(User.created_at)
+    stmt = (
+        select(User).where(User.organisation_id == admin.organisation_id)
+        .order_by(User.created_at)
+    )
     if status == "pending":
         stmt = stmt.where(User.is_approved == False)  # noqa: E712
     return (await session.exec(stmt)).all()

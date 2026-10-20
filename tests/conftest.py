@@ -18,8 +18,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession  # noqa: E402
 
 import backend.models  # noqa: E402,F401
 from backend.core import rate_limit  # noqa: E402
+from backend.core.config import get_settings  # noqa: E402
 from backend.core.database import get_session  # noqa: E402
 from backend.main import app  # noqa: E402
+from backend.models import Organisation  # noqa: E402
 from backend.services.inference_service import MockInferenceService  # noqa: E402
 from backend.services.storage_service import LocalStorage, S3Storage  # noqa: E402
 
@@ -38,7 +40,11 @@ async def db():
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", poolclass=StaticPool)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
-    yield async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with factory() as s:  # what migration 0003 creates for pre-existing data
+        s.add(Organisation(name=get_settings().default_organisation_name, status="active"))
+        await s.commit()
+    yield factory
     await engine.dispose()
 
 
