@@ -2,6 +2,8 @@ import hashlib
 import logging
 import uuid
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -11,7 +13,7 @@ from backend.core.errors import AppError
 from backend.core.net import client_ip
 from backend.core.rate_limit import IMAGE_PER_USER
 from backend.models import User
-from backend.schemas.scan import ScanOut
+from backend.schemas.scan import ScanOut, ScanUpdate
 from backend.services import scan_service
 from backend.services.auth_service import audit
 from backend.services.storage_service import StorageService
@@ -20,25 +22,41 @@ logger = logging.getLogger("mediscan.scans")
 router = APIRouter(prefix="/scans", tags=["scans"])
 
 
+def _blank(v: str | None) -> bool:
+    return v in (None, "", "null")
+
+
 @router.get("", response_model=list[ScanOut])
 async def list_scans(
-    # Optional: omitted (or "" / "null" from clients) lists the whole organisation.
+    # Optional filters. Blank / "null" values (some clients send them) mean "no filter".
     patient_id_raw: str | None = Query(None, alias="patient_id"),
+    assigned_to_raw: str | None = Query(None, alias="assigned_to_id", description="a user id, or 'me'"),
+    review_status: Literal["pending", "reviewed"] | None = None,
+    priority: Literal["routine", "urgent"] | None = None,
+    flagged: bool | None = None,
     limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    patient_id: uuid.UUID | None = None
-    if patient_id_raw not in (None, "", "null"):
-        try:
+    patient_id = assigned_to_id = None
+    try:
+        if not _blank(patient_id_raw):
             patient_id = uuid.UUID(patient_id_raw)
-        except ValueError:
-            raise AppError(422, "Invalid patient_id")
-    if patient_id is None:
-        scans = await scan_service.list_all_scans(session, user, limit, offset)
-    else:
-        scans = await scan_service.list_scans(session, user, patient_id, limit, offset)
-    return [ScanOut.from_scan(s) for s in scans]
+    except ValueError:
+        raise AppError(422, "Invalid patient_id")
+    try:
+        if assigned_to_raw == "me":
+            assigned_to_id = user.id
+        elif not _blank(assigned_to_raw):
+            assigned_to_id = uuid.UUID(assigned_to_raw)
+    except ValueError:
+        raise AppError(422, "Invalid assigned_to_id")
+    scans = await scan_service.list_scans(
+        session, user, patient_id=patient_id, review_status=review_status,
+        priority=priority, assigned_to_id=assigned_to_id, flagged=flagged,
+        limit=limit, offset=offset,
+    )
+    return await scan_service.to_out(session, scans)
 
 
 @router.get("/{scan_id}", response_model=ScanOut)
@@ -51,7 +69,19 @@ async def get_scan(
     audit(session, "scan.view", user_id=user.id, resource_type="scan",
           resource_id=scan.id, ip=client_ip(request))
     await session.commit()  # who viewed which scan
-    return ScanOut.from_scan(scan)
+    return (await scan_service.to_out(session, [scan]))[0]
+
+
+@router.patch("/{scan_id}", response_model=ScanOut)
+async def update_scan(
+    scan_id: uuid.UUID, body: ScanUpdate, request: Request,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """Change priority, assignee or review status. Anyone in the organisation may
+    mark a scan reviewed; who did it and when is always recorded."""
+    scan = await scan_service.update_scan(session, user, scan_id, body, client_ip(request))
+    return (await scan_service.to_out(session, [scan]))[0]
 
 
 # ---- image bytes: authenticated, audited, never cacheable, never public ----

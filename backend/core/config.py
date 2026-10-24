@@ -36,6 +36,18 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 7
     bcrypt_rounds: int = Field(default=12, ge=4, le=15)
 
+    # --- Flagging ---
+    # A finding is flagged when it is NOT experimental and score >= its threshold.
+    # Scores are raw model outputs, not probabilities, so each threshold is an
+    # operating point to be chosen from that model's validation results.
+    # PLACEHOLDER VALUES: unreviewed until a clinician signs them off.
+    flag_thresholds: dict[str, float] = {
+        "Pneumonia": 0.5,
+        "Cardiomegaly": 0.5,
+        "Lung Nodule / Mass": 0.5,
+    }
+    flag_default_threshold: float = 0.5  # conditions not listed above
+
     # --- Tenancy ---
     # Name of the organisation created by migration 0003 for pre-existing data.
     # TEMPORARY: until invitations/org registration ship, POST /auth/register

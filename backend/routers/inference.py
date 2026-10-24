@@ -1,8 +1,11 @@
 import base64
 import logging
 import uuid
+from datetime import date
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
+from pydantic import BeforeValidator
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
@@ -22,6 +25,13 @@ from backend.services.remote_inference import RemoteInferenceError
 from backend.services.storage_service import StorageService
 from backend.services.upload_validation import read_upload, validate_image
 
+def _blank_to_none(v):
+    return None if v in ("", None) else v
+
+
+# Optional form fields: a blank value is the same as leaving the field out.
+BlankIsNone = BeforeValidator(_blank_to_none)
+
 logger = logging.getLogger("mediscan.predict")
 router = APIRouter(tags=["inference"])
 
@@ -35,6 +45,12 @@ async def predict(
         description="If given, the scan and findings are saved to this patient. "
                     "If omitted, the image is analysed and nothing is stored.",
     ),
+    # Clinical details: stored only when patient_id is given; always validated.
+    priority: Annotated[Literal["routine", "urgent"] | None, BlankIsNone, Form()] = None,
+    projection: Annotated[Literal["pa", "ap", "lateral"] | None, BlankIsNone, Form()] = None,
+    exam_date: Annotated[date | None, BlankIsNone, Form(description="YYYY-MM-DD")] = None,
+    clinical_notes: Annotated[str | None, BlankIsNone, Form(max_length=2000)] = None,
+    assigned_to_id: Annotated[uuid.UUID | None, BlankIsNone, Form()] = None,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     inference: InferenceService = Depends(get_inference),
@@ -50,6 +66,9 @@ async def predict(
     async with PREDICT_INFLIGHT.slot():
         # Fail fast on access before doing any expensive work.
         patient = await get_accessible_patient(session, user, patient_id) if patient_id else None
+        assignee = None
+        if patient is not None and assigned_to_id is not None:
+            assignee = await scan_service.validate_assignee(session, user, assigned_to_id)
 
         raw = await read_upload(file, settings.max_upload_bytes)
         validated = await run_in_threadpool(
@@ -74,6 +93,12 @@ async def predict(
                 session, storage, user=user, patient=patient,
                 image_png=validated.png_bytes, image_sha256=validated.sha256,
                 results=results, ip=client_ip(request),
+                meta=scan_service.ScanMeta(
+                    priority=priority or "routine", projection=projection,
+                    exam_date=exam_date, clinical_notes=clinical_notes,
+                    assigned_to_id=assignee.id if assignee else None,
+                ),
+                assignee=assignee,
             )
 
     return PredictResponse(

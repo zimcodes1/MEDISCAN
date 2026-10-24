@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 
-from sqlalchemy import CheckConstraint, DateTime, Index, String
+from sqlalchemy import CheckConstraint, Date, DateTime, Index, String
 from sqlmodel import Field, Relationship, SQLModel
 
 from backend.models.base import utcnow
@@ -22,6 +22,7 @@ class Scan(SQLModel, table=True):
     __table_args__ = (
         Index("ix_scans_patient_created", "patient_id", "created_at"),
         Index("ix_scans_org_created", "organisation_id", "created_at"),
+        Index("ix_scans_org_review", "organisation_id", "review_status"),
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -46,6 +47,28 @@ class Scan(SQLModel, table=True):
     error_message: str | None = Field(default=None, sa_type=String(500))
     created_at: datetime = Field(
         default_factory=utcnow, sa_type=DateTime(timezone=True), nullable=False
+    )
+
+    # ---- clinical workflow (plain strings validated at the edge, not DB enums) ----
+    priority: str = Field(                       # routine | urgent
+        default="routine", sa_type=String(10), nullable=False,
+        sa_column_kwargs={"server_default": "routine"},
+    )
+    projection: str | None = Field(default=None, sa_type=String(10))  # pa | ap | lateral
+    exam_date: date | None = Field(default=None, sa_type=Date)
+    # Free-text patient data: never log it.
+    clinical_notes: str | None = Field(default=None, sa_type=String(2000))
+    assigned_to_id: uuid.UUID | None = Field(
+        default=None, foreign_key="users.id", index=True, ondelete="SET NULL"
+    )
+    # Review state, separate from `status` (inference state).
+    review_status: str = Field(                  # pending | reviewed
+        default="pending", sa_type=String(10), nullable=False,
+        sa_column_kwargs={"server_default": "pending"},
+    )
+    reviewed_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
+    reviewed_by_id: uuid.UUID | None = Field(
+        default=None, foreign_key="users.id", ondelete="SET NULL"
     )
 
     # Findings are tiny (<= ~4 per scan) and loaded eagerly, which avoids

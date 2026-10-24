@@ -25,3 +25,5 @@ class PatientOut(BaseModel):
     sex: str | None
     year_of_birth: int | None
     created_at: datetime
+    scan_count: int = 0
+    last_scan_at: datetime | None = None

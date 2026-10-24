@@ -25,11 +25,12 @@ async def create_patient(
 
 @router.get("", response_model=list[PatientOut])
 async def list_patients(
+    q: str | None = Query(None, max_length=50, description="case-insensitive match on patient_code"),
     limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    return await patient_service.list_patients(session, user, limit, offset)
+    return await patient_service.list_patients(session, user, limit, offset, q)
 
 
 @router.get("/{patient_id}", response_model=PatientOut)
@@ -38,4 +39,4 @@ async def get_patient(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    return await patient_service.get_accessible_patient(session, user, patient_id)
+    return await patient_service.get_patient_out(session, user, patient_id)

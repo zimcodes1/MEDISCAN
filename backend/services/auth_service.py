@@ -201,8 +201,15 @@ async def _get_user_or_404(session: AsyncSession, admin: User, user_id: uuid.UUI
 
 async def approve_user(session: AsyncSession, admin: User, user_id: uuid.UUID, ip: str | None) -> User:
     user = await _get_user_or_404(session, admin, user_id)
+    newly_joined = not user.is_approved
     user.is_approved = True
     audit(session, "user.approve", user_id=admin.id, resource_id=user.id, ip=ip)
+    if newly_joined:
+        from backend.services import activity_service  # local import: avoids a cycle
+        activity_service.record(
+            session, organisation_id=user.organisation_id, type="user_joined",
+            actor_id=user.id, message=f"{user.full_name} joined the organisation",
+        )
     await session.commit()
     return user
 

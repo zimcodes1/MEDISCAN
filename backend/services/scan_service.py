@@ -1,18 +1,46 @@
 import logging
 import re
 import uuid
+from dataclasses import dataclass
+from datetime import date
 
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from backend.core.errors import AppError
+from backend.core.flagging import flagged_scan_clause
 from backend.models import Finding, Patient, Scan, ScanStatus, User
+from backend.models.base import utcnow
+from backend.schemas.scan import ScanOut, ScanUpdate
+from backend.services import activity_service
 from backend.services.auth_service import audit
 from backend.services.inference_service import FindingResult
 from backend.services.patient_service import get_accessible_patient
 from backend.services.storage_service import StorageService
 
 logger = logging.getLogger("mediscan.scans")
+
+
+@dataclass
+class ScanMeta:
+    """Optional clinical details sent with an upload."""
+    priority: str = "routine"
+    projection: str | None = None
+    exam_date: date | None = None
+    clinical_notes: str | None = None  # patient data: never log
+    assigned_to_id: uuid.UUID | None = None
+
+
+async def validate_assignee(session: AsyncSession, user: User, assignee_id: uuid.UUID) -> User:
+    """Assignees must be approved, active members of the caller's organisation.
+    Anyone else (including another organisation's user) is a plain 422."""
+    assignee = await session.get(User, assignee_id)
+    if (
+        assignee is None or assignee.organisation_id != user.organisation_id
+        or not assignee.is_approved or not assignee.is_active
+    ):
+        raise AppError(422, "assigned_to_id must be an approved, active user in your organisation")
+    return assignee
 
 
 def _slug(text: str) -> str:
@@ -29,10 +57,17 @@ async def save_scan(
     image_sha256: str,
     results: list[FindingResult],
     ip: str | None,
+    meta: ScanMeta | None = None,
+    assignee: User | None = None,
 ) -> Scan:
     """Stores image + heatmaps, then the DB rows. If anything fails, objects
     already written are removed so no orphans are left behind."""
+    meta = meta or ScanMeta()
+    # rollback() expires ORM objects, so keep plain values for after the try.
     user_id, patient_id, org_id = user.id, patient.id, patient.organisation_id
+    actor_name, code = user.full_name, patient.patient_code
+    assignee_id = assignee.id if assignee else None
+    assignee_name = assignee.full_name if assignee else None
     scan_id = uuid.uuid4()
     image_key = f"scans/{scan_id}.png"  # UUID-only keys: nothing identifying
     written: list[str] = []
@@ -61,10 +96,23 @@ async def save_scan(
             image_key=image_key, image_sha256=image_sha256,
             content_type="image/png", size_bytes=len(image_png),
             status=ScanStatus.completed, findings=findings,
+            priority=meta.priority, projection=meta.projection,
+            exam_date=meta.exam_date, clinical_notes=meta.clinical_notes,
+            assigned_to_id=assignee_id,
         )
         session.add(scan)
         audit(session, "scan.create", user_id=user_id,
               resource_type="scan", resource_id=scan_id, ip=ip)
+        activity_service.record(
+            session, organisation_id=org_id, type="scan_uploaded", actor_id=user_id,
+            scan_id=scan_id, message=f"{actor_name} uploaded a scan for {code}",
+        )
+        if assignee_id:
+            activity_service.record(
+                session, organisation_id=org_id, type="scan_assigned", actor_id=user_id,
+                scan_id=scan_id,
+                message=f"{actor_name} assigned a scan for {code} to {assignee_name}",
+            )
         await session.commit()
         return scan
     except Exception:
@@ -86,23 +134,89 @@ async def get_accessible_scan(session: AsyncSession, user: User, scan_id: uuid.U
 
 
 async def list_scans(
-    session: AsyncSession, user: User, patient_id: uuid.UUID, limit: int, offset: int
+    session: AsyncSession, user: User, *,
+    patient_id: uuid.UUID | None = None,
+    review_status: str | None = None,
+    priority: str | None = None,
+    assigned_to_id: uuid.UUID | None = None,
+    flagged: bool | None = None,
+    limit: int = 50, offset: int = 0,
 ) -> list[Scan]:
-    await get_accessible_patient(session, user, patient_id)
-    stmt = (
-        select(Scan)
-        .where(Scan.patient_id == patient_id, Scan.organisation_id == user.organisation_id)
-        .order_by(Scan.created_at.desc()).limit(limit).offset(offset)
-    )
+    """Scans in the caller's organisation, newest first, optionally filtered."""
+    if patient_id is not None:
+        await get_accessible_patient(session, user, patient_id)  # 404 if not ours
+    stmt = select(Scan).where(Scan.organisation_id == user.organisation_id)
+    if patient_id is not None:
+        stmt = stmt.where(Scan.patient_id == patient_id)
+    if review_status is not None:
+        stmt = stmt.where(Scan.review_status == review_status)
+    if priority is not None:
+        stmt = stmt.where(Scan.priority == priority)
+    if assigned_to_id is not None:
+        stmt = stmt.where(Scan.assigned_to_id == assigned_to_id)
+    if flagged is True:
+        stmt = stmt.where(flagged_scan_clause())
+    elif flagged is False:
+        stmt = stmt.where(~flagged_scan_clause())
+    stmt = stmt.order_by(Scan.created_at.desc(), Scan.id).limit(limit).offset(offset)
     return list((await session.exec(stmt)).all())
 
 
-async def list_all_scans(
-    session: AsyncSession, user: User, limit: int, offset: int
-) -> list[Scan]:
-    """Every scan in the caller's organisation, newest first."""
-    stmt = (
-        select(Scan).where(Scan.organisation_id == user.organisation_id)
-        .order_by(Scan.created_at.desc()).limit(limit).offset(offset)
-    )
-    return list((await session.exec(stmt)).all())
+async def to_out(session: AsyncSession, scans: list[Scan]) -> list[ScanOut]:
+    """Build ScanOut objects with one query for all the people they mention."""
+    ids = {
+        uid for sc in scans
+        for uid in (sc.uploaded_by_id, sc.assigned_to_id, sc.reviewed_by_id) if uid
+    }
+    users = {}
+    if ids:
+        users = {u.id: u for u in (await session.exec(select(User).where(User.id.in_(ids)))).all()}
+    return [ScanOut.from_scan(sc, users) for sc in scans]
+
+
+async def update_scan(
+    session: AsyncSession, user: User, scan_id: uuid.UUID, body: ScanUpdate, ip: str | None
+) -> Scan:
+    scan = await get_accessible_scan(session, user, scan_id)
+    fields = body.model_fields_set
+    if not fields:
+        raise AppError(422, "No fields to update")
+    patient = await session.get(Patient, scan.patient_id)
+    code, actor_name, org_id, sid = patient.patient_code, user.full_name, user.organisation_id, scan.id
+
+    if "priority" in fields:
+        scan.priority = body.priority
+
+    if "assigned_to_id" in fields:
+        if body.assigned_to_id is None:
+            scan.assigned_to_id = None
+        else:
+            assignee = await validate_assignee(session, user, body.assigned_to_id)
+            if scan.assigned_to_id != assignee.id:
+                activity_service.record(
+                    session, organisation_id=org_id, type="scan_assigned", actor_id=user.id,
+                    scan_id=sid,
+                    message=f"{actor_name} assigned a scan for {code} to {assignee.full_name}",
+                )
+            scan.assigned_to_id = assignee.id
+
+    if "review_status" in fields:
+        if body.review_status == "reviewed":
+            if scan.review_status != "reviewed":  # first review wins; who did it stays recorded
+                scan.review_status = "reviewed"
+                scan.reviewed_at = utcnow()
+                scan.reviewed_by_id = user.id
+                activity_service.record(
+                    session, organisation_id=org_id, type="scan_reviewed", actor_id=user.id,
+                    scan_id=sid, message=f"{actor_name} marked the scan for {code} as reviewed",
+                )
+        else:
+            # Phase 3: refuse this once a final report exists for the scan.
+            scan.review_status = "pending"
+            scan.reviewed_at = None
+            scan.reviewed_by_id = None
+
+    audit(session, "scan.update", user_id=user.id, resource_type="scan", resource_id=sid, ip=ip)
+    session.add(scan)
+    await session.commit()
+    return scan

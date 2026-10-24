@@ -36,6 +36,10 @@ def test_upgrade_backfills_and_downgrade_restores():
         notnull = [r[3] for r in c.execute(f"pragma table_info({table})") if r[1] == "organisation_id"]
         assert notnull == [1]
     assert c.execute("select is_platform_admin from users").fetchone()[0] == 0
+    # 0004: existing scans get workflow defaults; the activity feed table exists
+    assert c.execute("select priority, review_status, assigned_to_id, reviewed_by_id from scans").fetchone() \
+        == ("routine", "pending", None, None)
+    assert c.execute("select 1 from sqlite_master where name='activities'").fetchone()
     c.close()
 
     _alembic(db, "downgrade", "0002")
@@ -44,3 +48,4 @@ def test_upgrade_backfills_and_downgrade_restores():
     cols = [r[1] for r in c.execute("pragma table_info(users)")]
     assert "organisation_id" not in cols and "is_platform_admin" not in cols
     assert not c.execute("select 1 from sqlite_master where name='organisations'").fetchone()
+    assert not c.execute("select 1 from sqlite_master where name='activities'").fetchone()

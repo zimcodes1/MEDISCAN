@@ -1,0 +1,22 @@
+cd ~/Documents/MEDISCAN-backend
+export DATABASE_URL='postgresql://neondb_owner:npg_GrOHTSBg2ov7@ep-rapid-king-zag4ewai-pooler.c-2.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+python -c "from backend.core.config import get_settings as g; print(g()._parsed_db_url.host)"   # confirm this is the dev branch host, not production
+alembic current          # if this prints nothing, run:  alembic stamp 0002
+
+
+Neon dev-org connection string = postgresql://neondb_owner:npg_GrOHTSBg2ov7@ep-rapid-king-zag4ewai-pooler.c-2.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+
+production string = postgresql://neondb_owner:npg_GrOHTSBg2ov7@ep-curly-unit-zashfqmz-pooler.c-2.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+
+cd ~/Documents/MEDISCAN-backend
+export DATABASE_URL='postgresql://neondb_owner:npg_GrOHTSBg2ov7@ep-curly-unit-zashfqmz-pooler.c-2.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+export JWT_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+export ENVIRONMENT=development STORAGE_BACKEND=local
+
+python -c "from backend.core.config import get_settings as g; print(g()._parsed_db_url.host)"   # must be the production host
+alembic current          # expect: 0002
+alembic upgrade head     # run exactly once
+alembic current          # expect: 0003 (head)
+unset DATABASE_URL JWT_SECRET_KEY
