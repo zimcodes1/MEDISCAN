@@ -10,6 +10,7 @@ import {
   Loader,
 } from "lucide-react";
 import { registerUser } from "../lib/auth";
+import { AFTER_SIGNUP_PATH } from "../lib/features";
 import { useNotifications } from "../contexts/NotificationsContext";
 import { NigerianStates as states } from "../utils/DummyData";
 export default function OrganisationSignupPage() {
@@ -102,7 +103,7 @@ export default function OrganisationSignupPage() {
         read: false,
         time: new Date().toISOString(),
       });
-      navigate("/pending-approval", { state: { email: formData.workEmail } });
+      navigate(AFTER_SIGNUP_PATH, { state: { email: formData.workEmail } });
     } catch (err: any) {
       setErrors((prev) => ({
         ...prev,

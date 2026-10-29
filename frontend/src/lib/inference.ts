@@ -29,6 +29,7 @@ export async function predict(
   file: File,
   patientId?: string,
   meta?: ScanMetadata,
+  onProgress?: (percent: number) => void,
 ): Promise<PredictResult> {
   const fd = new FormData();
   fd.append("file", file);
@@ -40,6 +41,11 @@ export async function predict(
   if (meta?.assignedToId) fd.append("assigned_to_id", meta.assignedToId);
   const { data } = await api.post<PredictResult>("/predict", fd, {
     headers: { "Content-Type": "multipart/form-data" },
+    // Without a timeout a stalled upload never fails and the UI waits forever.
+    timeout: 120_000,
+    onUploadProgress: (e) => {
+      if (onProgress && e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+    },
   });
   return data;
 }

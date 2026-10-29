@@ -111,9 +111,21 @@ api.interceptors.response.use(
       }
     }
 
-    const err = new Error(formatDetail(error.response?.data?.detail)) as Error & {
-      status?: number;
-    };
+    let message: string;
+    if (error.response) {
+      const detail = error.response.data?.detail;
+      // Proxies and gateways often reply with HTML or nothing: show the status then.
+      message =
+        detail !== undefined
+          ? formatDetail(detail)
+          : `Request failed (HTTP ${error.response.status})`;
+    } else if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
+      message = "The server took too long to respond";
+    } else {
+      message =
+        "Cannot reach the server (network error, or the API address or CORS setting is wrong)";
+    }
+    const err = new Error(message) as Error & { status?: number };
     err.status = error.response?.status;
     return Promise.reject(err);
   },

@@ -1,0 +1,594 @@
+diff --git a/src/App.tsx b/src/App.tsx
+index 1b0cc9a..a6de067 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,8 +1,13 @@
+-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
++import {
++	BrowserRouter as Router,
++	Navigate,
++	Routes,
++	Route,
++} from "react-router-dom";
+ import LandingPage from "./pages/LandingPage";
+ import LoginPage from "./pages/LoginPage";
+ import OrganisationSignupPage from "./pages/OrganisationSignupPage";
+-import EmailVerificationPage from "./pages/EmailVerificationPage";
++import PendingApprovalPage from "./pages/PendingApprovalPage";
+ import OrgOnboardingPage from "./pages/OrgOnboardingPage";
+ import StaffInviteAcceptancePage from "./pages/StaffInviteAcceptancePage";
+ import DashboardPage from "./pages/DashboardPage";
+@@ -25,7 +30,12 @@ function App() {
+ 				<Route path="/" element={<LandingPage />} />
+ 				<Route path="/login" element={<LoginPage />} />
+ 				<Route path="/signup" element={<OrganisationSignupPage />} />
+-				<Route path="/verify-email" element={<EmailVerificationPage />} />
++				<Route path="/pending-approval" element={<PendingApprovalPage />} />
++				{/* the backend approves accounts manually; there is no email verification */}
++				<Route
++					path="/verify-email"
++					element={<Navigate to="/pending-approval" replace />}
++				/>
+ 				<Route path="/onboarding" element={<OrgOnboardingPage />} />
+ 				<Route
+ 					path="/staff/accept-invite"
+diff --git a/src/components/AssignmentPriorityForm.tsx b/src/components/AssignmentPriorityForm.tsx
+index 8b593fe..57b3b64 100644
+--- a/src/components/AssignmentPriorityForm.tsx
++++ b/src/components/AssignmentPriorityForm.tsx
+@@ -6,6 +6,8 @@ interface AssignmentPriorityFormProps {
+ 	onPriorityChange: (value: "routine" | "urgent") => void;
+ 	assignedRadiologist: string;
+ 	onAssignedRadiologistChange: (value: string) => void;
++	/** Assignment and priority are not stored by the backend yet. */
++	disabled?: boolean;
+ }
+ 
+ export default function AssignmentPriorityForm({
+@@ -14,6 +16,7 @@ export default function AssignmentPriorityForm({
+ 	onPriorityChange,
+ 	assignedRadiologist,
+ 	onAssignedRadiologistChange,
++	disabled = false,
+ }: AssignmentPriorityFormProps) {
+ 	return (
+ 		<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
+@@ -29,6 +32,16 @@ export default function AssignmentPriorityForm({
+ 				</div>
+ 			</div>
+ 
++			{disabled && (
++				<p className="text-amber-500 text-xs bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2.5 leading-snug">
++					Assignment and priority are not saved yet.
++				</p>
++			)}
++
++			<fieldset
++				disabled={disabled}
++				className="space-y-6 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed"
++			>
+ 			{/* Assign Radiologist */}
+ 			<div>
+ 				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
+@@ -76,6 +89,7 @@ export default function AssignmentPriorityForm({
+ 					</button>
+ 				</div>
+ 			</div>
++			</fieldset>
+ 		</div>
+ 	);
+ }
+diff --git a/src/components/ScanDetailsForm.tsx b/src/components/ScanDetailsForm.tsx
+index 273a64f..4940bfe 100644
+--- a/src/components/ScanDetailsForm.tsx
++++ b/src/components/ScanDetailsForm.tsx
+@@ -12,6 +12,8 @@ interface ScanDetailsFormProps {
+ 	onViewProjectionChange: (value: string) => void;
+ 	onScanDateChange: (value: string) => void;
+ 	onClinicalNotesChange: (value: string) => void;
++	/** Projection, date and notes are not stored by the backend yet. */
++	metadataDisabled?: boolean;
+ }
+ 
+ export default function ScanDetailsForm({
+@@ -25,6 +27,7 @@ export default function ScanDetailsForm({
+ 	onViewProjectionChange,
+ 	onScanDateChange,
+ 	onClinicalNotesChange,
++	metadataDisabled = false,
+ }: ScanDetailsFormProps) {
+ 	const [isDragging, setIsDragging] = useState(false);
+ 
+@@ -95,12 +98,12 @@ export default function ScanDetailsForm({
+ 							<Upload size={32} className="text-brand-primary animate-pulse" />
+ 							<div>
+ 								<p className="text-brand-text font-bold mb-1 text-sm">Drag & drop or browse</p>
+-								<p className="text-brand-text-muted/50 text-xs">JPEG, PNG, DICOM (.dcm)</p>
++								<p className="text-brand-text-muted/50 text-xs">JPEG or PNG</p>
+ 							</div>
+ 							<label className="inline-block">
+ 								<input
+ 									type="file"
+-									accept=".jpg,.jpeg,.png,.dcm,.dicom"
++									accept=".jpg,.jpeg,.png"
+ 									onChange={handleFileInput}
+ 									className="hidden"
+ 								/>
+@@ -131,6 +134,17 @@ export default function ScanDetailsForm({
+ 				)}
+ 			</div>
+ 
++			{metadataDisabled && (
++				<p className="text-amber-500 text-xs bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2.5 leading-snug">
++					Projection, date and notes are not saved yet. Only the image and
++					patient are stored with the scan.
++				</p>
++			)}
++
++			<fieldset
++				disabled={metadataDisabled}
++				className="space-y-6 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed"
++			>
+ 			{/* View/Projection */}
+ 			<div>
+ 				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
+@@ -174,6 +188,7 @@ export default function ScanDetailsForm({
+ 					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 resize-none placeholder-brand-text-muted/40"
+ 				/>
+ 			</div>
++			</fieldset>
+ 		</div>
+ 	);
+ }
+diff --git a/src/components/TopBar.tsx b/src/components/TopBar.tsx
+index f204e05..d92b222 100644
+--- a/src/components/TopBar.tsx
++++ b/src/components/TopBar.tsx
+@@ -1,4 +1,5 @@
+-import { Search, Bell, HelpCircle, Menu } from "lucide-react";
++import { Search, Bell, HelpCircle, Menu, LogOut } from "lucide-react";
++import { useNavigate } from "react-router-dom";
+ import { useState, useRef, useEffect } from "react";
+ import NotificationsPanel from "./NotificationsPanel";
+ import { useAuth } from "../contexts/AuthContext";
+@@ -8,7 +9,12 @@ interface TopBarProps {
+ }
+ 
+ export default function TopBar({ onMenuClick }: TopBarProps) {
+-  const { user } = useAuth();
++  const { user, logout } = useAuth();
++  const navigate = useNavigate();
++  const handleLogout = async () => {
++    await logout();
++    navigate("/login", { replace: true });
++  };
+   const initials = (user?.full_name ?? "")
+     .split(" ")
+     .filter(Boolean)
+@@ -87,6 +93,15 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
+           <div className="flex shrink-0 items-center justify-center border border-brand-primary/30 bg-brand-primary/10 text-brand-primary text-xs font-bold w-10 h-10 rounded-full shadow-[0_0_15px_rgba(0,210,255,0.1)]">
+             {initials || "?"}
+           </div>
++
++          <button
++            onClick={handleLogout}
++            title="Sign out"
++            aria-label="Sign out"
++            className="p-2 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-rose-400 text-brand-text-muted transition-all duration-300 active:scale-95"
++          >
++            <LogOut size={16} />
++          </button>
+         </div>
+       </div>
+     </header>
+diff --git a/src/components/dashboard/ScanRow.tsx b/src/components/dashboard/ScanRow.tsx
+index b890f02..8144179 100644
+--- a/src/components/dashboard/ScanRow.tsx
++++ b/src/components/dashboard/ScanRow.tsx
+@@ -18,7 +18,7 @@ export interface ScanQueueItem {
+   projection: string;
+   uploadedBy: string;
+   uploadedAt: string;
+-  priority: Priority;
++  priority: Priority | null; // null until the backend tracks priority
+   status: string; // backend value; unknown values get a neutral style
+   confidence: number | null;
+   prediction: string | null;
+@@ -139,10 +139,12 @@ export default function ScanRow({ scan }: ScanRowProps) {
+           <span className="inline-flex items-center text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase tracking-wider">
+             Urgent
+           </span>
+-        ) : (
++        ) : scan.priority === "routine" ? (
+           <span className="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-lg bg-brand-card/60 text-brand-text-muted/70 border border-brand-border/40 uppercase tracking-wider">
+             Routine
+           </span>
++        ) : (
++          <span className="text-brand-text-muted/40 text-xs">—</span>
+         )}
+       </div>
+ 
+diff --git a/src/pages/CaseUploadPage.tsx b/src/pages/CaseUploadPage.tsx
+index 38c584d..7091f66 100644
+--- a/src/pages/CaseUploadPage.tsx
++++ b/src/pages/CaseUploadPage.tsx
+@@ -10,6 +10,10 @@ import { useAuth } from "../contexts/AuthContext";
+ import { predict } from "../lib/inference";
+ import { useNotifications } from "../contexts/NotificationsContext";
+ 
++// Flip to true once the backend stores projection, date, notes, priority and
++// assignment (they are not part of POST /predict yet).
++const METADATA_SAVED = false;
++
+ export default function CaseUploadPage() {
+   const navigate = useNavigate();
+   //Set Previous page for the 404 back button handler to check
+@@ -35,17 +39,20 @@ export default function CaseUploadPage() {
+   const { add } = useNotifications();
+   const { user } = useAuth();
+ 
+-  const handleSubmit = async () => {
+-    // Validate and submit
+-    if (
+-      !selectedPatient ||
+-      !imageFile ||
+-      !viewProjection ||
+-      !assignedRadiologist
+-    ) {
+-      alert("Please fill in all required fields");
++  const handleImageFile = (file: File | null) => {
++    if (file && !["image/png", "image/jpeg"].includes(file.type)) {
++      add({
++        id: String(Date.now()),
++        message: "Only PNG or JPEG images are supported",
++        time: new Date().toLocaleTimeString(),
++      });
+       return;
+     }
++    setImageFile(file);
++  };
++
++  const handleSubmit = async () => {
++    if (!selectedPatient || !imageFile) return;
+     try {
+       if (!imageFile) throw new Error("No image file selected");
+       const result = await predict(imageFile, selectedPatient?.id ?? undefined);
+@@ -79,8 +86,7 @@ export default function CaseUploadPage() {
+     setPriority("routine");
+   };
+ 
+-  const isFormValid =
+-    selectedPatient && imageFile && viewProjection && assignedRadiologist;
++  const isFormValid = selectedPatient && imageFile;
+ 
+   return (
+     <div className="p-4 sm:p-8">
+@@ -116,7 +122,8 @@ export default function CaseUploadPage() {
+               scanDate={scanDate}
+               clinicalNotes={clinicalNotes}
+               onScanTypeChange={setScanType}
+-              onImageFileChange={setImageFile}
++              onImageFileChange={handleImageFile}
++              metadataDisabled={!METADATA_SAVED}
+               onViewProjectionChange={setViewProjection}
+               onScanDateChange={setScanDate}
+               onClinicalNotesChange={setClinicalNotes}
+@@ -131,6 +138,7 @@ export default function CaseUploadPage() {
+               onPriorityChange={setPriority}
+               assignedRadiologist={assignedRadiologist}
+               onAssignedRadiologistChange={setAssignedRadiologist}
++              disabled={!METADATA_SAVED}
+             />
+ 
+             {/* Submit Button */}
+diff --git a/src/pages/DashboardPage.tsx b/src/pages/DashboardPage.tsx
+index 5157cc5..4d6ed6f 100644
+--- a/src/pages/DashboardPage.tsx
++++ b/src/pages/DashboardPage.tsx
+@@ -1,4 +1,5 @@
+ import { useEffect, useState } from "react";
++import { Link } from "react-router-dom";
+ import {
+   Activity,
+   AlertTriangle,
+@@ -7,8 +8,6 @@ import {
+   ImageIcon,
+   Info,
+ } from "lucide-react";
+-import { ActivityLog } from "../components/dashboard/ActivityLogs";
+-import SystemStats from "../components/dashboard/SystemStats";
+ import StatCard from "../components/dashboard/StatCard";
+ import ScanRow, { type ScanQueueItem } from "../components/dashboard/ScanRow";
+ import { listAllScans } from "../lib/scans";
+@@ -58,15 +57,14 @@ export default function DashboardPage() {
+               patientName,
+               patientCode,
+               modality: "Chest X-Ray",
+-              projection: "PA",
++              projection: "",
+               uploadedBy: "",
+               uploadedAt: new Date(s.created_at).toLocaleTimeString([], {
+                 hour: "2-digit",
+                 minute: "2-digit",
+               }),
+-              priority:
+-                (s as any).priority ??
+-                (s.status === "flagged" ? "urgent" : "routine"),
++              // null until the backend tracks priority
++              priority: (s as any).priority ?? null,
+               status: (s.status as any) ?? "processing",
+               confidence: finding
+                 ? Math.round(
+@@ -100,12 +98,10 @@ export default function DashboardPage() {
+     setReloadKey((k) => k + 1);
+   }
+ 
+-  const pending = queue.filter((s) => s.status !== "reviewed");
+-  const urgent = queue.filter(
+-    (s) => s.priority === "urgent" && s.status !== "reviewed",
+-  );
+-  const flagged = queue.filter((s) => s.status === "flagged");
+-  const reviewed = queue.filter((s) => s.status === "reviewed");
++  // The backend has no priority, flagged or reviewed state yet, so those cards
++  // show "—" instead of a misleading 0. They switch on when the data exists.
++  const hasPriority = queue.some((s) => s.priority !== null);
++  const urgent = queue.filter((s) => s.priority === "urgent");
+ 
+   return (
+     <div className="p-4 sm:p-8 space-y-7">
+@@ -121,7 +117,6 @@ export default function DashboardPage() {
+             month: "long",
+             year: "numeric",
+           })}
+-          {" · "}Lagos University Teaching Hospital
+         </p>
+       </div>
+ 
+@@ -140,30 +135,30 @@ export default function DashboardPage() {
+       {/* Stat Cards */}
+       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+         <StatCard
+-          label="Pending Review"
+-          value={pending.length}
+-          sub="In your queue"
++          label="Scans"
++          value={queue.length}
++          sub="Most recent uploads"
+           icon={<ImageIcon size={18} />}
+           accent="blue"
+         />
+         <StatCard
+           label="Urgent"
+-          value={urgent.length}
+-          sub="High priority"
++          value={hasPriority ? urgent.length : "—"}
++          sub={hasPriority ? "High priority" : "Not tracked yet"}
+           icon={<AlertTriangle size={18} />}
+           accent="amber"
+         />
+         <StatCard
+           label="AI Flagged"
+-          value={flagged.length}
+-          sub="Possible findings"
++          value="—"
++          sub="Not tracked yet"
+           icon={<Activity size={18} />}
+           accent="red"
+         />
+         <StatCard
+           label="Reviewed Today"
+-          value={reviewed.length}
+-          sub="Signed off"
++          value="—"
++          sub="Not tracked yet"
+           icon={<CheckCircle2 size={18} />}
+           accent="green"
+         />
+@@ -181,7 +176,7 @@ export default function DashboardPage() {
+                 </h2>
+                 <div className="flex items-center gap-2 mt-1">
+                   <p className="text-brand-text-muted text-xs">
+-                    {pending.length} pending · {urgent.length} urgent
++                    {queue.length} scans
+                   </p>
+                   <span className="w-1 h-1 bg-brand-text-muted/40 rounded-full" />
+                   <p className="hidden sm:flex text-[10px] text-brand-primary font-bold  items-center gap-1">
+@@ -189,14 +184,6 @@ export default function DashboardPage() {
+                   </p>
+                 </div>
+               </div>
+-              <div className="flex items-center gap-2">
+-                <button className="text-brand-text-muted text-xs font-semibold hover:text-brand-primary transition-colors px-3 py-1.5 rounded-xl hover:bg-brand-border/40">
+-                  All
+-                </button>
+-                <button className="text-rose-400 text-xs font-extrabold bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-xl active:scale-95 transition-all">
+-                  Urgent first
+-                </button>
+-              </div>
+             </div>
+ 
+             {/* Table Head */}
+@@ -227,9 +214,12 @@ export default function DashboardPage() {
+               <p className="text-brand-text-muted/50 text-xs font-medium">
+                 Showing {queue.length} scans
+               </p>
+-              <button className="text-brand-primary text-xs font-bold hover:text-brand-primary-hover flex items-center gap-1 transition-colors">
+-                View full queue <ChevronRight size={14} />
+-              </button>
++              <Link
++                to="/neural-analysis"
++                className="text-brand-primary text-xs font-bold hover:text-brand-primary-hover flex items-center gap-1 transition-colors"
++              >
++                View all scans <ChevronRight size={14} />
++              </Link>
+             </div>
+           </div>
+         </div>
+@@ -237,8 +227,6 @@ export default function DashboardPage() {
+         {/* Right column */}
+         <div className="space-y-6">
+           <RecentPatients />
+-          <SystemStats />
+-          <ActivityLog />
+         </div>
+       </div>
+     </div>
+diff --git a/src/pages/OrganisationSignupPage.tsx b/src/pages/OrganisationSignupPage.tsx
+index ed97e06..56c6242 100644
+--- a/src/pages/OrganisationSignupPage.tsx
++++ b/src/pages/OrganisationSignupPage.tsx
+@@ -67,8 +67,10 @@ export default function OrganisationSignupPage() {
+     if (!formData.adminFullName.trim()) {
+       newErrors.adminFullName = "Full name is required";
+     }
+-    if (formData.password.length < 8) {
+-      newErrors.password = "Password must be at least 8 characters";
++    // backend rule: 10-72 bytes
++    const passwordBytes = new TextEncoder().encode(formData.password).length;
++    if (passwordBytes < 10 || passwordBytes > 72) {
++      newErrors.password = "Password must be 10–72 characters";
+     }
+     if (formData.password !== formData.confirmPassword) {
+       newErrors.confirmPassword = "Passwords do not match";
+@@ -100,7 +102,7 @@ export default function OrganisationSignupPage() {
+         read: false,
+         time: new Date().toISOString(),
+       });
+-      navigate("/verify-email", { state: { email: formData.workEmail } });
++      navigate("/pending-approval", { state: { email: formData.workEmail } });
+     } catch (err: any) {
+       setErrors((prev) => ({
+         ...prev,
+diff --git a/src/pages/PendingApprovalPage.tsx b/src/pages/PendingApprovalPage.tsx
+new file mode 100644
+index 0000000..30add26
+--- /dev/null
++++ b/src/pages/PendingApprovalPage.tsx
+@@ -0,0 +1,79 @@
++import { useEffect } from "react";
++import { useLocation, useNavigate } from "react-router-dom";
++import { Clock } from "lucide-react";
++
++export default function PendingApprovalPage() {
++  const navigate = useNavigate();
++  const location = useLocation();
++  const email = (location.state as { email?: string } | null)?.email;
++
++  useEffect(() => {
++    document.title = "Registration received - Mediscan AI";
++  }, []);
++
++  const steps = [
++    {
++      title: "An administrator reviews your request",
++      hint: "Accounts are approved manually",
++    },
++    {
++      title: "Your account is approved",
++      hint: "Until then you cannot sign in",
++    },
++    {
++      title: "Sign in",
++      hint: "Use the email and password you just registered with",
++    },
++  ];
++
++  return (
++    <div className="min-h-screen bg-brand-bg flex items-center justify-center px-4 py-12">
++      <div className="w-full max-w-md">
++        <div className="bg-brand-card rounded-3xl border border-brand-border p-8 space-y-8">
++          <div className="text-center space-y-4">
++            <div className="flex justify-center">
++              <div className="w-20 h-20 rounded-3xl flex items-center justify-center bg-linear-to-br from-brand-primary to-brand-secondary">
++                <Clock className="text-brand-bg" size={44} />
++              </div>
++            </div>
++            <h1 className="text-3xl font-bold text-brand-text">
++              Registration received
++            </h1>
++            <div className="text-brand-text space-y-2">
++              {email && (
++                <p className="font-semibold text-brand-primary break-all">
++                  {email}
++                </p>
++              )}
++              <p className="text-sm leading-relaxed">
++                An administrator must approve your account before you can sign
++                in.
++              </p>
++            </div>
++          </div>
++
++          <div className="space-y-3">
++            {steps.map((s, i) => (
++              <div key={s.title} className="flex gap-4 items-start">
++                <div className="w-8 h-8 bg-brand-primary text-brand-bg rounded-full flex items-center justify-center shrink-0 font-semibold text-sm">
++                  {i + 1}
++                </div>
++                <div>
++                  <p className="font-medium text-brand-text">{s.title}</p>
++                  <p className="text-sm text-[#8c91a8]">{s.hint}</p>
++                </div>
++              </div>
++            ))}
++          </div>
++
++          <button
++            onClick={() => navigate("/login")}
++            className="w-full text-brand-bg bg-linear-to-r from-brand-primary to-brand-secondary cursor-pointer py-3 rounded-xl font-semibold text-sm"
++          >
++            Back to sign in
++          </button>
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/src/pages/SettingsPage.tsx b/src/pages/SettingsPage.tsx
+index 8b9d673..c55bfc7 100644
+--- a/src/pages/SettingsPage.tsx
++++ b/src/pages/SettingsPage.tsx
+@@ -13,12 +13,15 @@ import {
+ 	defaultsData,
+ 	notificationSettings,
+ 	orgData,
+-	profileData,
+ 	radiologists,
+-	userRole,
+ } from "../utils/DummyData";
++import { useAuth } from "../contexts/AuthContext";
+ 
+ export default function SettingsPage() {
++	const { user } = useAuth();
++	// Backend roles are "admin" | "clinician"; there is no radiologist role yet.
++	const userRole: "org-admin" | "clinician" =
++		user?.role === "admin" ? "org-admin" : "clinician";
+ 	//Set Previous page for the 404 back button handler to check
+ 	sessionStorage.setItem("lastPage", window.location.href);
+ 
+@@ -72,12 +75,24 @@ export default function SettingsPage() {
+ 				<TopBar onMenuClick={() => setIsSidebarOpen(true)} />
+ 
+ 				<main className="pt-16 p-4 sm:p-8 mt-5">
++					<div className="mb-6 bg-amber-500/5 border border-amber-500/20 text-amber-500 text-xs rounded-xl px-4 py-3 leading-snug">
++						<span className="font-bold uppercase tracking-wider mr-1">
++							Preview:
++						</span>
++						Settings are not connected to the backend yet. Your name and email
++						are real; everything else is sample data, and changes are not saved.
++					</div>
+ 					<div className="flex gap-6">
+ 						{/* Content Area */}
+ 						<div className="flex-1 min-w-0">
+ 							{activeSection === "profile" && (
+ 								<MyProfileSection
+-									initialData={profileData}
++									initialData={{
++										fullName: user?.full_name ?? "",
++										jobTitle: "",
++										email: user?.email ?? "",
++										phoneNumber: "",
++									}}
+ 									onSave={handleSaveProfile}
+ 								/>
+ 							)}

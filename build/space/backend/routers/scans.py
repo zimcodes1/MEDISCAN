@@ -22,11 +22,23 @@ router = APIRouter(prefix="/scans", tags=["scans"])
 
 @router.get("", response_model=list[ScanOut])
 async def list_scans(
-    patient_id: uuid.UUID | None = Query(None),
+    # Accept stringy query values (including "null" or empty) and coerce to UUID|None
+    patient_id_raw: str | None = Query(None, alias="patient_id"),
     limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
+    # Normalize common client-side encodings for "no patient": null, "null", ""
+    patient_id: uuid.UUID | None
+    if patient_id_raw is None or patient_id_raw == "null" or patient_id_raw == "":
+        patient_id = None
+    else:
+        try:
+            patient_id = uuid.UUID(patient_id_raw)
+        except Exception:
+            # Let downstream validation raise a clear 422 if UUID format is bad
+            raise AppError(422, "Invalid patient_id")
+
     if patient_id is None:
         scans = await scan_service.list_all_scans(session, user, limit, offset)
     else:

@@ -1,4 +1,4 @@
-# MediScan API additions: frontend contract (v2)
+# MediScan API additions: frontend contract (v3)
 
 Everything here is **new or changed** relative to `backend-api.md`. The frontend is built to this file; the backend should implement it as written.
 
@@ -42,7 +42,7 @@ Patients, scans and everything derived from them are scoped per organisation.
 | `reviewed_by` | `{id, full_name} \| null` | |
 | `is_flagged` | `boolean` | computed, not stored; see below |
 
-**Flagging.** A scan is flagged when any **non-experimental** finding has `score >= threshold(condition)`.
+**Flagging.** A finding is flagged (`flagged: true` on each finding in `ScanOut`) when it is **non-experimental** and `score >= threshold(condition)`. A scan is flagged (`is_flagged`) when any of its findings is flagged.
 `FLAG_THRESHOLDS` is a config map of condition to score, with `FLAG_DEFAULT_THRESHOLD` for conditions not listed. Scores are raw model outputs (not calibrated probabilities), so thresholds are operating points: choose each one from that model's validation results at the sensitivity you want, not from a general rule. Treat any placeholder value as unreviewed until a clinician signs it off.
 
 ## 2. `POST /predict`: extra optional form fields
@@ -85,20 +85,37 @@ Scoped to the caller's organisation. `urgent` and `flagged` count scans still pe
 
 ## 7. Reports
 
+One report per scan. The report body is structured, matching the report form in the UI (nothing is flattened into free text).
+
 ```json
 {
   "id": "uuid", "scan_id": "uuid",
   "author": { "id": "uuid", "full_name": "string" },
   "status": "draft | final",
-  "findings": "string", "impression": "string", "recommendations": "string",
+  "lung_fields": ["consolidation", "increased-opacity"],
+  "affected_side": "left | right | bilateral | na | null",
+  "severity": "mild | moderate | severe | null",
+  "detailed_findings": "string",
+  "primary_impression": "normal | pneumonia-bacterial | pneumonia-viral | tuberculosis | cardiomegaly | lung-nodule-mass | pleural-effusion | other | null",
+  "secondary_findings": "string",
+  "impression_narrative": "string",
+  "recommended_action": "no-action | follow-up-xray | ct-scan | immediate-review | refer-specialist | null",
+  "follow_up_timeframe": 7,
+  "follow_up_unit": "days | weeks | months | null",
+  "additional_notes": "string",
+  "ai_agreement": "agree | partially-agree | disagree | null",
+  "ai_disagreement_reason": "string | null",
   "created_at": "datetime", "updated_at": "datetime", "finalised_at": "datetime | null"
 }
 ```
 
-- `GET /scans/{id}/report` returns the report, or 404 if none.
-- `PUT /scans/{id}/report` with `{findings, impression, recommendations}` creates or updates the draft. Returns 409 if already final.
-- `POST /scans/{id}/report/finalise` sets status `final` and marks the scan `reviewed`.
-- `GET /reports?status=&limit=&offset=` returns a list; each item also carries `patient_code`.
+`lung_fields` values: `clear`, `consolidation`, `increased-opacity`, `pleural-effusion`, `possible-nodule-mass`, `other`. Text fields are capped (suggest 5000 chars) and are patient data: never log them.
+
+- `GET /scans/{id}/report` returns the report, or 404 if none yet.
+- `PUT /scans/{id}/report` takes every field above except `id`, `scan_id`, `author`, `status` and the timestamps (all optional), and creates or updates the **draft**. Returns the report. 409 if the report is already final.
+- `POST /scans/{id}/report/finalise` validates, sets status `final`, sets `finalised_at` and marks the scan `reviewed`. Returns the report. Once final, a report is immutable. Validation (422, `detail` listing what is missing): `primary_impression`, `recommended_action` and `ai_agreement` are required, and `ai_disagreement_reason` is required unless `ai_agreement` is `agree`.
+- `GET /reports?status=&limit=&offset=` returns summaries, newest first: `{id, scan_id, patient_code, status, author, primary_impression, created_at, updated_at, finalised_at}`.
+- Reports are scoped to the caller's organisation through the scan (section 0).
 
 ## 8. Users and profile
 

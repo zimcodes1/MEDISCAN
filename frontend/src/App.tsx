@@ -8,6 +8,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import OrganisationSignupPage from "./pages/OrganisationSignupPage";
 import PendingApprovalPage from "./pages/PendingApprovalPage";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
 import OrgOnboardingPage from "./pages/OrgOnboardingPage";
 import StaffInviteAcceptancePage from "./pages/StaffInviteAcceptancePage";
 import DashboardPage from "./pages/DashboardPage";
@@ -22,6 +23,7 @@ import PatientsPage from "./pages/PatientsPage";
 import NewPatientPage from "./pages/NewPatientPage";
 import PatientDetailPage from "./pages/PatientDetailPage";
 import LostPage from "./pages/404";
+import { DEMO_SIGNUP_FLOW } from "./lib/features";
 
 function App() {
 	return (
@@ -31,10 +33,17 @@ function App() {
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/signup" element={<OrganisationSignupPage />} />
 				<Route path="/pending-approval" element={<PendingApprovalPage />} />
-				{/* the backend approves accounts manually; there is no email verification */}
+				{/* The backend approves accounts manually; there is no email verification.
+				    The old prototype page is only reachable with VITE_DEMO_SIGNUP_FLOW=1. */}
 				<Route
 					path="/verify-email"
-					element={<Navigate to="/pending-approval" replace />}
+					element={
+						DEMO_SIGNUP_FLOW ? (
+							<EmailVerificationPage />
+						) : (
+							<Navigate to="/pending-approval" replace />
+						)
+					}
 				/>
 				<Route path="/onboarding" element={<OrgOnboardingPage />} />
 				<Route

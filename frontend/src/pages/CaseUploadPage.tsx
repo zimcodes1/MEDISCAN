@@ -69,10 +69,16 @@ export default function CaseUploadPage() {
     setImageFile(file);
   };
 
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const handleSubmit = async () => {
-    if (!selectedPatient || !imageFile) return;
+    if (!selectedPatient || !imageFile || uploading) return;
+    setUploading(true);
+    setProgress(0);
+    setUploadError(null);
     try {
-      if (!imageFile) throw new Error("No image file selected");
       const result = await predict(
         imageFile,
         selectedPatient?.id ?? undefined,
@@ -87,6 +93,7 @@ export default function CaseUploadPage() {
               assignedToId: assignedRadiologist || undefined,
             }
           : undefined,
+        setProgress,
       );
       if (result.saved) {
         setUploadSuccess(true);
@@ -98,12 +105,17 @@ export default function CaseUploadPage() {
           time: new Date().toLocaleTimeString(),
         });
       }
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setUploadError(message);
       add({
         id: String(Date.now()),
-        message: `Upload failed: ${err.message}`,
+        message: `Upload failed: ${message}`,
         time: new Date().toLocaleTimeString(),
       });
+    } finally {
+      setUploading(false);
+      setProgress(null);
     }
   };
 
@@ -175,14 +187,35 @@ export default function CaseUploadPage() {
             />
 
             {/* Submit Button */}
+            {uploadError && (
+              <p
+                role="alert"
+                className="text-rose-400 text-sm bg-rose-500/5 border border-rose-500/20 rounded-xl px-4 py-3 break-words"
+              >
+                Upload failed: {uploadError}
+              </p>
+            )}
             <button
               onClick={handleSubmit}
-              disabled={!isFormValid}
-              className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300"
+              disabled={!isFormValid || uploading}
+              className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:active:scale-100"
             >
               <Upload size={18} />
-              Upload
+              {uploading
+                ? progress !== null && progress < 100
+                  ? `Uploading… ${progress}%`
+                  : "Analysing…"
+                : "Upload"}
             </button>
+            {!isFormValid && !uploading && (
+              <p className="text-amber-500 text-xs leading-snug">
+                Select{" "}
+                {[!selectedPatient && "a patient", !imageFile && "an image"]
+                  .filter(Boolean)
+                  .join(" and ")}{" "}
+                to upload.
+              </p>
+            )}
           </div>
         </div>
       )}
