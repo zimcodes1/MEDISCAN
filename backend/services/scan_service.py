@@ -101,6 +101,11 @@ async def save_scan(
             assigned_to_id=assignee_id,
         )
         session.add(scan)
+        # Write the scan and its findings first. The feed entry below points at the
+        # scan by foreign key only (no ORM relationship), so SQLAlchemy would not
+        # order the inserts for us, and Postgres rejects a row that points at a
+        # scan that does not exist yet.
+        await session.flush()
         audit(session, "scan.create", user_id=user_id,
               resource_type="scan", resource_id=scan_id, ip=ip)
         activity_service.record(

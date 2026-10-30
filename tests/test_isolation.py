@@ -179,3 +179,11 @@ async def test_legacy_register_joins_default_org_as_pending(client, db):
     users = (await client.get("/admin/users", headers=admin)).json()
     assert [u["email"] for u in users] == ["newbie@example.com"]  # pending list
     assert (await login(client, "newbie@example.com")).status_code == 403
+
+
+async def test_the_test_database_enforces_foreign_keys(db):
+    """Postgres enforces foreign keys, so the test database must too. Without it,
+    insert-order bugs pass here and fail in production."""
+    from sqlalchemy import text
+    async with db() as s:
+        assert (await s.execute(text("PRAGMA foreign_keys"))).scalar() == 1

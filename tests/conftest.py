@@ -11,6 +11,7 @@ import pytest  # noqa: E402
 import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from moto import mock_aws  # noqa: E402
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
 from sqlmodel import SQLModel  # noqa: E402
@@ -38,6 +39,13 @@ def _reset_rate_limits():
 async def db():
     """Session factory bound to a fresh in-memory database."""
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", poolclass=StaticPool)
+
+    @event.listens_for(engine.sync_engine, "connect")
+    def _fk_on(dbapi_conn, _):
+        # SQLite ignores foreign keys unless asked. Postgres (production) enforces
+        # them, so the tests must too, or insert-order bugs only show up live.
+        dbapi_conn.execute("PRAGMA foreign_keys=ON")
+
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
