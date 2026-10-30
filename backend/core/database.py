@@ -10,7 +10,13 @@ settings = get_settings()
 
 
 def _build_engine() -> AsyncEngine:
-    kwargs: dict = {"echo": settings.debug, "pool_pre_ping": True}
+    kwargs: dict = {
+        "echo": settings.debug,
+        "pool_pre_ping": True,
+        # Never put bound values in SQL logs or exception text: they hold patient
+        # data (clinical notes, report text). Statements are still logged.
+        "hide_parameters": True,
+    }
     connect_args: dict = {}
 
     if settings.db_is_postgres:

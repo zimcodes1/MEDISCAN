@@ -9,7 +9,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from backend.core.errors import AppError
 from backend.core.flagging import flagged_scan_clause
-from backend.models import Finding, Patient, Scan, ScanStatus, User
+from backend.models import Finding, Patient, Report, Scan, ScanStatus, User
 from backend.models.base import utcnow
 from backend.schemas.scan import ScanOut, ScanUpdate
 from backend.services import activity_service
@@ -65,7 +65,7 @@ async def save_scan(
     meta = meta or ScanMeta()
     # rollback() expires ORM objects, so keep plain values for after the try.
     user_id, patient_id, org_id = user.id, patient.id, patient.organisation_id
-    actor_name, code = user.full_name, patient.patient_code
+    code = patient.patient_code
     assignee_id = assignee.id if assignee else None
     assignee_name = assignee.full_name if assignee else None
     scan_id = uuid.uuid4()
@@ -105,13 +105,13 @@ async def save_scan(
               resource_type="scan", resource_id=scan_id, ip=ip)
         activity_service.record(
             session, organisation_id=org_id, type="scan_uploaded", actor_id=user_id,
-            scan_id=scan_id, message=f"{actor_name} uploaded a scan for {code}",
+            scan_id=scan_id, message=f"Scan uploaded for {code}",
         )
         if assignee_id:
             activity_service.record(
                 session, organisation_id=org_id, type="scan_assigned", actor_id=user_id,
                 scan_id=scan_id,
-                message=f"{actor_name} assigned a scan for {code} to {assignee_name}",
+                message=f"Scan for {code} assigned to {assignee_name}",
             )
         await session.commit()
         return scan
@@ -182,7 +182,7 @@ async def update_scan(
     if not fields:
         raise AppError(422, "No fields to update")
     patient = await session.get(Patient, scan.patient_id)
-    code, actor_name, org_id, sid = patient.patient_code, user.full_name, user.organisation_id, scan.id
+    code, org_id, sid = patient.patient_code, user.organisation_id, scan.id
 
     if "priority" in fields:
         scan.priority = body.priority
@@ -196,7 +196,7 @@ async def update_scan(
                 activity_service.record(
                     session, organisation_id=org_id, type="scan_assigned", actor_id=user.id,
                     scan_id=sid,
-                    message=f"{actor_name} assigned a scan for {code} to {assignee.full_name}",
+                    message=f"Scan for {code} assigned to {assignee.full_name}",
                 )
             scan.assigned_to_id = assignee.id
 
@@ -208,10 +208,14 @@ async def update_scan(
                 scan.reviewed_by_id = user.id
                 activity_service.record(
                     session, organisation_id=org_id, type="scan_reviewed", actor_id=user.id,
-                    scan_id=sid, message=f"{actor_name} marked the scan for {code} as reviewed",
+                    scan_id=sid, message=f"Scan for {code} marked as reviewed",
                 )
         else:
-            # Phase 3: refuse this once a final report exists for the scan.
+            final = (await session.exec(
+                select(Report.id).where(Report.scan_id == sid, Report.status == "final")
+            )).first()
+            if final is not None:
+                raise AppError(409, "A finalised report exists, so the scan stays reviewed")
             scan.review_status = "pending"
             scan.reviewed_at = None
             scan.reviewed_by_id = None

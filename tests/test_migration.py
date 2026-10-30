@@ -40,6 +40,9 @@ def test_upgrade_backfills_and_downgrade_restores():
     assert c.execute("select priority, review_status, assigned_to_id, reviewed_by_id from scans").fetchone() \
         == ("routine", "pending", None, None)
     assert c.execute("select 1 from sqlite_master where name='activities'").fetchone()
+    # 0005: reports table, one report per scan
+    assert c.execute("select 1 from sqlite_master where name='reports'").fetchone()
+    assert "unique" in c.execute("select sql from sqlite_master where name='reports'").fetchone()[0].lower()
     c.close()
 
     _alembic(db, "downgrade", "0002")
@@ -49,3 +52,4 @@ def test_upgrade_backfills_and_downgrade_restores():
     assert "organisation_id" not in cols and "is_platform_admin" not in cols
     assert not c.execute("select 1 from sqlite_master where name='organisations'").fetchone()
     assert not c.execute("select 1 from sqlite_master where name='activities'").fetchone()
+    assert not c.execute("select 1 from sqlite_master where name='reports'").fetchone()

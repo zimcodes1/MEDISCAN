@@ -208,7 +208,7 @@ async def approve_user(session: AsyncSession, admin: User, user_id: uuid.UUID, i
         from backend.services import activity_service  # local import: avoids a cycle
         activity_service.record(
             session, organisation_id=user.organisation_id, type="user_joined",
-            actor_id=user.id, message=f"{user.full_name} joined the organisation",
+            actor_id=user.id, message="Joined the organisation",
         )
     await session.commit()
     return user
