@@ -3,18 +3,20 @@ export const API_SHIM =
   import.meta.env.DEV && import.meta.env.VITE_API_SHIM === "1";
 
 /**
- * True when the backend implements the scan-workflow part of api-contract.md
- * (scan priority / assignment / review fields, /staff, /dashboard/stats,
- * /activity). Set VITE_SCAN_WORKFLOW=1 in .env.local once it does.
+ * Scan workflow (api-contract.md sections 1-6: scan priority / assignment /
+ * review fields, /staff, /dashboard/stats, /activity). The deployed backend
+ * implements it, so it is ON by default. Set VITE_SCAN_WORKFLOW=0 to switch it
+ * off, e.g. when pointing the app at an older backend.
  */
 export const SCAN_WORKFLOW =
-  API_SHIM || import.meta.env.VITE_SCAN_WORKFLOW === "1";
+  API_SHIM || import.meta.env.VITE_SCAN_WORKFLOW !== "0";
 
 /**
- * True when the backend implements reports (api-contract.md section 7).
- * Set VITE_REPORTS=1 in .env.local once it does.
+ * Reports (api-contract.md section 7). The deployed backend implements it, so
+ * it is ON by default. Set VITE_REPORTS=0 to switch it off against an older
+ * backend.
  */
-export const REPORTS = API_SHIM || import.meta.env.VITE_REPORTS === "1";
+export const REPORTS = API_SHIM || import.meta.env.VITE_REPORTS !== "0";
 
 /**
  * Restores the ORIGINAL signup flow: signup -> "Verify Your Email" -> onboarding.
