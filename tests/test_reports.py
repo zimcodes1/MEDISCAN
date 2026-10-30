@@ -1,5 +1,4 @@
 """Structured reports: draft, finalise, immutability, scoping, privacy."""
-import asyncio
 import logging
 
 import pytest
@@ -137,14 +136,43 @@ async def test_unknown_fields_cannot_set_status_or_ownership(client, team):
     assert body["author"]["id"] == team.doc_id and body["finalised_at"] is None
 
 
-async def test_two_simultaneous_first_saves_make_one_report(client, db, team):
-    a, b = await asyncio.gather(
-        client.put(url(team.scan), headers=team.doc, json={"severity": "mild"}),
-        client.put(url(team.scan), headers=team.rad, json={"affected_side": "left"}),
-    )
-    assert a.status_code == 200 and b.status_code == 200
+@pytest.mark.parametrize("winner_status,expected", [("draft", 200), ("final", 409)])
+async def test_losing_a_first_save_race_updates_the_winners_report(
+    client, db, team, monkeypatch, winner_status, expected
+):
+    """Another request creates the report between this request's "is there one?"
+    check and its insert. Deterministic on purpose: the test database runs every
+    session over one shared connection, so truly simultaneous requests cannot be
+    reproduced reliably here, whereas Postgres uses separate connections."""
+    from backend.services import report_service
+
+    real_find = report_service._find
+    calls = {"n": 0}
+
+    async def racing_find(session, scan_id, lock=False):
+        calls["n"] += 1
+        found = await real_find(session, scan_id, lock)  # nothing there yet
+        if calls["n"] == 1:  # the competing request wins: its report commits first
+            async with db() as other:
+                other.add(Report(
+                    scan_id=scan_id, organisation_id=team.org_a.id,
+                    author_id=uuid.UUID(team.rad_id), severity="mild", status=winner_status,
+                ))
+                await other.commit()
+        return found
+
+    monkeypatch.setattr(report_service, "_find", racing_find)
+    r = await client.put(url(team.scan), headers=team.doc, json={"affected_side": "left"})
+    assert r.status_code == expected
     async with db() as s:
-        assert len((await s.exec(select(Report))).all()) == 1
+        rows = (await s.exec(select(Report))).all()
+    assert len(rows) == 1  # never two reports for one scan
+    if expected == 200:
+        body = r.json()
+        assert body["severity"] == "mild" and body["affected_side"] == "left"  # both saves kept
+        assert body["author"]["id"] == team.rad_id  # the winner stays the author
+    else:
+        assert rows[0].affected_side is None  # a final report is not touched
 
 
 # ----------------------------------------------------------------- finalise
