@@ -28,6 +28,10 @@ class User(SQLModel, table=True):
     organisation_id: uuid.UUID = Field(
         foreign_key="organisations.id", index=True, nullable=False, ondelete="RESTRICT"
     )
+    # Profile. The avatar is stored in object storage; only its key lives here.
+    job_title: str | None = Field(default=None, sa_type=String(100))
+    phone_number: str | None = Field(default=None, sa_type=String(20))
+    avatar_key: str | None = Field(default=None, sa_type=String(200))
     # The platform operator who approves new organisations. Separate from the
     # organisation `admin` role; grants no access to other organisations' data.
     is_platform_admin: bool = Field(default=False, nullable=False)
@@ -44,3 +48,13 @@ class User(SQLModel, table=True):
         nullable=False,
         sa_column_kwargs={"onupdate": utcnow},
     )
+
+    @property
+    def avatar_url(self) -> str | None:
+        """Relative URL of the picture. `v` is a content hash, so a new upload gets
+        a new URL and browsers never show a stale picture."""
+        if not self.avatar_key:
+            return None
+        version = self.avatar_key.rsplit("/", 1)[-1].removesuffix(".png")
+        return f"/users/{self.id}/avatar?v={version}"
+

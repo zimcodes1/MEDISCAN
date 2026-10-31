@@ -27,11 +27,13 @@ async def default_org(db) -> Organisation:
 
 
 async def make_user(db, email="dr@example.com", *, role=UserRole.clinician,
-                    approved=True, active=True, org=None, full_name="Dr X") -> User:
+                    approved=True, active=True, org=None, full_name="Dr X",
+                    platform_admin=False) -> User:
     org = org or await default_org(db)
     async with db() as s:
         u = User(email=email, full_name=full_name, hashed_password=security.hash_password(PW),
-                 role=role, is_approved=approved, is_active=active, organisation_id=org.id)
+                 role=role, is_approved=approved, is_active=active, organisation_id=org.id,
+                 is_platform_admin=platform_admin)
         s.add(u)
         await s.commit()
         return u
@@ -46,9 +48,10 @@ def bearer(token: str) -> dict:
 
 
 async def token_for(client, db, email="dr@example.com", role=UserRole.clinician, org=None,
-                    full_name="Dr X") -> dict:
+                    full_name="Dr X", platform_admin=False) -> dict:
     """Create an approved user, log in, return ready-to-use auth headers."""
-    await make_user(db, email, role=role, org=org, full_name=full_name)
+    await make_user(db, email, role=role, org=org, full_name=full_name,
+                    platform_admin=platform_admin)
     return bearer((await login(client, email)).json()["access_token"])
 
 
@@ -116,3 +119,39 @@ async def make_scan(db, *, org_id, patient_id, uploader_id, scores=None, experim
         ))
         await s.commit()
     return str(scan_id)
+
+
+def gif_bytes(size=(64, 64)) -> bytes:
+    im = Image.new("P", size, 1)
+    buf = io.BytesIO()
+    im.save(buf, "GIF")
+    return buf.getvalue()
+
+
+def big_png_bytes(size=(1600, 1000)) -> bytes:
+    """Larger than the 512 px stored size, so the picture must be scaled down."""
+    im = Image.new("RGB", size, (30, 90, 160))
+    buf = io.BytesIO()
+    im.save(buf, "PNG")
+    return buf.getvalue()
+
+
+def noisy_png_bytes(size=(1000, 1000)) -> bytes:
+    """Incompressible: well over 2 MB, to test the upload size limit."""
+    import os
+    im = Image.frombytes("RGB", size, os.urandom(size[0] * size[1] * 3))
+    buf = io.BytesIO()
+    im.save(buf, "PNG")
+    return buf.getvalue()
+
+
+def bomb_png_bytes(size=(6000, 6000)) -> bytes:
+    """Tiny file, 36 million pixels once decoded: refused from the header alone."""
+    im = Image.new("L", size, 0)
+    buf = io.BytesIO()
+    im.save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
+def pic(data: bytes, name="p.png", mime="image/png") -> dict:
+    return {"file": (name, data, mime)}

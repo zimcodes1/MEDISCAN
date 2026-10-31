@@ -48,6 +48,18 @@ class Settings(BaseSettings):
     }
     flag_default_threshold: float = 0.5  # conditions not listed above
 
+    # POST /auth/register (pending sign-up into the default organisation) predates
+    # invitations and organisation registration. Keep it on until the web app has
+    # switched to /auth/register-organisation and invitations, then set this to false.
+    legacy_register_enabled: bool = True
+
+    # --- Invitations and profile images ---
+    # Base address of the web app; invite links are built from it (set FRONTEND_URL).
+    frontend_url: str = "https://mediscan-ng.vercel.app"
+    invite_expire_days: int = 7
+    profile_image_max_mb: int = 2          # avatars and organisation logos
+    profile_image_max_side_px: int = 512   # stored size; larger uploads are scaled down
+
     # --- Tenancy ---
     # Name of the organisation created by migration 0003 for pre-existing data.
     # TEMPORARY: until invitations/org registration ship, POST /auth/register

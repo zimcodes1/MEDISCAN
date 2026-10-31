@@ -56,3 +56,13 @@ def get_inference(request: Request) -> InferenceService:
 
 def get_storage(request: Request) -> StorageService:
     return request.app.state.storage
+
+
+async def require_platform_admin(user: User = Depends(get_current_user)) -> User:
+    """The platform operator who approves organisations. Not the same thing as an
+    organisation's `admin` role, and it grants no access to other organisations'
+    patient data."""
+    if not user.is_platform_admin:
+        raise AuthError(403, "Insufficient permissions")
+    return user
+

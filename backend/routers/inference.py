@@ -16,7 +16,7 @@ from backend.core.deps import get_current_user, get_inference, get_storage
 from backend.core.errors import AppError
 from backend.core.net import client_ip
 from backend.core.rate_limit import PREDICT_INFLIGHT, PREDICT_PER_USER, WARMUP_PER_USER
-from backend.models import User
+from backend.models import Organisation, User
 from backend.schemas.inference import FindingOut, PredictResponse
 from backend.services import scan_service
 from backend.services.inference_service import InferenceService
@@ -67,8 +67,14 @@ async def predict(
         # Fail fast on access before doing any expensive work.
         patient = await get_accessible_patient(session, user, patient_id) if patient_id else None
         assignee = None
-        if patient is not None and assigned_to_id is not None:
-            assignee = await scan_service.validate_assignee(session, user, assigned_to_id)
+        effective_priority = priority or "routine"
+        if patient is not None:
+            org = await session.get(Organisation, user.organisation_id)
+            effective_priority = priority or org.default_priority  # organisation default
+            if assigned_to_id is not None:
+                assignee = await scan_service.validate_assignee(session, user, assigned_to_id)
+            elif org.auto_assign_to_id is not None:  # organisation auto-assign, if still valid
+                assignee = await scan_service.usable_assignee(session, user, org.auto_assign_to_id)
 
         raw = await read_upload(file, settings.max_upload_bytes)
         validated = await run_in_threadpool(
@@ -94,7 +100,7 @@ async def predict(
                 image_png=validated.png_bytes, image_sha256=validated.sha256,
                 results=results, ip=client_ip(request),
                 meta=scan_service.ScanMeta(
-                    priority=priority or "routine", projection=projection,
+                    priority=effective_priority, projection=projection,
                     exam_date=exam_date, clinical_notes=clinical_notes,
                     assigned_to_id=assignee.id if assignee else None,
                 ),

@@ -43,6 +43,12 @@ def test_upgrade_backfills_and_downgrade_restores():
     # 0005: reports table, one report per scan
     assert c.execute("select 1 from sqlite_master where name='reports'").fetchone()
     assert "unique" in c.execute("select sql from sqlite_master where name='reports'").fetchone()[0].lower()
+    # 0006: profile columns, organisation settings with safe defaults, invitations
+    assert c.execute("select job_title, phone_number, avatar_key from users").fetchone() == (None, None, None)
+    assert c.execute(
+        "select logo_key, radiologist_count, default_priority, auto_assign_to_id, report_disclaimer"
+        " from organisations").fetchone() == (None, None, "routine", None, "")
+    assert "unique" in c.execute("select sql from sqlite_master where name='invites'").fetchone()[0].lower()
     c.close()
 
     _alembic(db, "downgrade", "0002")
@@ -53,3 +59,5 @@ def test_upgrade_backfills_and_downgrade_restores():
     assert not c.execute("select 1 from sqlite_master where name='organisations'").fetchone()
     assert not c.execute("select 1 from sqlite_master where name='activities'").fetchone()
     assert not c.execute("select 1 from sqlite_master where name='reports'").fetchone()
+    assert not c.execute("select 1 from sqlite_master where name='invites'").fetchone()
+    assert "avatar_key" not in cols and "job_title" not in cols

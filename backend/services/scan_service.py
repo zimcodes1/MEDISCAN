@@ -43,6 +43,15 @@ async def validate_assignee(session: AsyncSession, user: User, assignee_id: uuid
     return assignee
 
 
+async def usable_assignee(session: AsyncSession, user: User, assignee_id: uuid.UUID) -> User | None:
+    """Like validate_assignee, but returns None instead of failing: used for the
+    organisation's auto-assign setting, which may name someone who has since left."""
+    try:
+        return await validate_assignee(session, user, assignee_id)
+    except AppError:
+        return None
+
+
 def _slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 

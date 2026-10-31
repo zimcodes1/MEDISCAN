@@ -10,7 +10,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from backend.core import security
 from backend.core.config import get_settings
 from backend.core.errors import AuthError
-from backend.models import AuditLog, Organisation, RefreshToken, User
+from backend.models import AuditLog, Organisation, RefreshToken, User, UserRole
 from backend.models.base import utcnow
 from backend.schemas.auth import TokenResponse
 
@@ -218,6 +218,17 @@ async def deactivate_user(session: AsyncSession, admin: User, user_id: uuid.UUID
     if admin.id == user_id:
         raise AuthError(400, "You cannot deactivate your own account")
     user = await _get_user_or_404(session, admin, user_id)
+    if UserRole(user.role) == UserRole.admin and user.is_active:
+        # An organisation must always keep an active admin. The rows are locked so two
+        # simultaneous deactivations cannot both pass this check.
+        active_admins = (await session.exec(
+            select(User.id).where(
+                User.organisation_id == user.organisation_id, User.role == UserRole.admin,
+                User.is_active.is_(True), User.is_approved.is_(True),
+            ).with_for_update()
+        )).all()
+        if not [i for i in active_admins if i != user.id]:
+            raise AuthError(409, "You cannot deactivate the last active administrator")
     user.is_active = False
     await revoke_all_for_user(session, user.id)
     audit(session, "user.deactivate", user_id=admin.id, resource_id=user.id, ip=ip)

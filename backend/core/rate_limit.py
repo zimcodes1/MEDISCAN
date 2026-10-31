@@ -110,9 +110,14 @@ PREDICT_PER_USER = SlidingWindowLimiter("predict_user", 10, 60)
 PREDICT_INFLIGHT = InFlightLimiter("predict_inflight")
 IMAGE_PER_USER = SlidingWindowLimiter("image_user", 120, 60)  # image + heatmap reads
 WARMUP_PER_USER = SlidingWindowLimiter("warmup_user", 6, 60)
+REGISTER_ORG_PER_IP = SlidingWindowLimiter("register_org_ip", 5, 60 * 60)
+ACCEPT_INVITE_PER_IP = SlidingWindowLimiter("accept_invite_ip", 20, 60 * 60)
+PASSWORD_CHANGE_PER_USER = SlidingWindowLimiter("password_change_user", 5, 15 * 60)
+PROFILE_IMAGE_PER_USER = SlidingWindowLimiter("profile_image_user", 10, 60 * 60)  # avatars + logos
 
 _ALL = [LOGIN_PER_IP, LOGIN_PER_ACCOUNT, REGISTER_PER_IP, REFRESH_PER_IP,
-        PREDICT_PER_USER, PREDICT_INFLIGHT, IMAGE_PER_USER, WARMUP_PER_USER]
+        PREDICT_PER_USER, PREDICT_INFLIGHT, IMAGE_PER_USER, WARMUP_PER_USER,
+        REGISTER_ORG_PER_IP, ACCEPT_INVITE_PER_IP, PASSWORD_CHANGE_PER_USER, PROFILE_IMAGE_PER_USER]
 
 
 def reset_all() -> None:

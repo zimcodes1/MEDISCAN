@@ -1,3 +1,4 @@
+import re
 import uuid
 from datetime import datetime
 
@@ -49,3 +50,70 @@ class UserPublic(BaseModel):
     is_approved: bool
     is_active: bool
     created_at: datetime
+    job_title: str | None = None
+    phone_number: str | None = None
+    avatar_url: str | None = None
+    is_platform_admin: bool = False
+
+
+class OrgRef(BaseModel):
+    id: uuid.UUID
+    name: str
+
+
+class MeOut(UserPublic):
+    organisation: OrgRef
+
+
+_USER_PHONE = re.compile(r"^\+?[0-9][0-9 ()\-]{6,19}$")
+
+
+class ProfileUpdate(BaseModel):
+    """PATCH /auth/me. Only the fields sent change; `null` clears a title or phone."""
+
+    full_name: str | None = Field(default=None, min_length=1, max_length=200)
+    job_title: str | None = Field(default=None, max_length=100)
+    phone_number: str | None = Field(default=None, max_length=20)
+
+    @field_validator("full_name")
+    @classmethod
+    def _name(cls, v):
+        if v is None:
+            raise ValueError("must not be null")
+        v = v.strip()
+        if not v:
+            raise ValueError("must not be blank")
+        return v
+
+    @field_validator("phone_number")
+    @classmethod
+    def _phone(cls, v):
+        if v is None:
+            return v
+        v = v.strip()
+        if v == "":
+            return None
+        if not _USER_PHONE.match(v):
+            raise ValueError("Enter a valid phone number")
+        return v
+
+    @field_validator("job_title")
+    @classmethod
+    def _title(cls, v):
+        return (v.strip() or None) if v is not None else v
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=10, max_length=72)
+
+    @field_validator("new_password")
+    @classmethod
+    def _within_bcrypt_limit(cls, v: str) -> str:
+        if len(v.encode()) > 72:
+            raise ValueError("Password must be at most 72 bytes")
+        return v
+
+
+class AvatarOut(BaseModel):
+    avatar_url: str

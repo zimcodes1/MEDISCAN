@@ -10,7 +10,8 @@ from backend.core.config import get_settings
 from backend.core.database import dispose_engine, engine
 from backend.core.errors import AppError
 from backend.routers import (
-    activity, admin, auth, dashboard, inference, patients, reports, scans, staff,
+    activity, admin, auth, dashboard, inference, org, patients, platform, reports, scans,
+    staff, users,
 )
 from backend.services.inference_service import build_inference_service
 from backend.services.storage_service import build_storage_service, describe_storage_error
@@ -80,6 +81,9 @@ app.include_router(staff.router)
 app.include_router(dashboard.router)
 app.include_router(activity.router)
 app.include_router(reports.router)
+app.include_router(org.router)
+app.include_router(platform.router)
+app.include_router(users.router)
 
 
 @app.get("/health", tags=["health"])
