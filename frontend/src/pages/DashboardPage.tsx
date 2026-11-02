@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Activity,
   AlertTriangle,
@@ -6,8 +8,6 @@ import {
   ImageIcon,
   Info,
 } from "lucide-react";
-import { ActivityLog } from "../components/dashboard/ActivityLogs";
-import SystemStats from "../components/dashboard/SystemStats";
 import StatCard from "../components/dashboard/StatCard";
 import ScanRow, { type ScanQueueItem } from "../components/dashboard/ScanRow";
 import { useEffect, useState } from "react";

@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+python-multipart
+pydantic-settings
+pillow
+numpy
+opencv-python-headless
+scikit-image
+sqlmodel
+asyncpg
+# torch
+# torchvision
+# torchxrayvision
+# transformers
+# pytorch-grad-cam
+# huggingface_hub

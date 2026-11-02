@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
+import ErrorBoundary from "./ErrorBoundary";
 
 export default function MainLayout() {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+	const { pathname } = useLocation();
 
 	return (
 		<div className="flex bg-brand-bg min-h-screen font-sans print:bg-white print:min-h-0 text-brand-text print:text-black">
@@ -22,7 +24,10 @@ export default function MainLayout() {
 				<TopBar onMenuClick={() => setIsSidebarOpen(true)} />
 
 				<main className="pt-16 flex-1 relative z-0">
-					<Outlet />
+					{/* key resets the boundary when you navigate away from a crashed page */}
+					<ErrorBoundary key={pathname}>
+						<Outlet />
+					</ErrorBoundary>
 				</main>
 			</div>
 		</div>

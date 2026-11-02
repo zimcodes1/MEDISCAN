@@ -2,7 +2,7 @@ import { FileCheck, Save } from "lucide-react";
 
 interface SubmissionFooterProps {
 	clinicianName: string;
-	clinicianCredentials: string;
+	clinicianCredentials?: string;
 	confirmationChecked: boolean;
 	onConfirmationChange: (checked: boolean) => void;
 	onSaveDraft: () => void;
@@ -14,7 +14,7 @@ interface SubmissionFooterProps {
 
 export default function SubmissionFooter({
 	clinicianName,
-	clinicianCredentials,
+	clinicianCredentials = "",
 	confirmationChecked,
 	onConfirmationChange,
 	onSaveDraft,
@@ -31,7 +31,7 @@ export default function SubmissionFooter({
 					<div>
 						<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-1 font-display">Reporting Clinician</p>
 						<p className="text-brand-text font-bold text-base font-display">
-							{clinicianName}, {clinicianCredentials}
+							{clinicianCredentials ? `${clinicianName}, ${clinicianCredentials}` : clinicianName}
 						</p>
 					</div>
 					{isSubmitted && submittedDate && (
