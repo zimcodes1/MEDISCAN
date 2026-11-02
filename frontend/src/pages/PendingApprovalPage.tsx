@@ -13,16 +13,16 @@ export default function PendingApprovalPage() {
 
   const steps = [
     {
-      title: "An administrator reviews your request",
-      hint: "Accounts are approved manually",
+      title: "The MediScan team reviews your organisation",
+      hint: "Organisations are approved manually",
     },
     {
-      title: "Your account is approved",
-      hint: "Until then you cannot sign in",
+      title: "Your organisation is approved",
+      hint: "Until then nobody in it can sign in",
     },
     {
-      title: "Sign in",
-      hint: "Use the email and password you just registered with",
+      title: "Sign in and finish setup",
+      hint: "You will be asked to finish setting up your organisation",
     },
   ];
 
@@ -46,8 +46,9 @@ export default function PendingApprovalPage() {
                 </p>
               )}
               <p className="text-sm leading-relaxed">
-                An administrator must approve your account before you can sign
-                in.
+                Your organisation must be approved before you can sign in. Once
+                it is, sign in with the admin email and password you just
+                registered with.
               </p>
             </div>
           </div>

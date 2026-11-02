@@ -9,12 +9,6 @@ export interface Patient {
 
 export type OnboardingStep = 1 | 2;
 
-export interface StaffMember {
-  fullName: string;
-  email: string;
-  role: 'radiologist' | 'clinician';
-}
-
 export interface ReportHeaderProps {
 	orgName: string;
 	orgLogo?: string;

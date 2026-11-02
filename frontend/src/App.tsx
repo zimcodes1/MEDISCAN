@@ -17,6 +17,7 @@ import NeuralAnalysisPage from "./pages/NeuralAnalysisPage";
 import ReportsListPage from "./pages/ReportsListPage";
 import ReportEditorPage from "./pages/ReportEditorPage";
 import SettingsPage from "./pages/SettingsPage";
+import PlatformApprovalsPage from "./pages/PlatformApprovalsPage";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PatientsPage from "./pages/PatientsPage";
@@ -45,7 +46,6 @@ function App() {
 						)
 					}
 				/>
-				<Route path="/onboarding" element={<OrgOnboardingPage />} />
 				<Route
 					path="/staff/accept-invite"
 					element={<StaffInviteAcceptancePage />}
@@ -53,6 +53,9 @@ function App() {
 
 				{/* Everything below requires a signed-in user */}
 				<Route element={<ProtectedRoute />}>
+					{/* First sign-in for a new admin; it saves to the API, so it needs a session */}
+					<Route path="/onboarding" element={<OrgOnboardingPage />} />
+
 					{/* Shared Main Layout for Dashboard & Standard Pages */}
 					<Route element={<MainLayout />}>
 						<Route path="/dashboard" element={<DashboardPage />} />
@@ -69,6 +72,10 @@ function App() {
 						<Route
 							path="/scans/:scanId/report"
 							element={<ReportEditorPage />}
+						/>
+						<Route
+							path="/platform/approvals"
+							element={<PlatformApprovalsPage />}
 						/>
 					</Route>
 

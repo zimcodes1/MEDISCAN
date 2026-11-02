@@ -9,7 +9,8 @@ import {
   ArrowRight,
   Loader,
 } from "lucide-react";
-import { registerUser } from "../lib/auth";
+import { registerOrganisation, type OrganisationType } from "../lib/auth";
+import { ORG_TYPES } from "../lib/org";
 import { AFTER_SIGNUP_PATH } from "../lib/features";
 import { useNotifications } from "../contexts/NotificationsContext";
 import { NigerianStates as states } from "../utils/DummyData";
@@ -25,7 +26,16 @@ export default function OrganisationSignupPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    organisationName: string;
+    organisationType: OrganisationType;
+    state: string;
+    workEmail: string;
+    adminFullName: string;
+    password: string;
+    confirmPassword: string;
+    phoneNumber: string;
+  }>({
     organisationName: "",
     organisationType: "hospital",
     state: "",
@@ -36,12 +46,7 @@ export default function OrganisationSignupPage() {
     phoneNumber: "",
   });
 
-  const orgTypes = [
-    { value: "hospital", label: "Hospital" },
-    { value: "diagnostic_centre", label: "Diagnostic Centre" },
-    { value: "clinic", label: "Clinic" },
-    { value: "telemedicine", label: "Telemedicine Platform" },
-  ];
+  const orgTypes = ORG_TYPES;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -56,8 +61,9 @@ export default function OrganisationSignupPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.organisationName.trim()) {
-      newErrors.organisationName = "Organisation name is required";
+    const orgName = formData.organisationName.trim();
+    if (orgName.length < 2 || orgName.length > 200) {
+      newErrors.organisationName = "Organisation name must be 2–200 characters";
     }
     if (!formData.state) {
       newErrors.state = "Please select a state";
@@ -92,18 +98,24 @@ export default function OrganisationSignupPage() {
     setLoading(true);
 
     try {
-      await registerUser({
-        email: formData.workEmail,
-        full_name: formData.adminFullName,
+      await registerOrganisation({
+        organisation_name: formData.organisationName.trim(),
+        organisation_type: formData.organisationType,
+        state: formData.state,
+        phone_number: formData.phoneNumber,
+        full_name: formData.adminFullName.trim(),
+        email: formData.workEmail.trim(),
         password: formData.password,
       });
       add({
         id: String(Date.now()),
-        message: "Registration submitted; awaiting admin approval",
+        message: "Organisation registered; awaiting approval",
         read: false,
         time: new Date().toISOString(),
       });
-      navigate(AFTER_SIGNUP_PATH, { state: { email: formData.workEmail } });
+      navigate(AFTER_SIGNUP_PATH, {
+        state: { email: formData.workEmail.trim() },
+      });
     } catch (err: any) {
       setErrors((prev) => ({
         ...prev,
@@ -326,7 +338,7 @@ export default function OrganisationSignupPage() {
                 <p className="text-[#ffb4ab] text-sm mt-1">{errors.password}</p>
               )}
               <p className="text-xs text-[#8c91a8] mt-2">
-                Minimum 8 characters
+                10–72 characters
               </p>
             </div>
 

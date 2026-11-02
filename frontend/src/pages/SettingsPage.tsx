@@ -8,20 +8,17 @@ import NotificationsSection from "../components/settings/NotificationsSection";
 import ScanReportDefaultsSection from "../components/settings/ScanReportDefaultsSection";
 import BillingPlanSection from "../components/settings/BillingPlanSection";
 import DangerZoneSection from "../components/settings/DangerZoneSection";
-import {
-	billingData,
-	defaultsData,
-	notificationSettings,
-	orgData,
-	radiologists,
-} from "../utils/DummyData";
+import { billingData, notificationSettings } from "../utils/DummyData";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function SettingsPage() {
 	const { user } = useAuth();
-	// Backend roles are "admin" | "clinician"; there is no radiologist role yet.
-	const userRole: "org-admin" | "clinician" =
-		user?.role === "admin" ? "org-admin" : "clinician";
+	const userRole: "org-admin" | "radiologist" | "clinician" =
+		user?.role === "admin"
+			? "org-admin"
+			: user?.role === "radiologist"
+				? "radiologist"
+				: "clinician";
 	//Set Previous page for the 404 back button handler to check
 	sessionStorage.setItem("lastPage", window.location.href);
 
@@ -33,20 +30,8 @@ export default function SettingsPage() {
 	const [activeSection, setActiveSection] = useState("profile");
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-	const handleSaveProfile = (data: any) => {
-		console.log("Saving profile:", data);
-	};
-
-	const handleSaveOrg = (data: any) => {
-		console.log("Saving org:", data);
-	};
-
 	const handleSaveNotifications = (data: any) => {
 		console.log("Saving notifications:", data);
-	};
-
-	const handleSaveDefaults = (data: any) => {
-		console.log("Saving defaults:", data);
 	};
 
 	const handleSaveBilling = (email: string) => {
@@ -75,37 +60,25 @@ export default function SettingsPage() {
 				<TopBar onMenuClick={() => setIsSidebarOpen(true)} />
 
 				<main className="pt-16 p-4 sm:p-8 mt-5">
-					{/* Staff Management is live; every other section is still sample data */}
-					{activeSection !== "staff" && (
+					{/* Profile, organisation, staff and defaults are live; these three are still sample data */}
+					{["notifications", "billing", "danger"].includes(activeSection) && (
 						<div className="mb-6 bg-amber-500/5 border border-amber-500/20 text-amber-500 text-xs rounded-xl px-4 py-3 leading-snug">
 							<span className="font-bold uppercase tracking-wider mr-1">
 								Preview:
 							</span>
-							This section is not connected to the backend yet. Your name and
-							email are real; everything else is sample data, and changes are not
-							saved.
+							This section is not connected to the backend yet. What you see is
+							sample data, and changes are not saved.
 						</div>
 					)}
 					<div className="flex gap-6">
 						{/* Content Area */}
 						<div className="flex-1 min-w-0">
 							{activeSection === "profile" && (
-								<MyProfileSection
-									initialData={{
-										fullName: user?.full_name ?? "",
-										jobTitle: "",
-										email: user?.email ?? "",
-										phoneNumber: "",
-									}}
-									onSave={handleSaveProfile}
-								/>
+								<MyProfileSection />
 							)}
 
 							{activeSection === "organisation" && userRole === "org-admin" && (
-								<OrganisationProfileSection
-									initialData={orgData}
-									onSave={handleSaveOrg}
-								/>
+								<OrganisationProfileSection />
 							)}
 
 							{activeSection === "staff" && userRole === "org-admin" && (
@@ -121,11 +94,7 @@ export default function SettingsPage() {
 							)}
 
 							{activeSection === "defaults" && userRole === "org-admin" && (
-								<ScanReportDefaultsSection
-									initialData={defaultsData}
-									radiologists={radiologists}
-									onSave={handleSaveDefaults}
-								/>
+								<ScanReportDefaultsSection />
 							)}
 
 							{activeSection === "billing" && userRole === "org-admin" && (

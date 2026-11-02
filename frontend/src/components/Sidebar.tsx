@@ -1,6 +1,7 @@
-import { LayoutDashboard, Users, Upload, Brain, FileText, Settings, HelpCircle, Plus, X } from "lucide-react";
+import { LayoutDashboard, Users, Upload, Brain, FileText, Settings, HelpCircle, Plus, ShieldCheck, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "./svgs/Logo";
+import { useAuth } from "../contexts/AuthContext";
 
 interface SidebarProps {
 	isOpen: boolean;
@@ -9,6 +10,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 	const location = useLocation();
+	const { user } = useAuth();
 
 	const navItems = [
 		{ icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -19,6 +21,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 	];
 
 	const bottomItems = [
+		...(user?.is_platform_admin
+			? [{ icon: ShieldCheck, label: "Platform Approvals", path: "/platform/approvals" }]
+			: []),
 		{ icon: Settings, label: "Settings", path: "/settings" },
 		{ icon: HelpCircle, label: "Support", path: "/support" },
 	];

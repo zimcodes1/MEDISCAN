@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import NotificationsPanel from "./NotificationsPanel";
 import { useAuth } from "../contexts/AuthContext";
+import { useOrg } from "../contexts/OrgContext";
+import Avatar from "./Avatar";
+import OrgLogo from "./OrgLogo";
 
 interface TopBarProps {
   onMenuClick?: () => void;
@@ -15,13 +18,8 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
     await logout();
     navigate("/login", { replace: true });
   };
-  const initials = (user?.full_name ?? "")
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const { org } = useOrg();
+  const orgName = org?.name ?? user?.organisation.name ?? "";
   const [showNotifications, setShowNotifications] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -79,6 +77,14 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
           <HelpCircle size={16} />
         </button>
 
+        {/* Organisation */}
+        {orgName && (
+          <div className="hidden md:flex items-center gap-2.5 max-w-[14rem]">
+            <OrgLogo url={org?.logo_url} name={orgName} className="w-8 h-8 text-sm" />
+            <p className="text-brand-text text-xs font-bold truncate">{orgName}</p>
+          </div>
+        )}
+
         {/* User Profile */}
         <div className="flex items-center gap-3 sm:ml-2">
           <div className="text-right hidden sm:block">
@@ -90,9 +96,11 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center justify-center border border-brand-primary/30 bg-brand-primary/10 text-brand-primary text-xs font-bold w-10 h-10 rounded-full shadow-[0_0_15px_rgba(0,210,255,0.1)]">
-            {initials || "?"}
-          </div>
+          <Avatar
+            url={user?.avatar_url}
+            name={user?.full_name ?? ""}
+            className="w-10 h-10 shadow-[0_0_15px_rgba(0,210,255,0.1)]"
+          />
 
           <button
             onClick={handleLogout}

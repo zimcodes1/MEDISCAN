@@ -7,37 +7,40 @@ import {
 } from "react";
 import { getCurrentUser, logoutUser } from "../lib/auth";
 import { clearAuthTokens, getAccessToken } from "../lib/api";
-import type { UserPublic } from "../types/api";
+import type { CurrentUser } from "../types/api";
 
 interface AuthContextValue {
-  user: UserPublic | null;
+  user: CurrentUser | null;
   loading: boolean;
-  refetch: () => Promise<void>;
+  /** Reloads /auth/me and resolves with the fresh user (null when signed out). */
+  refetch: () => Promise<CurrentUser | null>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
-  refetch: async () => {},
+  refetch: async () => null,
   logout: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserPublic | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = async () => {
+  const fetchUser = async (): Promise<CurrentUser | null> => {
     if (!getAccessToken()) {
       setUser(null);
       setLoading(false);
-      return;
+      return null;
     }
     try {
       const u = await getCurrentUser();
       setUser(u);
+      return u;
     } catch {
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }

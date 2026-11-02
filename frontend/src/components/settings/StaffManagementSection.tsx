@@ -9,6 +9,8 @@ import {
 import { formatDate } from "../../lib/format";
 import type { UserPublic } from "../../types/api";
 import { EmptyState, ErrorState, LoadingState } from "../PageStatus";
+import Avatar from "../Avatar";
+import InvitationsPanel from "./InvitationsPanel";
 
 type StaffStatus = "pending" | "active" | "deactivated";
 
@@ -76,12 +78,22 @@ export function StaffTable({
                 className="hover:bg-brand-card/20 transition-all duration-200"
               >
                 <td className="px-6 py-4 text-brand-text font-semibold text-sm">
-                  {u.full_name}
-                  {isSelf && (
-                    <span className="ml-2 text-[9px] uppercase font-bold tracking-wider text-brand-text-muted">
-                      You
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      url={u.avatar_url}
+                      name={u.full_name}
+                      className="w-8 h-8"
+                      textClassName="text-[10px]"
+                    />
+                    <span>
+                      {u.full_name}
+                      {isSelf && (
+                        <span className="ml-2 text-[9px] uppercase font-bold tracking-wider text-brand-text-muted">
+                          You
+                        </span>
+                      )}
                     </span>
-                  )}
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-brand-text-muted text-xs font-medium capitalize">
                   {u.role}
@@ -208,14 +220,11 @@ export default function StaffManagementSection() {
           Staff Management
         </h2>
         <p className="text-brand-text-muted text-sm">
-          Approve new registrations and control who can sign in
+          Invite colleagues, approve registrations and control who can sign in
         </p>
       </div>
 
-      <p className="text-brand-text-muted text-xs bg-brand-card/40 border border-brand-border/40 rounded-xl px-4 py-3 leading-snug">
-        New staff register themselves on the sign-up page, then appear here for
-        approval. Invitations and role changes are not available yet.
-      </p>
+      <InvitationsPanel />
 
       {actionError && (
         <p className="text-rose-400 text-sm bg-rose-500/5 border border-rose-500/20 rounded-xl px-4 py-3 break-words">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { User, Lock, ArrowRight, Loader } from "lucide-react";
+import { acceptInvite } from "../lib/auth";
 
 export default function StaffInviteAcceptancePage() {
 	//Set Previous page for the 404 back button handler to check
@@ -12,6 +13,7 @@ export default function StaffInviteAcceptancePage() {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
 	const inviteToken = searchParams.get("token");
+	// The link may carry the invited email; the backend only needs the token.
 	const email = searchParams.get("email") || "";
 
 	const [loading, setLoading] = useState(false);
@@ -37,14 +39,16 @@ export default function StaffInviteAcceptancePage() {
 		if (!formData.fullName.trim()) {
 			newErrors.fullName = "Full name is required";
 		}
-		if (formData.password.length < 8) {
-			newErrors.password = "Password must be at least 8 characters";
+		// backend rule: 10-72 bytes
+		const passwordBytes = new TextEncoder().encode(formData.password).length;
+		if (passwordBytes < 10 || passwordBytes > 72) {
+			newErrors.password = "Password must be 10–72 characters";
 		}
 		if (formData.password !== formData.confirmPassword) {
 			newErrors.confirmPassword = "Passwords do not match";
 		}
 		if (!inviteToken) {
-			newErrors.submit = "Invalid invite link. Please check your email.";
+			newErrors.submit = "Invalid invite link. Ask your admin for a new one.";
 		}
 
 		setErrors(newErrors);
@@ -59,20 +63,21 @@ export default function StaffInviteAcceptancePage() {
 		setLoading(true);
 
 		try {
-			// TODO: Call backend API
-			// const response = await axios.post('/api/auth/staff/accept-invite/', {
-			//   token: inviteToken,
-			//   fullName: formData.fullName,
-			//   password: formData.password,
-			// });
-
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			await acceptInvite({
+				token: inviteToken!,
+				full_name: formData.fullName.trim(),
+				password: formData.password,
+			});
 			navigate("/login", {
-				state: { message: "Account created successfully. Please log in." },
+				replace: true,
+				state: { message: "Account created. Sign in with your new password." },
 			});
 		} catch (error) {
 			setErrors({
-				submit: "Failed to create account. The link may have expired.",
+				submit:
+					error instanceof Error && error.message
+						? error.message
+						: "Failed to create account. The link may have expired.",
 			});
 		} finally {
 			setLoading(false);
@@ -135,13 +140,15 @@ export default function StaffInviteAcceptancePage() {
 						</div>
 					)}
 
-					{/* Email Display */}
-					<div className="bg-[#151b2d] rounded-xl border border-[#2e3447] p-4 space-y-2">
-						<p className="text-sm text-[#8c91a8]">Account Email</p>
-						<p className="text-lg font-semibold text-[#7bd0ff] break-all">
-							{email}
-						</p>
-					</div>
+					{/* Email Display (only when the link carries it) */}
+					{email && (
+						<div className="bg-[#151b2d] rounded-xl border border-[#2e3447] p-4 space-y-2">
+							<p className="text-sm text-[#8c91a8]">Account Email</p>
+							<p className="text-lg font-semibold text-[#7bd0ff] break-all">
+								{email}
+							</p>
+						</div>
+					)}
 
 					{/* Full Name */}
 					<div>
@@ -186,7 +193,7 @@ export default function StaffInviteAcceptancePage() {
 						{errors.password && (
 							<p className="text-[#ffb4ab] text-sm mt-1">{errors.password}</p>
 						)}
-						<p className="text-xs text-[#8c91a8] mt-2">Minimum 8 characters</p>
+						<p className="text-xs text-[#8c91a8] mt-2">10–72 characters</p>
 					</div>
 
 					{/* Confirm Password */}

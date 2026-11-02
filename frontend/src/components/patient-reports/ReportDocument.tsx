@@ -4,6 +4,9 @@ import ReportSection from "./ReportSection";
 import ReportField from "./ReportField";
 import ReportDisclaimer from "./ReportDisclaimer";
 import { formatDate, formatDateTime } from "../../lib/format";
+import { useAuth } from "../../contexts/AuthContext";
+import { useOrg } from "../../contexts/OrgContext";
+import { useProtectedImage } from "../../lib/images";
 import { formatSex, patientAge, type PatientRecord } from "../../lib/patients";
 import type { ScanRecord } from "../../lib/scans";
 import {
@@ -28,7 +31,6 @@ interface ReportDocumentProps {
   report: Report;
   scan: ScanRecord;
   patient: PatientRecord | null;
-  orgName?: string;
 }
 
 /** Read-only, printable view of a submitted report. */
@@ -36,8 +38,12 @@ export default function ReportDocument({
   report,
   scan,
   patient,
-  orgName = "MediScan NG",
 }: ReportDocumentProps) {
+  const { user } = useAuth();
+  const { org, settings } = useOrg();
+  // the real organisation: name, logo and disclaimer from its settings
+  const orgName = org?.name ?? user?.organisation.name ?? "";
+  const orgLogo = useProtectedImage(org?.logo_url) ?? undefined;
   const age = patient ? patientAge(patient.year_of_birth) : null;
   const findings = [...(scan.findings ?? [])].sort((a, b) => b.score - a.score);
   const labelOf = (table: { code: string; label: string }[], code: string | null) =>
@@ -47,6 +53,7 @@ export default function ReportDocument({
     <div className="max-w-5xl print:max-w-full">
       <ReportHeader
         orgName={orgName}
+        orgLogo={orgLogo}
         reportId={report.id.slice(0, 8).toUpperCase()}
         reportDate={formatDateTime(report.finalised_at ?? report.updated_at)}
       />
@@ -214,7 +221,7 @@ export default function ReportDocument({
         </div>
       </ReportSection>
 
-      <ReportDisclaimer />
+      <ReportDisclaimer text={settings?.report_disclaimer} />
     </div>
   );
 }

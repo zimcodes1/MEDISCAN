@@ -40,7 +40,13 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 // A 401 from these means "bad credentials", not "expired session":
 // surface the message to the form instead of refreshing/redirecting.
-const AUTH_PATHS = ["/auth/login", "/auth/register", "/auth/refresh"];
+const AUTH_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/register-organisation",
+  "/auth/accept-invite",
+  "/auth/refresh",
+];
 
 function isAuthRequest(url?: string) {
   return !!url && AUTH_PATHS.some((p) => url.startsWith(p));

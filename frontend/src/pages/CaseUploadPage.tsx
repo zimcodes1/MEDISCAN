@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PatientSearch from "../components/PatientSearch";
 import ScanDetailsForm from "../components/ScanDetailsForm";
 import AssignmentPriorityForm from "../components/AssignmentPriorityForm";
@@ -12,6 +12,7 @@ import { listStaff, type StaffMember } from "../lib/staff";
 import { SCAN_WORKFLOW } from "../lib/features";
 import type { Projection } from "../lib/scans";
 import { useNotifications } from "../contexts/NotificationsContext";
+import { useOrg } from "../contexts/OrgContext";
 
 // Projection, date, notes, priority and assignment are only stored when the
 // backend implements the scan workflow (see lib/features.ts).
@@ -41,7 +42,18 @@ export default function CaseUploadPage() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const { add } = useNotifications();
   const { user } = useAuth();
+  const { settings } = useOrg();
   const [staff, setStaff] = useState<StaffMember[]>([]);
+
+  // Start from the organisation's defaults (Settings, Scan & Report Defaults).
+  // The form always sends a priority, so without this it would override them.
+  const defaultsApplied = useRef(false);
+  useEffect(() => {
+    if (!settings || defaultsApplied.current) return;
+    defaultsApplied.current = true;
+    setPriority(settings.default_priority);
+    setAssignedRadiologist(settings.auto_assign_to_id ?? "");
+  }, [settings]);
 
   useEffect(() => {
     if (!METADATA_SAVED) return;

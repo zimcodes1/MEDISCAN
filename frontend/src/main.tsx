@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { NotificationsProvider } from "./contexts/NotificationsContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { OrgProvider } from "./contexts/OrgContext";
 
 async function boot() {
   // Dev-only API stand-in; dead code in production builds.
@@ -16,7 +17,9 @@ async function boot() {
     <StrictMode>
       <NotificationsProvider>
         <AuthProvider>
-          <App />
+          <OrgProvider>
+            <App />
+          </OrgProvider>
         </AuthProvider>
       </NotificationsProvider>
     </StrictMode>,

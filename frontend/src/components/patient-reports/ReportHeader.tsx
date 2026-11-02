@@ -14,7 +14,7 @@ export default function ReportHeader({
 							{orgLogo ? (
 								<img src={orgLogo} alt="Organisation logo" className="w-full h-full object-contain" />
 							) : (
-								<span className="text-brand-primary  text-2xl font-bold text-center px-2">{orgName.slice(0,1).toLocaleUpperCase()}</span>
+								<span className="text-brand-primary  text-2xl font-bold text-center px-2">{orgName.slice(0, 1).toLocaleUpperCase()}</span>
 							)}
 						</div>
 					<div>
