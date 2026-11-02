@@ -1,12 +1,10 @@
 import { Search, X } from "lucide-react";
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
+  createPatient,
   listPatients,
-  patientSummary,
   type PatientRecord,
 } from "../lib/patients";
-import { useNotifications } from "../contexts/NotificationsContext";
 
 interface PatientSearchProps {
   selectedPatient: PatientRecord | null;
@@ -21,42 +19,30 @@ export default function PatientSearch({
 }: PatientSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
-
-  const [results, setResults] = useState<PatientRecord[]>([]);
-  const { add } = useNotifications();
+  const [allPatients, setAllPatients] = useState<PatientRecord[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let active = true;
-    async function search() {
-      if (!searchQuery || searchQuery.length < 2) {
-        setResults([]);
-        return;
-      }
+    (async () => {
       try {
-        const patients = await listPatients({ limit: 50 });
-        if (!active) return;
-        // simple client-side filter for now (backend has no search param yet)
-        const q = searchQuery.toLowerCase();
-        setResults(
-          patients.filter((p) => p.patient_code.toLowerCase().includes(q)),
-        );
-      } catch (err: any) {
-        add({
-          id: String(Date.now()),
-          message: `Patient search failed: ${err.message}`,
-          time: new Date().toLocaleTimeString(),
-        });
+        setLoading(true);
+        const patients = await listPatients({ limit: 50, offset: 0 });
+        setAllPatients(patients);
+      } catch (error) {
+        console.error("Failed to load patients", error);
+      } finally {
+        setLoading(false);
       }
-    }
-    // debounce so we don't hit the API on every keystroke
-    const timer = setTimeout(search, 250);
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [searchQuery, add]);
+    })();
+  }, []);
 
-  const filteredPatients = results;
+  const filteredPatients = allPatients.filter(
+    (patient) =>
+      (patient.patient_code ?? "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (patient.sex ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const handleSelect = (patient: PatientRecord) => {
     onPatientSelect(patient);
@@ -80,20 +66,23 @@ export default function PatientSearch({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
                 setShowResults(true);
               }}
               onFocus={() => setShowResults(true)}
-              placeholder="Search by patient code..."
+              placeholder="Search by patient code or sex..."
               className="w-full bg-brand-card/60 text-brand-text pl-12 pr-4 py-3.5 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300 placeholder-brand-text-muted/50 text-sm"
             />
           </div>
 
-          {/* Results Dropdown */}
           {showResults && searchQuery && (
             <div className="static top-full left-0 right-0 mt-2 bg-brand-bg/95 backdrop-blur-md rounded-xl border border-brand-border/60 overflow-hidden z-10 shadow-2xl animate-fade-in-up">
-              {filteredPatients.length > 0 ? (
+              {loading ? (
+                <div className="px-5 py-8 text-center text-sm text-brand-text-muted">
+                  Loading patients…
+                </div>
+              ) : filteredPatients.length > 0 ? (
                 filteredPatients.map((patient) => (
                   <button
                     key={patient.id}
@@ -104,7 +93,8 @@ export default function PatientSearch({
                       {patient.patient_code}
                     </p>
                     <p className="text-brand-text-muted/70 text-xs font-semibold mt-0.5">
-                      {patientSummary(patient)}
+                      {patient.sex ?? "Unknown"} ·{" "}
+                      {patient.year_of_birth ?? "Unknown birth year"}
                     </p>
                   </button>
                 ))
@@ -113,12 +103,23 @@ export default function PatientSearch({
                   <p className="text-brand-text-muted/70 text-sm mb-3">
                     Patient not found
                   </p>
-                  <Link
-                    to="/patients/new"
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const created = await createPatient({
+                          sex: "unknown",
+                          year_of_birth: null,
+                        });
+                        onPatientSelect(created);
+                      } catch (error) {
+                        console.error("Failed to create patient", error);
+                      }
+                    }}
                     className="text-brand-primary hover:text-brand-primary-hover hover:underline text-sm font-bold transition-colors"
                   >
                     + Register new patient
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
@@ -131,7 +132,8 @@ export default function PatientSearch({
               {selectedPatient.patient_code}
             </p>
             <p className="text-brand-text-muted/70 text-xs font-semibold mt-0.5">
-              {patientSummary(selectedPatient)}
+              {selectedPatient.sex ?? "Unknown"} ·{" "}
+              {selectedPatient.year_of_birth ?? "Unknown birth year"}
             </p>
           </div>
           <button

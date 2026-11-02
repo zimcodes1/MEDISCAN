@@ -1,0 +1,30 @@
+# Alternative to deploy/modal_api.py: run only the API on Render's free tier.
+# Untested. The free instance is tiny (512 MB, ~0.1 CPU) and sleeps after 15 idle
+# minutes, so INFERENCE_BACKEND must be "remote" (models run on Modal).
+services:
+  - type: web
+    name: mediscan-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - {key: PYTHON_VERSION, value: 3.11.9}
+      - {key: ENVIRONMENT, value: production}
+      - {key: STORAGE_BACKEND, value: s3}
+      - {key: INFERENCE_BACKEND, value: remote}
+      - {key: MAX_INFLIGHT_PREDICTIONS, value: "2"}   # protects the 512 MB limit
+      - {key: MAX_IMAGE_PIXELS, value: "16000000"}    # large decodes would exhaust memory
+      - {key: TRUSTED_PROXY_HOPS, value: "1"}         # Render sits behind one proxy; verify via audit_logs
+      - {key: DATABASE_URL, sync: false}
+      - {key: JWT_SECRET_KEY, sync: false}
+      - {key: S3_ENDPOINT_URL, sync: false}
+      - {key: S3_BUCKET, sync: false}
+      - {key: S3_ACCESS_KEY_ID, sync: false}
+      - {key: S3_SECRET_ACCESS_KEY, sync: false}
+      - {key: S3_REGION, sync: false}
+      - {key: INFERENCE_URL, sync: false}
+      - {key: INFERENCE_TOKEN, sync: false}
+      - {key: INFERENCE_TIMEOUT_SECONDS, value: "300"}
+      - {key: TB_POSITIVE_LABEL, value: "TURBERCULOSIS"}
+      - {key: CORS_ORIGINS, sync: false}

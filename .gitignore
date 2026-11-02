@@ -5,3 +5,43 @@ frontend/Mediscan/package-lock.json
 .codex
 design/
 IMGS/
+
+# backend (FastAPI)
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# local scan storage (dev)
+storage_data/
+
+# model weights and training artifacts
+/models/
+model_training/
+build/
+
+# duplicate backend-level config files (root-level versions are canonical)
+backend/env.example
+backend/requirements.txt
+backend/requirements-ml.txt
+
+# credentials and notes
+pass/
+
+
+# Ignore heavy ML model weight files everywhere
+*.pt
+*.pth
+*.h5
+*.onnx
+*.bin
+*.safetensors
+*.ckpt
+*.pb
+
+/models/
+!backend/models/
+!backend/models/**
+
