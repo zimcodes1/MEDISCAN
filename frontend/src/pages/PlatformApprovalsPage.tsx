@@ -1,3 +1,4 @@
+import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -50,6 +51,7 @@ function Approvals() {
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<PlatformOrgStatus>("pending");
 
   const load = useCallback(async () => {
@@ -68,6 +70,30 @@ function Approvals() {
       active = false;
     };
   }, [load]);
+
+  /** Pull the latest list, so organisations registered after this page opened show up. */
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await load();
+      setActionError(null);
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to refresh organisations",
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }, [load]);
+
+  // refresh when you come back to this browser tab
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refresh]);
 
   function retry() {
     setOrgs(null);
@@ -130,16 +156,29 @@ function Approvals() {
         <LoadingState label="Loading organisations…" />
       ) : (
         <>
+          <div className="flex flex-wrap items-center gap-3">
           <div className="inline-flex bg-brand-card/45 border border-brand-border/40 p-1 rounded-xl gap-1">
             {TABS.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id)}
+                onClick={() => {
+                  setTab(t.id);
+                  refresh();
+                }}
                 className={tabClass(tab === t.id)}
               >
                 {t.label} ({count(t.id)})
               </button>
             ))}
+          </div>
+          <button
+            onClick={refresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold border border-brand-border/60 text-brand-text-muted hover:text-brand-text hover:bg-brand-card/50 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+            Refresh
+          </button>
           </div>
 
           {visible.length === 0 ? (

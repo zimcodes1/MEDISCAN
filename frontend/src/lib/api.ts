@@ -1,13 +1,14 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://mediscan.fastapicloud.dev";
+  import.meta.env.VITE_API_BASE_URL ??
+  (import.meta.env.MODE === "development"
+    ? "http://127.0.0.1:7860"
+    : "https://mediscan.fastapicloud.dev");
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
   withCredentials: true,
 });
 
@@ -31,25 +32,108 @@ export function getRefreshToken() {
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken();
-
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 });
 
+// A 401 from these means "bad credentials", not "expired session":
+// surface the message to the form instead of refreshing/redirecting.
+const AUTH_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/register-organisation",
+  "/auth/accept-invite",
+  "/auth/refresh",
+];
+
+function isAuthRequest(url?: string) {
+  return !!url && AUTH_PATHS.some((p) => url.startsWith(p));
+}
+
+// One in-flight refresh shared by every request that hits a 401 at once.
+let refreshPromise: Promise<string> | null = null;
+
+async function refreshTokens(): Promise<string> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) throw new Error("Missing refresh token");
+  // Plain axios (not `api`) so this call can't re-enter the interceptor below.
+  const { data } = await axios.post<{
+    access_token: string;
+    refresh_token: string;
+  }>(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken });
+  setAuthTokens(data.access_token, data.refresh_token);
+  return data.access_token;
+}
+
+function redirectToLogin() {
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.assign("/login");
+  }
+}
+
+/** Turn a FastAPI `detail` (string, or a list of validation errors) into one readable line. */
+function formatDetail(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((d: { loc?: unknown[]; msg?: string }) => {
+        const field = Array.isArray(d?.loc)
+          ? d.loc.filter((p) => p !== "body").join(".")
+          : "";
+        const msg = d?.msg ?? JSON.stringify(d);
+        return field ? `${field}: ${msg}` : msg;
+      })
+      .join("; ");
+  }
+  return detail !== undefined ? JSON.stringify(detail) : "Request failed";
+}
+
+type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean };
+
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<{ detail?: string }>) => {
-    const message = error.response?.data?.detail ?? "Request failed";
+  async (error: AxiosError<{ detail?: unknown }>) => {
+    const original = error.config as RetriableConfig | undefined;
 
-    if (error.response?.status === 401) {
-      clearAuthTokens();
-      window.location.href = "/login";
+    if (
+      error.response?.status === 401 &&
+      original &&
+      !original._retried &&
+      !isAuthRequest(original.url)
+    ) {
+      original._retried = true;
+      try {
+        refreshPromise ??= refreshTokens().finally(() => {
+          refreshPromise = null;
+        });
+        const token = await refreshPromise;
+        original.headers.Authorization = `Bearer ${token}`;
+        return api(original);
+      } catch {
+        clearAuthTokens();
+        redirectToLogin();
+      }
     }
 
-    return Promise.reject(new Error(message));
+    let message: string;
+    if (error.response) {
+      const detail = error.response.data?.detail;
+      // Proxies and gateways often reply with HTML or nothing: show the status then.
+      message =
+        detail !== undefined
+          ? formatDetail(detail)
+          : `Request failed (HTTP ${error.response.status})`;
+    } else if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
+      message = "The server took too long to respond";
+    } else {
+      message =
+        "Cannot reach the server (network error, or the API address or CORS setting is wrong)";
+    }
+    const err = new Error(message) as Error & { status?: number };
+    err.status = error.response?.status;
+    return Promise.reject(err);
   },
 );
 

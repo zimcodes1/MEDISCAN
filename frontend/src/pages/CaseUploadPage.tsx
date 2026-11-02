@@ -4,10 +4,22 @@ import ScanDetailsForm from "../components/ScanDetailsForm";
 import AssignmentPriorityForm from "../components/AssignmentPriorityForm";
 import UploadSuccessState from "../components/UploadSuccessState";
 import { Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { PatientRecord } from "../lib/patients";
-import { uploadPrediction } from "../lib/scans";
+import { useAuth } from "../contexts/AuthContext";
+import { predict } from "../lib/inference";
+import { listStaff, type StaffMember } from "../lib/staff";
+import { SCAN_WORKFLOW } from "../lib/features";
+import type { Projection } from "../lib/scans";
+import { useNotifications } from "../contexts/NotificationsContext";
+import { useOrg } from "../contexts/OrgContext";
+
+// Projection, date, notes, priority and assignment are only stored when the
+// backend implements the scan workflow (see lib/features.ts).
+const METADATA_SAVED = SCAN_WORKFLOW;
 
 export default function CaseUploadPage() {
+  const navigate = useNavigate();
   //Set Previous page for the 404 back button handler to check
   sessionStorage.setItem("lastPage", window.location.href);
   // Set Page Title
@@ -28,29 +40,94 @@ export default function CaseUploadPage() {
   const [assignedRadiologist, setAssignedRadiologist] = useState("");
   const [priority, setPriority] = useState<"routine" | "urgent">("routine");
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState("");
+  const { add } = useNotifications();
+  const { user } = useAuth();
+  const { settings } = useOrg();
+  const [staff, setStaff] = useState<StaffMember[]>([]);
 
-  const handleSubmit = async () => {
-    if (
-      !selectedPatient ||
-      !imageFile ||
-      !viewProjection ||
-      !assignedRadiologist
-    ) {
-      alert("Please fill in all required fields");
+  // Start from the organisation's defaults (Settings, Scan & Report Defaults).
+  // The form always sends a priority, so without this it would override them.
+  const defaultsApplied = useRef(false);
+  useEffect(() => {
+    if (!settings || defaultsApplied.current) return;
+    defaultsApplied.current = true;
+    setPriority(settings.default_priority);
+    setAssignedRadiologist(settings.auto_assign_to_id ?? "");
+  }, [settings]);
+
+  useEffect(() => {
+    if (!METADATA_SAVED) return;
+    let active = true;
+    // Prefer radiologists; fall back to everyone so assignment still works
+    // in organisations that have none yet.
+    listStaff("radiologist")
+      .then((r) => (r.length ? r : listStaff()))
+      .then((r) => active && setStaff(r))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleImageFile = (file: File | null) => {
+    if (file && !["image/png", "image/jpeg"].includes(file.type)) {
+      add({
+        id: String(Date.now()),
+        message: "Only PNG or JPEG images are supported",
+        time: new Date().toLocaleTimeString(),
+      });
       return;
     }
+    setImageFile(file);
+  };
 
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    if (!selectedPatient || !imageFile || uploading) return;
     setUploading(true);
-    setError("");
+    setProgress(0);
+    setUploadError(null);
     try {
-      await uploadPrediction(imageFile, selectedPatient.id);
-      setUploadSuccess(true);
+      const result = await predict(
+        imageFile,
+        selectedPatient?.id ?? undefined,
+        METADATA_SAVED
+          ? {
+              priority,
+              projection: viewProjection
+                ? (viewProjection.toLowerCase() as Projection)
+                : undefined,
+              examDate: scanDate || undefined,
+              clinicalNotes: clinicalNotes.trim() || undefined,
+              assignedToId: assignedRadiologist || undefined,
+            }
+          : undefined,
+        setProgress,
+      );
+      if (result.saved) {
+        setUploadSuccess(true);
+      } else {
+        // If not saved, we still have findings; show notification
+        add({
+          id: String(Date.now()),
+          message: `Analysis completed (not saved)`,
+          time: new Date().toLocaleTimeString(),
+        });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error ? err.message : String(err);
+      setUploadError(message);
+      add({
+        id: String(Date.now()),
+        message: `Upload failed: ${message}`,
+        time: new Date().toLocaleTimeString(),
+      });
     } finally {
       setUploading(false);
+      setProgress(null);
     }
   };
 
@@ -65,8 +142,7 @@ export default function CaseUploadPage() {
     setPriority("routine");
   };
 
-  const isFormValid =
-    selectedPatient && imageFile && viewProjection && assignedRadiologist;
+  const isFormValid = selectedPatient && imageFile;
 
   return (
     <div className="p-4 sm:p-8">
@@ -82,7 +158,7 @@ export default function CaseUploadPage() {
 
       {uploadSuccess ? (
         <UploadSuccessState
-          onViewQueue={() => (window.location.href = "/dashboard")}
+          onViewQueue={() => navigate("/dashboard")}
           onUploadAnother={handleReset}
         />
       ) : (
@@ -102,7 +178,8 @@ export default function CaseUploadPage() {
               scanDate={scanDate}
               clinicalNotes={clinicalNotes}
               onScanTypeChange={setScanType}
-              onImageFileChange={setImageFile}
+              onImageFileChange={handleImageFile}
+              metadataDisabled={!METADATA_SAVED}
               onViewProjectionChange={setViewProjection}
               onScanDateChange={setScanDate}
               onClinicalNotesChange={setClinicalNotes}
@@ -112,27 +189,45 @@ export default function CaseUploadPage() {
           {/* Right Column */}
           <div className="max-sm:col-span-2 space-y-6">
             <AssignmentPriorityForm
-              uploadedBy="Dr. Nwosu"
+              uploadedBy={user?.full_name ?? ""}
               priority={priority}
               onPriorityChange={setPriority}
               assignedRadiologist={assignedRadiologist}
               onAssignedRadiologistChange={setAssignedRadiologist}
+              disabled={!METADATA_SAVED}
+              staff={staff}
             />
 
-            {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-300">
-                {error}
-              </div>
-            )}
             {/* Submit Button */}
+            {uploadError && (
+              <p
+                role="alert"
+                className="text-rose-400 text-sm bg-rose-500/5 border border-rose-500/20 rounded-xl px-4 py-3 break-words"
+              >
+                Upload failed: {uploadError}
+              </p>
+            )}
             <button
               onClick={handleSubmit}
               disabled={!isFormValid || uploading}
-              className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg py-3 rounded-xl font-extrabold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:opacity-95 active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:active:scale-100"
             >
               <Upload size={18} />
-              {uploading ? "Uploading..." : "Upload"}
+              {uploading
+                ? progress !== null && progress < 100
+                  ? `Uploading… ${progress}%`
+                  : "Analysing…"
+                : "Upload"}
             </button>
+            {!isFormValid && !uploading && (
+              <p className="text-amber-500 text-xs leading-snug">
+                Select{" "}
+                {[!selectedPatient && "a patient", !imageFile && "an image"]
+                  .filter(Boolean)
+                  .join(" and ")}{" "}
+                to upload.
+              </p>
+            )}
           </div>
         </div>
       )}
