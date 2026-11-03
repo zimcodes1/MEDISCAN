@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { User, Lock, ArrowRight, Loader } from "lucide-react";
+import { User, Lock, ArrowRight, Loader, CircleStop } from "lucide-react";
 import { acceptInvite } from "../lib/auth";
 import PasswordInput from "../components/PasswordInput";
 
@@ -136,7 +136,9 @@ export default function StaffInviteAcceptancePage() {
 				>
 					{errors.submit && (
 						<div className="bg-red-500 bg-opacity-20 rounded-2xl p-4 flex items-start gap-3">
-							<div className="w-5 h-5 bg-red-500 rounded-full shrink-0 mt-0.5"></div>
+							<div className="w-5 h-5 bg-red-500 rounded-full shrink-0 mt-0.5">
+								<CircleStop size={12} color="#ff0000"></CircleStop>
+							</div>
 							<p className="text-white text-sm">{errors.submit}</p>
 						</div>
 					)}
