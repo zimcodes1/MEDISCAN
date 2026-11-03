@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { User, Lock, ArrowRight, Loader } from "lucide-react";
 import { acceptInvite } from "../lib/auth";
+import PasswordInput from "../components/PasswordInput";
 
 export default function StaffInviteAcceptancePage() {
 	//Set Previous page for the 404 back button handler to check
@@ -134,9 +135,9 @@ export default function StaffInviteAcceptancePage() {
 					className="bg-[#191f31] rounded-3xl border border-[#2e3447] p-8 space-y-6"
 				>
 					{errors.submit && (
-						<div className="bg-[#ffb4ab] bg-opacity-20 border border-[#ffb4ab] rounded-xl p-4 flex items-start gap-3">
-							<div className="w-5 h-5 bg-[#ffb4ab] rounded-full shrink-0 mt-0.5"></div>
-							<p className="text-[#ffb4ab] text-sm">{errors.submit}</p>
+						<div className="bg-red-500 bg-opacity-20 rounded-2xl p-4 flex items-start gap-3">
+							<div className="w-5 h-5 bg-red-500 rounded-full shrink-0 mt-0.5"></div>
+							<p className="text-white text-sm">{errors.submit}</p>
 						</div>
 					)}
 
@@ -178,12 +179,10 @@ export default function StaffInviteAcceptancePage() {
 							<Lock size={16} className="text-[#7bd0ff]" />
 							Password
 						</label>
-						<input
-							type="password"
+						<PasswordInput
 							name="password"
 							value={formData.password}
 							onChange={handleChange}
-							placeholder="••••••••"
 							className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
 								errors.password
 									? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
@@ -201,12 +200,10 @@ export default function StaffInviteAcceptancePage() {
 						<label className="block text-sm font-medium text-[#dce1fb] mb-2">
 							Confirm Password
 						</label>
-						<input
-							type="password"
+						<PasswordInput
 							name="confirmPassword"
 							value={formData.confirmPassword}
 							onChange={handleChange}
-							placeholder="••••••••"
 							className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border-2 text-[#dce1fb] placeholder-[#8c91a8] transition-all ${
 								errors.confirmPassword
 									? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"

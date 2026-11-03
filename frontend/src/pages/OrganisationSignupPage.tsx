@@ -10,6 +10,7 @@ import {
   Loader,
 } from "lucide-react";
 import { registerOrganisation, type OrganisationType } from "../lib/auth";
+import PasswordInput from "../components/PasswordInput";
 import { ORG_TYPES } from "../lib/org";
 import { AFTER_SIGNUP_PATH } from "../lib/features";
 import { useNotifications } from "../contexts/NotificationsContext";
@@ -322,12 +323,10 @@ export default function OrganisationSignupPage() {
                 <Lock size={16} className="text-[#7bd0ff]" />
                 Password
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
                 className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${
                   errors.password
                     ? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"
@@ -347,12 +346,10 @@ export default function OrganisationSignupPage() {
               <label className="block text-sm font-medium text-[#dce1fb] mb-2">
                 Confirm Password
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="••••••••"
                 className={`w-full px-4 py-3 rounded-xl bg-[#151b2d] border text-brand-text placeholder-brand-text-muted transition-all ${
                   errors.confirmPassword
                     ? "border-[#ffb4ab] focus:border-[#ffb4ab] focus:ring-2 focus:ring-[#ffb4ab] focus:ring-opacity-20"

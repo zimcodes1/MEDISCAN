@@ -2,6 +2,7 @@ import { Upload, Save, Trash2, KeyRound } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Avatar from "../Avatar";
+import PasswordInput from "../PasswordInput";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   changePassword,
@@ -288,8 +289,7 @@ export default function MyProfileSection() {
         </div>
         <div>
           <label className={LABEL}>Current Password</label>
-          <input
-            type="password"
+          <PasswordInput
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             autoComplete="current-password"
@@ -298,8 +298,7 @@ export default function MyProfileSection() {
         </div>
         <div>
           <label className={LABEL}>New Password</label>
-          <input
-            type="password"
+          <PasswordInput
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             autoComplete="new-password"
@@ -309,8 +308,7 @@ export default function MyProfileSection() {
         </div>
         <div>
           <label className={LABEL}>Confirm New Password</label>
-          <input
-            type="password"
+          <PasswordInput
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             autoComplete="new-password"

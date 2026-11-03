@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle, StopCircle } from "lucide-react";
+import PasswordInput from "../components/PasswordInput";
 import { loginUser } from "../lib/auth";
 import { useNotifications } from "../contexts/NotificationsContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -139,12 +140,10 @@ export default function LoginPage() {
                   Forgot password?
                 </a>
               </div>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
                 className="w-full px-4 py-3 bg-[#151b2d] border border-brand-border text-brand-text placeholder-brand-text-muted rounded-lg focus:outline-none focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
                 required
               />
