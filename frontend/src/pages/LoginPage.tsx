@@ -1,7 +1,25 @@
 import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, StopCircle } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, CheckCircle, StopCircle } from "lucide-react";
+import PasswordInput from "../components/PasswordInput";
 import { loginUser } from "../lib/auth";
+import { useNotifications } from "../contexts/NotificationsContext";
+import { useAuth } from "../contexts/AuthContext";
+import { needsOnboarding } from "../lib/onboarding";
+
+/** Turn the backend's sign-in refusal into a message that says what to do next. */
+function describeLoginError(err: unknown): string {
+  const e = err as { message?: string; status?: number } | null;
+  const msg = e?.message ?? "";
+  if (/suspend/i.test(msg)) {
+    return "Your organisation has been suspended, so nobody in it can sign in. Contact MediScan support to restore access.";
+  }
+  if (/pending|not (yet )?approved|awaiting|approval/i.test(msg)) {
+    return "Your account is waiting for approval. You can sign in once your organisation or administrator has approved it.";
+  }
+  if (e?.status === 401) return "Incorrect email or password.";
+  return msg || "Sign in failed";
+}
 
 export default function LoginPage() {
   //Set Previous page for the 404 back button handler to check
@@ -12,6 +30,16 @@ export default function LoginPage() {
   }, []);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { refetch } = useAuth();
+  const { add } = useNotifications();
+  // ProtectedRoute passes where the user was headed in location.state.from
+  const routeState = location.state as {
+    from?: { pathname: string };
+    message?: string;
+  } | null;
+  const from = routeState?.from?.pathname ?? "/dashboard";
+  const notice = routeState?.message;
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -24,13 +52,20 @@ export default function LoginPage() {
 
     try {
       await loginUser({ email, password });
-      navigate("/dashboard");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to sign in. Please try again.",
-      );
+      // load the user into AuthContext first, or ProtectedRoute bounces us back here
+      const me = await refetch();
+      add({
+        id: String(Date.now()),
+        message: "Signed in successfully",
+        read: false,
+        time: new Date().toISOString(),
+      });
+      // a new admin finishes their organisation setup first
+      navigate(me && needsOnboarding(me) ? "/onboarding" : from, {
+        replace: true,
+      });
+    } catch (err: unknown) {
+      setError(describeLoginError(err));
     } finally {
       setLoading(false);
     }
@@ -58,6 +93,12 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {notice && !error && (
+              <div className="bg-emerald-500/10 border border-emerald-500/30 flex gap-2 rounded-xl p-4">
+                <CheckCircle className="text-emerald-400 shrink-0" size={20} />
+                <p className="text-emerald-300 text-sm">{notice}</p>
+              </div>
+            )}
             {error && (
               <div className="bg-red-500 flex gap-2 bg-opacity-20 rounded-xl p-4">
                 <StopCircle className="text-white" size={20} />
@@ -99,12 +140,10 @@ export default function LoginPage() {
                   Forgot password?
                 </a>
               </div>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
                 className="w-full px-4 py-3 bg-[#151b2d] border border-brand-border text-brand-text placeholder-brand-text-muted rounded-lg focus:outline-none focus:border-[#7bd0ff] focus:ring-2 focus:ring-[#7bd0ff] focus:ring-opacity-20 transition-all"
                 required
               />

@@ -10,160 +10,138 @@ import {
 } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import ScanRow, { type ScanQueueItem } from "../components/dashboard/ScanRow";
-import { useEffect, useState } from "react";
-import { listPatients, type PatientRecord } from "../lib/patients";
-import { listScans, type ScanRecord } from "../lib/scans";
+import { listAllScans, type ScanRecord } from "../lib/scans";
+import { getDashboardStats, type DashboardStats } from "../lib/dashboard";
+import { SCAN_WORKFLOW } from "../lib/features";
+import ActivityFeed from "../components/dashboard/ActivityFeed";
+import { getPatient } from "../lib/patients";
+import RecentPatients from "../components/dashboard/RecentPatients";
+import { EmptyState, ErrorState, LoadingState } from "../components/PageStatus";
+import { useAuth } from "../contexts/AuthContext";
+
+/** What the queue shows for a scan, combining inference and review state. */
+function queueStatus(s: ScanRecord): string {
+  if (s.status === "processing") return "processing";
+  if (s.review_status === "reviewed") return "reviewed";
+  if (s.is_flagged) return "flagged";
+  return s.status === "completed" ? "ready" : s.status;
+}
+
+/** Urgent first, then flagged, then newest. */
+function byUrgency(a: ScanRecord, b: ScanRecord): number {
+  const rank = (s: ScanRecord) =>
+    (s.priority === "urgent" ? 2 : 0) + (s.is_flagged ? 1 : 0);
+  return (
+    rank(b) - rank(a) ||
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  // Set Previous page for the 404 back button handler to check
   sessionStorage.setItem("lastPage", window.location.href);
 
   useEffect(() => {
     document.title = "Dashboard - Mediscan AI";
   }, []);
 
-  const [patients, setPatients] = useState<PatientRecord[]>([]);
-  const [scans, setScans] = useState<ScanRecord[]>([]);
+  const [queue, setQueue] = useState<ScanQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [urgentFirst, setUrgentFirst] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
-    (async () => {
+    if (!SCAN_WORKFLOW) return;
+    let active = true;
+    getDashboardStats()
+      .then((s) => active && setStats(s))
+      .catch(() => {}); // cards fall back to "—"
+    return () => {
+      active = false;
+    };
+  }, [reloadKey]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadQueue() {
       try {
-        const patientList = await listPatients({ limit: 20, offset: 0 });
-        setPatients(patientList);
+        const scans = (await listAllScans({ limit: 50 })).sort(byUrgency);
 
-        const allScans: ScanRecord[] = [];
-        for (const patient of patientList) {
-          const patientScans = await listScans(patient.id, {
-            limit: 20,
-            offset: 0,
-          });
-          allScans.push(...patientScans);
-        }
-        setScans(allScans);
-      } catch (error) {
-        console.error("Failed to load dashboard data", error);
+        // One lookup per unique patient instead of one per scan.
+        const ids = [...new Set(scans.map((s) => s.patient_id).filter(Boolean))];
+        const lookups = await Promise.allSettled(ids.map((id) => getPatient(id)));
+        const codes = new Map<string, string>();
+        lookups.forEach((r, i) => {
+          if (r.status === "fulfilled") codes.set(ids[i], r.value.patient_code);
+        });
+
+        const mapped: ScanQueueItem[] = await Promise.all(
+          scans.map(async (s) => {
+            const patientCode = codes.get(s.patient_id) ?? s.patient_id ?? "Unknown";
+            const patientName = patientCode;
+
+            const finding =
+              s.findings && s.findings.length ? s.findings[0] : undefined;
+            return {
+              id: s.id,
+              patientName,
+              patientCode,
+              modality: "Chest X-Ray",
+              projection: "",
+              uploadedBy: "",
+              uploadedAt: new Date(s.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              // null until the backend tracks priority
+              priority: s.priority ?? null,
+              status: queueStatus(s),
+              confidence: finding
+                ? Math.round(
+                    (finding.confidence_pct ?? finding.score * 100) as number,
+                  )
+                : null,
+              prediction: finding ? finding.condition : null,
+            } as ScanQueueItem;
+          }),
+        );
+
+        if (mounted) setQueue(mapped);
+      } catch (err: unknown) {
+        console.error("failed to load scans", err);
+        if (mounted)
+          setLoadError(err instanceof Error ? err.message : String(err));
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
-    })();
-  }, []);
-
-  const pending = scans.filter((scan) => scan.status !== "completed");
-  const urgent = scans.filter((scan) => scan.status === "pending");
-  const flagged = scans.filter((scan) => (scan.findings ?? []).length > 0);
-  const reviewed = scans.filter((scan) => scan.status === "completed");
-
-  const queueScans = [...scans].sort((a, b) => {
-    const aUrgent = a.status === "pending" ? 1 : 0;
-    const bUrgent = b.status === "pending" ? 1 : 0;
-
-    if (urgentFirst) {
-      if (aUrgent !== bUrgent) return bUrgent - aUrgent;
     }
 
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
+    loadQueue();
+    return () => {
+      mounted = false;
+    };
+  }, [reloadKey]);
 
-  const avgConfidence =
-    scans.length > 0
-      ? scans
-          .flatMap((scan) => scan.findings ?? [])
-          .reduce(
-            (total, finding) => total + (finding.confidence_pct ?? 0),
-            0,
-          ) /
-        scans.reduce((total, scan) => total + (scan.findings?.length ?? 0), 0)
-      : 0;
+  function retryQueue() {
+    setLoading(true);
+    setLoadError(null);
+    setReloadKey((k) => k + 1);
+  }
 
-  const scansToday = scans.filter((scan) => {
-    const created = new Date(scan.created_at);
-    const now = new Date();
-    return (
-      created.getFullYear() === now.getFullYear() &&
-      created.getMonth() === now.getMonth() &&
-      created.getDate() === now.getDate()
-    );
-  }).length;
-
-  const systemStats = [
-    {
-      label: "Avg. AI Confidence",
-      value: scans.reduce(
-        (total, scan) => total + (scan.findings?.length ?? 0),
-        0,
-      )
-        ? `${avgConfidence.toFixed(1)}%`
-        : "N/A",
-      icon: <Activity size={13} />,
-    },
-    {
-      label: "Pending Scans",
-      value: String(pending.length),
-      icon: <ImageIcon size={13} />,
-    },
-    {
-      label: "Review Completion",
-      value: scans.length
-        ? `${Math.round((reviewed.length / scans.length) * 100)}%`
-        : "0%",
-      icon: <CheckCircle2 size={13} />,
-    },
-    {
-      label: "Scans Today",
-      value: String(scansToday),
-      icon: <AlertTriangle size={13} />,
-    },
-  ];
-
-  const activityEntries = scans
-    .slice()
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    )
-    .slice(0, 5)
-    .map((scan) => {
-      const patient = patients.find((entry) => entry.id === scan.patient_id);
-      const finding = scan.findings?.[0];
-
-      if (scan.status === "completed") {
-        return {
-          time: new Date(scan.created_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          message: `${patient?.patient_code ?? "Patient"} review complete${finding ? ` — ${finding.condition}` : ""}`,
-          type: "reviewed" as const,
-        };
-      }
-
-      if ((scan.findings ?? []).length > 0 && finding) {
-        return {
-          time: new Date(scan.created_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          message: `${patient?.patient_code ?? "Patient"} flagged — ${finding.condition} (${finding.confidence_pct}%)`,
-          type: "flagged" as const,
-        };
-      }
-
-      return {
-        time: new Date(scan.created_at).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        message: `${patient?.patient_code ?? "Patient"} uploaded for review`,
-        type: "uploaded" as const,
-      };
-    });
+  // Without the scan workflow on the backend these cards show "—" instead of
+  // a misleading 0; with it, they come from GET /dashboard/stats.
+  const hasPriority = queue.some((s) => s.priority !== null);
+  const urgent = queue.filter((s) => s.priority === "urgent");
 
   return (
     <div className="p-4 sm:p-8 space-y-7">
+      {/* Page Header */}
       <div>
         <h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display">
-          Clinical Review Dashboard
+          Welcome back{user ? `, ${user.full_name}` : ""}
         </h1>
         <p className="text-brand-text-muted text-sm mt-1">
           {new Date().toLocaleDateString("en-NG", {
@@ -175,6 +153,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* Compact Disclaimer Banner */}
       <div className="flex items-center gap-2.5 bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2.5 text-amber-500 text-xs">
         <AlertTriangle size={14} className="shrink-0" />
         <p className="leading-snug">
@@ -186,38 +165,41 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
-          label="Pending Review"
-          value={pending.length}
-          sub="In your queue"
+          label={stats ? "Pending Review" : "Scans"}
+          value={stats ? stats.pending_review : queue.length}
+          sub={stats ? "Awaiting review" : "Most recent uploads"}
           icon={<ImageIcon size={18} />}
           accent="blue"
         />
         <StatCard
           label="Urgent"
-          value={urgent.length}
-          sub="High priority"
+          value={stats ? stats.urgent : hasPriority ? urgent.length : "—"}
+          sub={stats || hasPriority ? "High priority" : "Not tracked yet"}
           icon={<AlertTriangle size={18} />}
           accent="amber"
         />
         <StatCard
           label="AI Flagged"
-          value={flagged.length}
-          sub="Possible findings"
+          value={stats ? stats.flagged : "—"}
+          sub={stats ? "Above alert threshold" : "Not tracked yet"}
           icon={<Activity size={18} />}
           accent="red"
         />
         <StatCard
           label="Reviewed Today"
-          value={reviewed.length}
-          sub="Signed off"
+          value={stats ? stats.reviewed_today : "—"}
+          sub={stats ? "Signed off" : "Not tracked yet"}
           icon={<CheckCircle2 size={18} />}
           accent="green"
         />
       </div>
 
+      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Scan Queue — 2 cols */}
         <div className="lg:col-span-2 max-sm:w-full max-sm:overflow-x-scroll sm:overflow-hidden ">
           <div className="max-sm:w-150 bg-brand-card/60 backdrop-blur-md rounded-2xl border border-brand-border/60 overflow-hidden shadow-lg">
             <div className="flex items-center justify-between px-6 py-5 border-b border-brand-border/40">
@@ -227,40 +209,17 @@ export default function DashboardPage() {
                 </h2>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-brand-text-muted text-xs">
-                    {pending.length} pending · {urgent.length} urgent
+                    {queue.length} scans
                   </p>
                   <span className="w-1 h-1 bg-brand-text-muted/40 rounded-full" />
-                  <p className="hidden sm:flex text-[10px] text-brand-primary font-bold items-center gap-1">
+                  <p className="hidden sm:flex text-[10px] text-brand-primary font-bold  items-center gap-1">
                     <Info size={11} /> Click row to review
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setUrgentFirst(false)}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors ${
-                    !urgentFirst
-                      ? "text-brand-primary bg-brand-primary/10 border border-brand-primary/20"
-                      : "text-brand-text-muted hover:text-brand-primary hover:bg-brand-border/40"
-                  }`}
-                >
-                  Latest
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUrgentFirst(true)}
-                  className={`text-xs font-extrabold px-3 py-1.5 rounded-xl active:scale-95 transition-all ${
-                    urgentFirst
-                      ? "text-rose-400 bg-rose-500/10 border border-rose-500/20"
-                      : "text-brand-text-muted hover:text-rose-400 hover:bg-brand-border/40"
-                  }`}
-                >
-                  Urgent first
-                </button>
-              </div>
             </div>
 
+            {/* Table Head */}
             <div className="grid grid-cols-12 gap-4 px-6 py-3.5 text-brand-text-muted/40 text-[10px] uppercase font-bold tracking-widest border-b border-brand-border/40">
               <div className="col-span-4">Patient</div>
               <div className="col-span-2">Priority</div>
@@ -268,59 +227,40 @@ export default function DashboardPage() {
               <div className="col-span-3 pl-2">AI Verdict</div>
             </div>
 
+            {/* Rows */}
             <div className="p-4 space-y-2">
               {loading ? (
-                <p className="px-6 py-8 text-sm text-brand-text-muted">
-                  Loading patient queue…
-                </p>
-              ) : queueScans.length > 0 ? (
-                queueScans.map((scan) => {
-                  const patient = patients.find(
-                    (entry) => entry.id === scan.patient_id,
-                  );
-                  const finding = scan.findings?.[0];
-                  const queueItem: ScanQueueItem = {
-                    id: scan.id,
-                    patientName: patient?.patient_code ?? "Patient",
-                    patientCode: patient?.patient_code ?? "N/A",
-                    modality: "Chest X-Ray",
-                    projection: "PA",
-                    uploadedBy: "Clinician",
-                    uploadedAt: new Date(scan.created_at).toLocaleDateString(),
-                    priority: scan.status === "pending" ? "urgent" : "routine",
-                    status:
-                      scan.status === "completed"
-                        ? "ready"
-                        : scan.status === "pending"
-                          ? "processing"
-                          : "flagged",
-                    confidence: finding?.confidence_pct ?? null,
-                    prediction: finding?.condition ?? null,
-                  };
-
-                  return <ScanRow key={scan.id} scan={queueItem} />;
-                })
+                <LoadingState label="Loading scans…" />
+              ) : loadError ? (
+                <ErrorState message={loadError} onRetry={retryQueue} />
+              ) : queue.length === 0 ? (
+                <EmptyState
+                  title="No scans yet"
+                  hint="Upload a chest X-ray and it will appear in your queue."
+                />
               ) : (
-                <p className="px-6 py-8 text-sm text-brand-text-muted">
-                  No scans available yet.
-                </p>
+                queue.map((scan) => <ScanRow key={scan.id} scan={scan} />)
               )}
             </div>
 
             <div className="px-6 py-4.5 border-t border-brand-border/40 bg-brand-card/30 flex justify-between items-center">
               <p className="text-brand-text-muted/50 text-xs font-medium">
-                Showing {scans.length} scans
+                Showing {queue.length} scans
               </p>
-              <button className="text-brand-primary text-xs font-bold hover:text-brand-primary-hover flex items-center gap-1 transition-colors">
-                View full queue <ChevronRight size={14} />
-              </button>
+              <Link
+                to="/neural-analysis"
+                className="text-brand-primary text-xs font-bold hover:text-brand-primary-hover flex items-center gap-1 transition-colors"
+              >
+                View all scans <ChevronRight size={14} />
+              </Link>
             </div>
           </div>
         </div>
 
+        {/* Right column */}
         <div className="space-y-6">
-          <SystemStats stats={systemStats} />
-          <ActivityLog entries={activityEntries} />
+          <RecentPatients />
+          {SCAN_WORKFLOW && <ActivityFeed />}
         </div>
       </div>
     </div>
