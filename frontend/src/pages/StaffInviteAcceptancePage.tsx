@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { User, Lock, ArrowRight, Loader } from "lucide-react";
+import { User, Lock, ArrowRight, Loader, CircleStop } from "lucide-react";
 import { acceptInvite } from "../lib/auth";
 import PasswordInput from "../components/PasswordInput";
 
