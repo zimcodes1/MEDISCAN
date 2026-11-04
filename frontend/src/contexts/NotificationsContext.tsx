@@ -17,7 +17,15 @@ const NotificationsContext = createContext<{
   notifications: NotificationItem[];
   add: (n: NotificationItem) => void;
   markRead: (id: string) => void;
-}>({ notifications: [], add: () => {}, markRead: () => {} });
+  markAllRead: () => void;
+  unreadCount: number;
+}>({
+  notifications: [],
+  add: () => {},
+  markRead: () => {},
+  markAllRead: () => {},
+  unreadCount: 0,
+});
 
 export function NotificationsProvider({
   children,
@@ -36,9 +44,18 @@ export function NotificationsProvider({
     );
   }, []);
 
+  const markAllRead = useCallback(() => {
+    setNotifications((prev) => prev.map((p) => ({ ...p, read: true })));
+  }, []);
+
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.read).length,
+    [notifications],
+  );
+
   const value = useMemo(
-    () => ({ notifications, add, markRead }),
-    [notifications, add, markRead],
+    () => ({ notifications, add, markRead, markAllRead, unreadCount }),
+    [notifications, add, markRead, markAllRead, unreadCount],
   );
 
   return (

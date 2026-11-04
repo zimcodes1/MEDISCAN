@@ -52,8 +52,9 @@ export default function CaseUploadPage() {
     if (!settings || defaultsApplied.current) return;
     defaultsApplied.current = true;
     setPriority(settings.default_priority);
-    setAssignedRadiologist(settings.auto_assign_to_id ?? "");
-  }, [settings]);
+    // only admins pick the assignee; for everyone else the server applies the default
+    if (user?.role === "admin") setAssignedRadiologist(settings.auto_assign_to_id ?? "");
+  }, [settings, user?.role]);
 
   useEffect(() => {
     if (!METADATA_SAVED) return;
@@ -102,7 +103,8 @@ export default function CaseUploadPage() {
                 : undefined,
               examDate: scanDate || undefined,
               clinicalNotes: clinicalNotes.trim() || undefined,
-              assignedToId: assignedRadiologist || undefined,
+              assignedToId:
+                user?.role === "admin" ? assignedRadiologist || undefined : undefined,
             }
           : undefined,
         setProgress,
@@ -196,6 +198,7 @@ export default function CaseUploadPage() {
               onAssignedRadiologistChange={setAssignedRadiologist}
               disabled={!METADATA_SAVED}
               staff={staff}
+              canAssign={user?.role === "admin"}
             />
 
             {/* Submit Button */}

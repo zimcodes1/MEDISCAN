@@ -18,6 +18,7 @@ import ReportsListPage from "./pages/ReportsListPage";
 import ReportEditorPage from "./pages/ReportEditorPage";
 import SettingsPage from "./pages/SettingsPage";
 import PlatformApprovalsPage from "./pages/PlatformApprovalsPage";
+import SupportPage from "./pages/SupportPage";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PatientsPage from "./pages/PatientsPage";
@@ -73,6 +74,7 @@ function App() {
 							path="/scans/:scanId/report"
 							element={<ReportEditorPage />}
 						/>
+						<Route path="/support" element={<SupportPage />} />
 						<Route
 							path="/platform/approvals"
 							element={<PlatformApprovalsPage />}

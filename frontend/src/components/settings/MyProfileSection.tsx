@@ -2,7 +2,6 @@ import { Upload, Save, Trash2, KeyRound } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Avatar from "../Avatar";
-import PasswordInput from "../PasswordInput";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   changePassword,
@@ -60,6 +59,8 @@ export default function MyProfileSection() {
   const [passwordNotice, setPasswordNotice] = useState<Notice>(null);
 
   if (!user) return null;
+  // Job titles are set by the organisation: only admins can change their own.
+  const canEditTitle = user.role === "admin";
 
   async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -106,7 +107,8 @@ export default function MyProfileSection() {
     const patch: { full_name?: string; job_title?: string; phone_number?: string } =
       {};
     if (name !== user.full_name) patch.full_name = name;
-    if (jobTitle.trim() !== (user.job_title ?? "")) patch.job_title = jobTitle.trim();
+    if (canEditTitle && jobTitle.trim() !== (user.job_title ?? ""))
+      patch.job_title = jobTitle.trim();
     if (phoneNumber.trim() !== (user.phone_number ?? ""))
       patch.phone_number = phoneNumber.trim();
     if (Object.keys(patch).length === 0) {
@@ -234,11 +236,22 @@ export default function MyProfileSection() {
           <label className={LABEL}>Job Title</label>
           <input
             type="text"
-            value={jobTitle}
+            value={canEditTitle ? jobTitle : (user.job_title ?? "")}
             onChange={(e) => setJobTitle(e.target.value)}
             maxLength={100}
-            className={INPUT}
+            readOnly={!canEditTitle}
+            placeholder={canEditTitle ? "" : "Not set"}
+            className={
+              canEditTitle
+                ? INPUT
+                : "w-full bg-brand-card/30 text-brand-text-muted/65 px-4 py-3 rounded-xl border border-brand-border/40 cursor-not-allowed"
+            }
           />
+          {!canEditTitle && (
+            <p className="text-brand-text-muted/60 text-[10px] font-semibold mt-1">
+              Your job title is set by your organisation admin
+            </p>
+          )}
         </div>
 
         <div>
@@ -289,7 +302,8 @@ export default function MyProfileSection() {
         </div>
         <div>
           <label className={LABEL}>Current Password</label>
-          <PasswordInput
+          <input
+            type="password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             autoComplete="current-password"
@@ -298,7 +312,8 @@ export default function MyProfileSection() {
         </div>
         <div>
           <label className={LABEL}>New Password</label>
-          <PasswordInput
+          <input
+            type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             autoComplete="new-password"
@@ -308,7 +323,8 @@ export default function MyProfileSection() {
         </div>
         <div>
           <label className={LABEL}>Confirm New Password</label>
-          <PasswordInput
+          <input
+            type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             autoComplete="new-password"

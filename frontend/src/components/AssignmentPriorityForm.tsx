@@ -10,6 +10,8 @@ interface AssignmentPriorityFormProps {
 	disabled?: boolean;
 	/** Assignable staff (GET /staff). */
 	staff?: { id: string; full_name: string; role?: string }[];
+	/** Only admins choose who examines a scan; everyone else sees a note instead of the picker. */
+	canAssign?: boolean;
 }
 
 export default function AssignmentPriorityForm({
@@ -20,6 +22,7 @@ export default function AssignmentPriorityForm({
 	onAssignedRadiologistChange,
 	disabled = false,
 	staff = [],
+	canAssign = true,
 }: AssignmentPriorityFormProps) {
 	return (
 		<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
@@ -45,8 +48,13 @@ export default function AssignmentPriorityForm({
 				disabled={disabled}
 				className="space-y-6 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed"
 			>
-			{/* Assign Radiologist */}
-			<div>
+			{/* Assign Radiologist (admins only) */}
+			{!canAssign && (
+				<p className="text-brand-text-muted text-xs bg-brand-card/40 border border-brand-border/40 rounded-xl px-4 py-2.5 leading-snug">
+					An admin assigns scans to radiologists after upload.
+				</p>
+			)}
+			{canAssign && <div>
 				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 					Assign Radiologist
 				</label>
@@ -63,7 +71,7 @@ export default function AssignmentPriorityForm({
 						</option>
 					))}
 				</select>
-			</div>
+			</div>}
 
 			{/* Priority */}
 			<div>
