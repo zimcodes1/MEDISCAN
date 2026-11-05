@@ -19,6 +19,8 @@ import ReportEditorPage from "./pages/ReportEditorPage";
 import SettingsPage from "./pages/SettingsPage";
 import PlatformApprovalsPage from "./pages/PlatformApprovalsPage";
 import SupportPage from "./pages/SupportPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PatientsPage from "./pages/PatientsPage";
@@ -33,6 +35,8 @@ function App() {
 			<Routes>
 				<Route path="/" element={<LandingPage />} />
 				<Route path="/login" element={<LoginPage />} />
+				<Route path="/forgot-password" element={<ForgotPasswordPage />} />
+				<Route path="/reset-password" element={<ResetPasswordPage />} />
 				<Route path="/signup" element={<OrganisationSignupPage />} />
 				<Route path="/pending-approval" element={<PendingApprovalPage />} />
 				{/* The backend approves accounts manually; there is no email verification.

@@ -13,7 +13,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "I forgot my password.",
-    a: "Ask your organisation admin or MediScan support to help you recover the account. If you are signed in, you can change your password under Settings, My Profile.",
+    a: "Ask your organisation admin to create a reset link for you under Settings, Staff Management (Reset password), then open the link. If you are the only admin, contact support. If you are signed in, you can change your password under Settings, My Profile.",
   },
   {
     q: "My invitation link doesn't work.",

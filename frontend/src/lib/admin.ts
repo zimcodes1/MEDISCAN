@@ -25,3 +25,24 @@ export async function deactivateUser(userId: string): Promise<void> {
 export async function activateUser(userId: string): Promise<void> {
   await api.post(`/admin/users/${userId}/activate`);
 }
+
+export interface PasswordResetLink {
+  /** Shown once: only a hash is stored. */
+  token: string;
+  reset_url: string;
+  expires_at: string;
+  user: { id: string; full_name: string; email: string };
+}
+
+/**
+ * Admin only. A one-time link for a colleague who lost their password. No email is
+ * sent: the admin hands the link over. It replaces any earlier unused link.
+ */
+export async function createPasswordReset(
+  userId: string,
+): Promise<PasswordResetLink> {
+  const { data } = await api.post<PasswordResetLink>(
+    `/admin/users/${userId}/password-reset`,
+  );
+  return data;
+}

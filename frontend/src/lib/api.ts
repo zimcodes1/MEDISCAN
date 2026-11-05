@@ -46,6 +46,7 @@ const AUTH_PATHS = [
   "/auth/register",
   "/auth/register-organisation",
   "/auth/accept-invite",
+  "/auth/reset-password",
   "/auth/refresh",
 ];
 
