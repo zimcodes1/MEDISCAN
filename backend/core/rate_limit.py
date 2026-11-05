@@ -114,10 +114,13 @@ REGISTER_ORG_PER_IP = SlidingWindowLimiter("register_org_ip", 5, 60 * 60)
 ACCEPT_INVITE_PER_IP = SlidingWindowLimiter("accept_invite_ip", 20, 60 * 60)
 PASSWORD_CHANGE_PER_USER = SlidingWindowLimiter("password_change_user", 5, 15 * 60)
 PROFILE_IMAGE_PER_USER = SlidingWindowLimiter("profile_image_user", 10, 60 * 60)  # avatars + logos
+RESET_PASSWORD_PER_IP = SlidingWindowLimiter("reset_password_ip", 20, 60 * 60)
+PASSWORD_RESET_CREATE_PER_USER = SlidingWindowLimiter("password_reset_create_user", 30, 60 * 60)
 
 _ALL = [LOGIN_PER_IP, LOGIN_PER_ACCOUNT, REGISTER_PER_IP, REFRESH_PER_IP,
         PREDICT_PER_USER, PREDICT_INFLIGHT, IMAGE_PER_USER, WARMUP_PER_USER,
-        REGISTER_ORG_PER_IP, ACCEPT_INVITE_PER_IP, PASSWORD_CHANGE_PER_USER, PROFILE_IMAGE_PER_USER]
+        REGISTER_ORG_PER_IP, ACCEPT_INVITE_PER_IP, PASSWORD_CHANGE_PER_USER, PROFILE_IMAGE_PER_USER,
+        RESET_PASSWORD_PER_IP, PASSWORD_RESET_CREATE_PER_USER]
 
 
 def reset_all() -> None:

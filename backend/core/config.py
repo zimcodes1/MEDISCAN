@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     # Base address of the web app; invite links are built from it (set FRONTEND_URL).
     frontend_url: str = "https://mediscan-ng.vercel.app"
     invite_expire_days: int = 7
+    # Admin-issued password reset links are short-lived: they are a password in waiting.
+    password_reset_expire_minutes: int = 60
     profile_image_max_mb: int = 2          # avatars and organisation logos
     profile_image_max_side_px: int = 512   # stored size; larger uploads are scaled down
 

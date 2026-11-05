@@ -8,15 +8,16 @@ from backend.core.errors import AppError
 from backend.core.net import client_ip
 from backend.core.rate_limit import (
     ACCEPT_INVITE_PER_IP, LOGIN_PER_ACCOUNT, LOGIN_PER_IP, PASSWORD_CHANGE_PER_USER,
-    PROFILE_IMAGE_PER_USER, REFRESH_PER_IP, REGISTER_ORG_PER_IP, REGISTER_PER_IP, by_ip,
+    PROFILE_IMAGE_PER_USER, REFRESH_PER_IP, REGISTER_ORG_PER_IP, REGISTER_PER_IP,
+    RESET_PASSWORD_PER_IP, by_ip,
 )
 from backend.models import Organisation, User
 from backend.schemas.auth import (
     AvatarOut, LoginRequest, MeOut, MessageResponse, OrgRef, PasswordChange, ProfileUpdate,
-    RefreshRequest, RegisterRequest, TokenResponse, UserPublic,
+    RefreshRequest, RegisterRequest, ResetPassword, TokenResponse, UserPublic,
 )
 from backend.schemas.org import AcceptInvite, OrganisationRegister
-from backend.services import auth_service, org_service, profile_service
+from backend.services import auth_service, org_service, password_reset_service, profile_service
 from backend.services.storage_service import StorageService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -95,6 +96,20 @@ async def accept_invite(
 ):
     """Turns an invitation link into an already-approved account in that organisation."""
     return await org_service.accept_invite(session, body, client_ip(request))
+
+
+@router.post("/reset-password", status_code=204,
+             dependencies=[Depends(by_ip(RESET_PASSWORD_PER_IP))])
+async def reset_password(
+    body: ResetPassword, request: Request,
+    session: AsyncSession = Depends(get_session),
+):
+    """Sets a new password from an admin-issued link, then signs the person out
+    everywhere. They sign in again with the new password."""
+    await password_reset_service.reset_password(
+        session, body.token, body.new_password, client_ip(request)
+    )
+    return Response(status_code=204)
 
 
 async def _me(session: AsyncSession, user: User) -> MeOut:

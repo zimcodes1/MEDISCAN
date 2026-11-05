@@ -117,3 +117,30 @@ class PasswordChange(BaseModel):
 
 class AvatarOut(BaseModel):
     avatar_url: str
+
+
+class ResetPassword(BaseModel):
+    """POST /auth/reset-password: sets a new password from an admin-issued link."""
+
+    token: str = Field(min_length=20, max_length=200)
+    new_password: str = Field(min_length=10, max_length=72)
+
+    @field_validator("new_password")
+    @classmethod
+    def _within_bcrypt_limit(cls, v: str) -> str:
+        if len(v.encode()) > 72:
+            raise ValueError("Password must be at most 72 bytes")
+        return v
+
+
+class ResetTarget(BaseModel):
+    id: uuid.UUID
+    full_name: str
+    email: str
+
+
+class PasswordResetCreated(BaseModel):
+    token: str          # shown once; only a hash is stored
+    reset_url: str
+    expires_at: datetime
+    user: ResetTarget

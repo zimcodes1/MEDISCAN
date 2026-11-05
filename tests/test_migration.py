@@ -49,6 +49,8 @@ def test_upgrade_backfills_and_downgrade_restores():
         "select logo_key, radiologist_count, default_priority, auto_assign_to_id, report_disclaimer"
         " from organisations").fetchone() == (None, None, "routine", None, "")
     assert "unique" in c.execute("select sql from sqlite_master where name='invites'").fetchone()[0].lower()
+    # 0007: admin-issued password reset links
+    assert "unique" in c.execute("select sql from sqlite_master where name='password_resets'").fetchone()[0].lower()
     c.close()
 
     _alembic(db, "downgrade", "0002")
@@ -60,4 +62,5 @@ def test_upgrade_backfills_and_downgrade_restores():
     assert not c.execute("select 1 from sqlite_master where name='activities'").fetchone()
     assert not c.execute("select 1 from sqlite_master where name='reports'").fetchone()
     assert not c.execute("select 1 from sqlite_master where name='invites'").fetchone()
+    assert not c.execute("select 1 from sqlite_master where name='password_resets'").fetchone()
     assert "avatar_key" not in cols and "job_title" not in cols
