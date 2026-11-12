@@ -326,7 +326,7 @@ async def test_deleting_a_patient_removes_their_reports(client, db, team):
         assert (await s.exec(select(Report))).all() == []
 
 
-async def test_real_engine_logs_statements_but_never_their_values(monkeypatch, caplog):
+async def test_real_engine_logs_statements_but_never_their_values(monkeypatch, caplog, tmp_path):
     """With DEBUG on, SQLAlchemy echoes SQL. The production engine factory must hide
     the bound values, which hold patient data (notes, report text)."""
     from sqlalchemy import text
@@ -335,7 +335,9 @@ async def test_real_engine_logs_statements_but_never_their_values(monkeypatch, c
     from backend.core import database
 
     monkeypatch.setattr(database.settings, "debug", True)  # echo every statement
-    eng = database._build_engine()  # the real factory, pointed at the throwaway test DB
+    # The real factory, but always on a throwaway SQLite file: never the environment's database.
+    monkeypatch.setattr(database.settings, "database_url", f"sqlite+aiosqlite:///{tmp_path / 'echo.db'}")
+    eng = database._build_engine()
     caplog.set_level(logging.INFO, logger="sqlalchemy.engine")
     try:
         async with eng.begin() as conn:

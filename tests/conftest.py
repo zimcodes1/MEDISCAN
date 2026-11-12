@@ -1,9 +1,13 @@
 import os
 
 # Must be set before backend.* is imported (settings are read at import time).
-os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+#
+# DATABASE_URL and ENVIRONMENT are forced, not defaulted: after a migration session a
+# real connection string is often still exported in the shell, and a test that touches
+# the real engine would then run against that database (setdefault would keep it).
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+os.environ["ENVIRONMENT"] = "test"
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-that-is-at-least-32-characters")
-os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("BCRYPT_ROUNDS", "4")  # fast hashing in tests
 
 import boto3  # noqa: E402
@@ -25,6 +29,17 @@ from backend.main import app  # noqa: E402
 from backend.models import Organisation  # noqa: E402
 from backend.services.inference_service import MockInferenceService  # noqa: E402
 from backend.services.storage_service import LocalStorage, S3Storage  # noqa: E402
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _never_a_real_database():
+    """Fail loudly, before any test runs, if the suite could reach a real database."""
+    url = get_settings().database_url
+    assert url.startswith("sqlite"), (
+        "The tests must run on SQLite, never a real database "
+        f"(got a {url.split(':', 1)[0]} URL). Unset DATABASE_URL and run again."
+    )
+    yield
 
 
 @pytest.fixture(autouse=True)
