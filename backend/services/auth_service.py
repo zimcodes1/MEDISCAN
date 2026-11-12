@@ -202,6 +202,8 @@ async def _get_user_or_404(session: AsyncSession, admin: User, user_id: uuid.UUI
 async def approve_user(session: AsyncSession, admin: User, user_id: uuid.UUID, ip: str | None) -> User:
     user = await _get_user_or_404(session, admin, user_id)
     newly_joined = not user.is_approved
+    org = await session.get(Organisation, user.organisation_id)
+    mail = (user.email, user.full_name, org.name if org else "your organisation")
     user.is_approved = True
     audit(session, "user.approve", user_id=admin.id, resource_id=user.id, ip=ip)
     if newly_joined:
@@ -210,7 +212,18 @@ async def approve_user(session: AsyncSession, admin: User, user_id: uuid.UUID, i
             session, organisation_id=user.organisation_id, type="user_joined",
             actor_id=user.id, message="Joined the organisation",
         )
+        from backend.services import notification_service  # local import: avoids a cycle
+        await notification_service.notify(
+            session,
+            recipient_ids=[i for i in await notification_service.admin_ids(session, user.organisation_id)
+                           if i != admin.id],  # the approving admin already knows
+            organisation_id=user.organisation_id, type="staff_joined", actor_id=user.id,
+            message=f"{user.full_name} joined the organisation",
+        )
     await session.commit()
+    if newly_joined:
+        from backend.services import email_service  # local import: avoids a cycle
+        email_service.send_account_approved(*mail)
     return user
 
 
@@ -240,5 +253,22 @@ async def activate_user(session: AsyncSession, admin: User, user_id: uuid.UUID, 
     user = await _get_user_or_404(session, admin, user_id)
     user.is_active = True
     audit(session, "user.activate", user_id=admin.id, resource_id=user.id, ip=ip)
+    await session.commit()
+    return user
+
+
+async def update_staff(
+    session: AsyncSession, admin: User, user_id: uuid.UUID, body, ip: str | None
+) -> User:
+    """An organisation admin sets a colleague's job title (staff cannot set their own)."""
+    fields = body.model_fields_set
+    if not fields:
+        raise AuthError(422, "No fields to update")
+    user = await _get_user_or_404(session, admin, user_id)
+    if "job_title" in fields:
+        user.job_title = body.job_title
+    user.updated_at = utcnow()
+    audit(session, "user.update_staff", user_id=admin.id, resource_id=user.id, ip=ip)
+    session.add(user)
     await session.commit()
     return user

@@ -21,7 +21,7 @@ from backend.schemas.org import (
     AcceptInvite, AdminRef, InviteCreate, InviteCreated, InviteOut, OrganisationRegister,
     OrgSettings, OrgSettingsUpdate, OrgUpdate, PlatformOrgOut,
 )
-from backend.services import activity_service
+from backend.services import activity_service, email_service, notification_service
 from backend.services.auth_service import _aware, audit, normalize_email
 from backend.services.profile_images import process_profile_image
 from backend.services.scan_service import validate_assignee
@@ -109,6 +109,13 @@ async def approve_organisation(
 ) -> PlatformOrgOut:
     """Activates the organisation and approves its admin(s) so they can sign in."""
     org = await _org_or_404(session, org_id)
+    org_name = org.name
+    # Only people approved by this click get the email, not admins who already could sign in.
+    newly = (await session.exec(
+        select(User).where(User.organisation_id == org.id, User.role == UserRole.admin,
+                           User.is_approved.is_(False), User.is_active.is_(True))
+    )).all()
+    mails = [(u.email, u.full_name) for u in newly]
     org.status = "active"
     await session.exec(
         update(User)
@@ -120,6 +127,8 @@ async def approve_organisation(
           resource_id=org.id, ip=ip)
     session.add(org)
     await session.commit()
+    for email, full_name in mails:
+        email_service.send_organisation_approved(email, full_name, org_name)
     return (await get_platform_org(session, org.id))
 
 
@@ -293,6 +302,7 @@ async def create_invite(
     raw = secrets.token_urlsafe(32)
     invite = Invite(
         organisation_id=admin.organisation_id, email=email, role=body.role,
+        job_title=body.job_title,
         token_hash=security.hash_token(raw), created_by_id=admin.id,
         expires_at=now + timedelta(days=get_settings().invite_expire_days),
     )
@@ -302,8 +312,8 @@ async def create_invite(
           resource_id=invite.id, ip=ip)
     await session.commit()
     return InviteCreated(
-        id=invite.id, email=invite.email, role=invite.role, token=raw,
-        invite_url=_invite_url(raw, invite.email), expires_at=invite.expires_at,
+        id=invite.id, email=invite.email, role=invite.role, job_title=invite.job_title,
+        token=raw, invite_url=_invite_url(raw, invite.email), expires_at=invite.expires_at,
     )
 
 
@@ -316,8 +326,8 @@ async def list_invites(session: AsyncSession, admin: User) -> list[InviteOut]:
     )).all()
     return [
         InviteOut(
-            id=i.id, email=i.email, role=i.role, created_at=i.created_at,
-            expires_at=i.expires_at,
+            id=i.id, email=i.email, role=i.role, job_title=i.job_title,
+            created_at=i.created_at, expires_at=i.expires_at,
             status="expired" if _aware(i.expires_at) <= now else "pending",
         )
         for i in rows
@@ -348,7 +358,8 @@ async def accept_invite(session: AsyncSession, body: AcceptInvite, ip: str | Non
         raise AppError(404, INVITE_ERROR)
     user = User(
         email=invite.email, full_name=body.full_name.strip(), hashed_password=pw_hash,
-        role=invite.role, is_approved=True, is_active=True, organisation_id=invite.organisation_id,
+        role=invite.role, job_title=invite.job_title, is_approved=True, is_active=True,
+        organisation_id=invite.organisation_id,
     )
     org_id, invite_id = org.id, invite.id
     session.add(user)
@@ -363,6 +374,11 @@ async def accept_invite(session: AsyncSession, body: AcceptInvite, ip: str | Non
     activity_service.record(
         session, organisation_id=org_id, type="user_joined", actor_id=user.id,
         message="Joined the organisation",
+    )
+    await notification_service.notify(
+        session, recipient_ids=await notification_service.admin_ids(session, org_id),
+        organisation_id=org_id, type="staff_joined", actor_id=user.id,
+        message=f"{user.full_name} joined the organisation",
     )
     audit(session, "invite.accept", user_id=user.id, resource_type="invite",
           resource_id=invite_id, ip=ip)

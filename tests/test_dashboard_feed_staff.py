@@ -81,7 +81,7 @@ async def test_activity_newest_first_limited_and_scoped(client, db):
     await client.patch(f"/scans/{sid}", headers=doc, json={"review_status": "reviewed"})
 
     feed = (await client.get("/activity", headers=doc)).json()
-    assert [a["type"] for a in feed] == ["scan_reviewed", "scan_uploaded"]
+    assert [a["type"] for a in feed] == ["scan_reviewed", "scan_uploaded", "patient_registered"]
     assert feed[0]["scan_id"] == sid and feed[0]["actor"]["full_name"] == "Dr A"
     assert set(feed[0]) == {"id", "type", "message", "actor", "scan_id", "created_at"}
     assert len((await client.get("/activity?limit=1", headers=doc)).json()) == 1

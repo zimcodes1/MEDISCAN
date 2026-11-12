@@ -10,7 +10,7 @@ from backend.core.deps import require_admin
 from backend.core.net import client_ip as _ip
 from backend.models import User
 from backend.core.rate_limit import PASSWORD_RESET_CREATE_PER_USER
-from backend.schemas.auth import PasswordResetCreated, UserPublic
+from backend.schemas.auth import PasswordResetCreated, StaffUpdate, UserPublic
 from backend.services import auth_service, password_reset_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -31,6 +31,16 @@ async def list_users(
     if status == "pending":
         stmt = stmt.where(User.is_approved == False)  # noqa: E712
     return (await session.exec(stmt)).all()
+
+
+@router.patch("/users/{user_id}", response_model=UserPublic)
+async def update_staff(
+    user_id: uuid.UUID, body: StaffUpdate, request: Request,
+    admin: User = Depends(require_admin),
+    session: AsyncSession = Depends(get_session),
+):
+    """Set a colleague's job title. Only admins can: staff cannot edit their own."""
+    return await auth_service.update_staff(session, admin, user_id, body, _ip(request))
 
 
 @router.post("/users/{user_id}/approve", response_model=UserPublic)

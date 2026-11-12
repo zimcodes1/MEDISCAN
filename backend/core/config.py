@@ -59,6 +59,27 @@ class Settings(BaseSettings):
     invite_expire_days: int = 7
     # Admin-issued password reset links are short-lived: they are a password in waiting.
     password_reset_expire_minutes: int = 60
+    # --- Email (approval notices). "disabled" sends nothing; "console" logs instead of sending ---
+    email_backend: Literal["disabled", "console", "smtp"] = "disabled"
+    email_from: str | None = None  # e.g. MediScan <no-reply@yourdomain.com>
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_security: Literal["starttls", "ssl", "none"] = "starttls"  # 465 usually wants "ssl"
+    smtp_timeout_seconds: float = Field(default=15.0, ge=1, le=60)
+
+    @field_validator("email_from", "smtp_host", "smtp_username", "smtp_password", mode="before")
+    @classmethod
+    def _blank_email_is_none(cls, v):
+        return None if isinstance(v, str) and not v.strip() else v
+
+    @model_validator(mode="after")
+    def _smtp_needs_host_and_sender(self):
+        if self.email_backend == "smtp" and not (self.smtp_host and self.email_from):
+            raise ValueError("EMAIL_BACKEND=smtp needs SMTP_HOST and EMAIL_FROM")
+        return self
+
     profile_image_max_mb: int = 2          # avatars and organisation logos
     profile_image_max_side_px: int = 512   # stored size; larger uploads are scaled down
 

@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from backend.schemas.scan import UserRef
+
 
 class PatientCreate(BaseModel):
     sex: Literal["female", "male", "other", "unknown"] | None = None
@@ -25,5 +27,7 @@ class PatientOut(BaseModel):
     sex: str | None
     year_of_birth: int | None
     created_at: datetime
+    # Who registered the patient. Visible to every colleague: it is attribution, not access.
+    created_by: UserRef | None = None
     scan_count: int = 0
     last_scan_at: datetime | None = None

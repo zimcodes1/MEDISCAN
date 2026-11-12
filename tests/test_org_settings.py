@@ -121,7 +121,7 @@ async def test_organisation_defaults_fill_in_omitted_fields(client, world):
     assert scan["priority"] == "urgent" and scan["assigned_to"]["id"] == world.rad_id
     # what the person chooses always wins
     scan = await scan_of(client, world.doc, await predict(
-        client, world.doc, world.patient, priority="routine", assigned_to_id=world.doc_id))
+        client, world.admin, world.patient, priority="routine", assigned_to_id=world.doc_id))
     assert scan["priority"] == "routine" and scan["assigned_to"]["id"] == world.doc_id
     # blank form fields count as omitted
     scan = await scan_of(client, world.doc, await predict(

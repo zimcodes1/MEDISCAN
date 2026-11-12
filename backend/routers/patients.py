@@ -20,7 +20,8 @@ async def create_patient(
     session: AsyncSession = Depends(get_session),
 ):
     ip = client_ip(request)
-    return await patient_service.create_patient(session, user, body, ip)
+    patient = await patient_service.create_patient(session, user, body, ip)
+    return await patient_service.to_out(session, patient)
 
 
 @router.get("", response_model=list[PatientOut])

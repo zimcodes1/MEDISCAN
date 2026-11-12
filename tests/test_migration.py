@@ -51,6 +51,10 @@ def test_upgrade_backfills_and_downgrade_restores():
     assert "unique" in c.execute("select sql from sqlite_master where name='invites'").fetchone()[0].lower()
     # 0007: admin-issued password reset links
     assert "unique" in c.execute("select sql from sqlite_master where name='password_resets'").fetchone()[0].lower()
+    # 0008: notifications, notification preferences, a job title on invitations
+    assert c.execute("select 1 from sqlite_master where name='notifications'").fetchone()
+    assert c.execute("select 1 from sqlite_master where name='notification_preferences'").fetchone()
+    assert "job_title" in [r[1] for r in c.execute("pragma table_info(invites)")]
     c.close()
 
     _alembic(db, "downgrade", "0002")

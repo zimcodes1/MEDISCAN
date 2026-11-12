@@ -144,3 +144,15 @@ class PasswordResetCreated(BaseModel):
     reset_url: str
     expires_at: datetime
     user: ResetTarget
+
+
+class StaffUpdate(BaseModel):
+    """PATCH /admin/users/{id}: what an organisation admin may change about a colleague.
+    `null` or a blank title clears it."""
+
+    job_title: str | None = Field(default=None, max_length=100)
+
+    @field_validator("job_title")
+    @classmethod
+    def _title(cls, v):
+        return (v.strip() or None) if v is not None else v

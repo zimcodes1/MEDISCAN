@@ -9,7 +9,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from backend.core import security
 from backend.core.config import get_settings
 from backend.core.errors import AppError, AuthError
-from backend.models import User
+from backend.models import User, UserRole
 from backend.models.base import utcnow
 from backend.schemas.auth import PasswordChange, ProfileUpdate
 from backend.services import auth_service
@@ -25,6 +25,9 @@ async def update_me(session: AsyncSession, user: User, body: ProfileUpdate, ip: 
     fields = body.model_fields_set
     if not fields:
         raise AppError(422, "No fields to update")
+    if "job_title" in fields and UserRole(user.role) != UserRole.admin:
+        # Titles come from the invitation or an admin (PATCH /admin/users/{id}).
+        raise AppError(403, "Your job title is set by your organisation admin")
     for name in fields:
         setattr(user, name, getattr(body, name))
     user.updated_at = utcnow()

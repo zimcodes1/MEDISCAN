@@ -20,6 +20,7 @@ class Invite(SQLModel, table=True):
     )
     email: str = Field(sa_type=String(320), nullable=False)
     role: str = Field(sa_type=String(20), nullable=False)  # admin | clinician | radiologist
+    job_title: str | None = Field(default=None, sa_type=String(100))  # copied to the account
     token_hash: str = Field(sa_type=String(64), unique=True, nullable=False)
     created_by_id: uuid.UUID = Field(foreign_key="users.id", nullable=False, ondelete="RESTRICT")
     created_at: datetime = Field(

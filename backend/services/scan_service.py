@@ -9,10 +9,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from backend.core.errors import AppError
 from backend.core.flagging import flagged_scan_clause
-from backend.models import Finding, Patient, Report, Scan, ScanStatus, User
+from backend.models import Finding, Patient, Report, Scan, ScanStatus, User, UserRole
 from backend.models.base import utcnow
 from backend.schemas.scan import ScanOut, ScanUpdate
-from backend.services import activity_service
+from backend.services import activity_service, notification_service
 from backend.services.auth_service import audit
 from backend.services.inference_service import FindingResult
 from backend.services.patient_service import get_accessible_patient
@@ -52,6 +52,11 @@ async def usable_assignee(session: AsyncSession, user: User, assignee_id: uuid.U
         return None
 
 
+def _assigned_message(code: str, actor_name: str, priority: str) -> str:
+    urgent = " (urgent)" if priority == "urgent" else ""
+    return f"Scan for {code} was assigned to you by {actor_name}{urgent}"
+
+
 def _slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
@@ -74,6 +79,7 @@ async def save_scan(
     meta = meta or ScanMeta()
     # rollback() expires ORM objects, so keep plain values for after the try.
     user_id, patient_id, org_id = user.id, patient.id, patient.organisation_id
+    actor_name = user.full_name
     code = patient.patient_code
     assignee_id = assignee.id if assignee else None
     assignee_name = assignee.full_name if assignee else None
@@ -126,6 +132,11 @@ async def save_scan(
                 session, organisation_id=org_id, type="scan_assigned", actor_id=user_id,
                 scan_id=scan_id,
                 message=f"Scan for {code} assigned to {assignee_name}",
+            )
+            await notification_service.notify(
+                session, recipient_ids=[assignee_id], organisation_id=org_id,
+                type="scan_assigned", actor_id=user_id, scan_id=scan_id,
+                message=_assigned_message(code, actor_name, meta.priority),
             )
         await session.commit()
         return scan
@@ -195,6 +206,8 @@ async def update_scan(
     fields = body.model_fields_set
     if not fields:
         raise AppError(422, "No fields to update")
+    if "assigned_to_id" in fields and UserRole(user.role) != UserRole.admin:
+        raise AppError(403, "Only admins can assign scans")
     patient = await session.get(Patient, scan.patient_id)
     code, org_id, sid = patient.patient_code, user.organisation_id, scan.id
 
@@ -212,6 +225,11 @@ async def update_scan(
                     scan_id=sid,
                     message=f"Scan for {code} assigned to {assignee.full_name}",
                 )
+                await notification_service.notify(
+                    session, recipient_ids=[assignee.id], organisation_id=org_id,
+                    type="scan_assigned", actor_id=user.id, scan_id=sid,
+                    message=_assigned_message(code, user.full_name, scan.priority),
+                )
             scan.assigned_to_id = assignee.id
 
     if "review_status" in fields:
@@ -223,6 +241,11 @@ async def update_scan(
                 activity_service.record(
                     session, organisation_id=org_id, type="scan_reviewed", actor_id=user.id,
                     scan_id=sid, message=f"Scan for {code} marked as reviewed",
+                )
+                await notification_service.notify(
+                    session, recipient_ids=[scan.uploaded_by_id, scan.assigned_to_id],
+                    organisation_id=org_id, type="scan_reviewed", actor_id=user.id,
+                    scan_id=sid, message=f"Scan for {code} was marked as reviewed by {user.full_name}",
                 )
         else:
             final = (await session.exec(

@@ -21,6 +21,7 @@ class Activity(SQLModel, table=True):
         foreign_key="organisations.id", nullable=False, ondelete="RESTRICT"
     )
     # scan_uploaded | scan_assigned | scan_reviewed | report_finalised | user_joined
+    # | patient_registered
     type: str = Field(sa_type=String(30), nullable=False)
     message: str = Field(sa_type=String(300), nullable=False)
     actor_id: uuid.UUID = Field(

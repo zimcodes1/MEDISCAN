@@ -15,7 +15,7 @@ from backend.models import Patient, Report, Scan, User
 from backend.models.base import utcnow
 from backend.schemas.report import ReportOut, ReportSummary, ReportUpdate
 from backend.schemas.scan import UserRef
-from backend.services import activity_service
+from backend.services import activity_service, notification_service
 from backend.services.auth_service import audit
 from backend.services.scan_service import get_accessible_scan
 
@@ -141,6 +141,11 @@ async def finalise(
     activity_service.record(
         session, organisation_id=org_id, type="report_finalised", actor_id=user_id,
         scan_id=scan.id, message=f"Report finalised for {code}",
+    )
+    await notification_service.notify(
+        session, recipient_ids=[scan.uploaded_by_id, scan.assigned_to_id],
+        organisation_id=org_id, type="report_finalised", actor_id=user_id, scan_id=scan.id,
+        message=f"Report for {code} was finalised by {user.full_name}",
     )
     await session.commit()
     return await _out(session, report)

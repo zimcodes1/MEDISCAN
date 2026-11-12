@@ -112,12 +112,20 @@ class OrgSettingsUpdate(BaseModel):
 class InviteCreate(BaseModel):
     email: EmailStr
     role: InviteRole
+    # Optional. Applied to the new account, which cannot change it afterwards.
+    job_title: str | None = Field(default=None, max_length=100)
+
+    @field_validator("job_title")
+    @classmethod
+    def _title(cls, v):
+        return (v.strip() or None) if v is not None else v
 
 
 class InviteOut(BaseModel):
     id: uuid.UUID
     email: str
     role: str
+    job_title: str | None = None
     created_at: datetime
     expires_at: datetime
     status: Literal["pending", "expired"]
@@ -127,6 +135,7 @@ class InviteCreated(BaseModel):
     id: uuid.UUID
     email: str
     role: str
+    job_title: str | None = None
     token: str          # shown once; only a hash is stored
     invite_url: str
     expires_at: datetime

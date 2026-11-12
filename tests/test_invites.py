@@ -35,7 +35,7 @@ async def test_create_returns_the_link_once_and_stores_only_a_hash(client, db, w
     r = await invite(client, world.admin)
     assert r.status_code == 201
     body = r.json()
-    assert set(body) == {"id", "email", "role", "token", "invite_url", "expires_at"}
+    assert set(body) == {"id", "email", "role", "job_title", "token", "invite_url", "expires_at"}
     assert body["email"] == "new@example.com" and body["role"] == "radiologist"
     base = get_settings().frontend_url.rstrip("/")
     assert body["invite_url"] == f"{base}/staff/accept-invite?token={body['token']}&email=new%40example.com"
@@ -105,7 +105,7 @@ async def test_list_is_scoped_and_shows_status(client, db, world):
     rows = (await client.get("/org/invites", headers=world.admin)).json()
     assert {r["email"]: r["status"] for r in rows} == {"a@example.com": "pending", "b@example.com": "expired"}
     assert all("token" not in r and "token_hash" not in r for r in rows)
-    assert set(rows[0]) == {"id", "email", "role", "created_at", "expires_at", "status"}
+    assert set(rows[0]) == {"id", "email", "role", "job_title", "created_at", "expires_at", "status"}
     assert live["id"] in {r["id"] for r in rows}
 
 

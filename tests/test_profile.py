@@ -45,17 +45,29 @@ async def test_me_has_the_profile_fields(client, team):
     assert "hashed_password" not in body
 
 
-async def test_patch_me_changes_only_what_is_sent(client, team):
-    r = await client.patch("/auth/me", headers=team.me,
+async def test_patch_me_changes_only_what_is_sent(client, db, team):
+    # an admin may set their own title; staff may not (see the next test)
+    admin = await token_for(client, db, "boss@example.com", UserRole.admin, team.org, "Dr Boss")
+    r = await client.patch("/auth/me", headers=admin,
                            json={"job_title": "Consultant Radiologist", "phone_number": "0801 234 5678"})
     body = r.json()
     assert r.status_code == 200 and body["job_title"] == "Consultant Radiologist"
-    assert body["phone_number"] == "0801 234 5678" and body["full_name"] == "Dr Me"
-    body = (await client.patch("/auth/me", headers=team.me, json={"full_name": "  Dr Renamed "})).json()
+    assert body["phone_number"] == "0801 234 5678" and body["full_name"] == "Dr Boss"
+    body = (await client.patch("/auth/me", headers=admin, json={"full_name": "  Dr Renamed "})).json()
     assert body["full_name"] == "Dr Renamed" and body["job_title"] == "Consultant Radiologist"
-    body = (await client.patch("/auth/me", headers=team.me,
+    body = (await client.patch("/auth/me", headers=admin,
                                json={"job_title": None, "phone_number": ""})).json()
     assert body["job_title"] is None and body["phone_number"] is None
+
+
+async def test_staff_cannot_change_their_own_job_title(client, team):
+    r = await client.patch("/auth/me", headers=team.me, json={"job_title": "Chief of Everything"})
+    assert r.status_code == 403
+    assert (await client.get("/auth/me", headers=team.me)).json()["job_title"] is None
+    # everything else about their own profile still works
+    r = await client.patch("/auth/me", headers=team.me,
+                           json={"full_name": "Dr Me Again", "phone_number": "0801 234 5678"})
+    assert r.status_code == 200 and r.json()["full_name"] == "Dr Me Again"
 
 
 @pytest.mark.parametrize("payload", [

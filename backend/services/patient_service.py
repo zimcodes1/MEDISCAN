@@ -9,6 +9,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from backend.core.errors import AppError
 from backend.models import Patient, Scan, User
 from backend.schemas.patient import PatientCreate, PatientOut
+from backend.schemas.scan import UserRef
+from backend.services import activity_service
 from backend.services.auth_service import audit
 
 # No 0/O/1/I/L: codes get read aloud and copied by hand.
@@ -33,6 +35,11 @@ async def create_patient(
             continue
         audit(session, "patient.create", user_id=owner_id,
               resource_type="patient", resource_id=patient.id, ip=ip)
+        # The feed shows who registered whom: names and the pseudonymous code only.
+        activity_service.record(
+            session, organisation_id=org_id, type="patient_registered", actor_id=owner_id,
+            message=f"Patient {code} registered",
+        )
         await session.commit()
         return patient
     raise AppError(500, "Could not allocate a patient code")
@@ -50,7 +57,14 @@ async def get_accessible_patient(
 
 
 async def _with_stats(session: AsyncSession, patients: list[Patient]) -> list[PatientOut]:
-    """Attach scan_count and last_scan_at with a single grouped query."""
+    """Attach scan_count, last_scan_at and the registering user (one query each)."""
+    creators = {}
+    if patients:
+        creators = {
+            u.id: u for u in (await session.exec(
+                select(User).where(User.id.in_({p.created_by_id for p in patients}))
+            )).all()
+        }
     stats = {}
     if patients:
         rows = await session.exec(
@@ -65,6 +79,7 @@ async def _with_stats(session: AsyncSession, patients: list[Patient]) -> list[Pa
         out.append(PatientOut(
             id=p.id, patient_code=p.patient_code, sex=p.sex,
             year_of_birth=p.year_of_birth, created_at=p.created_at,
+            created_by=UserRef.of(creators.get(p.created_by_id)),
             scan_count=n, last_scan_at=last,
         ))
     return out
@@ -86,3 +101,8 @@ async def list_patients(
     stmt = stmt.order_by(Patient.created_at.desc(), Patient.id).limit(limit).offset(offset)
     patients = list((await session.exec(stmt)).all())
     return await _with_stats(session, patients)
+
+
+async def to_out(session: AsyncSession, patient: Patient) -> PatientOut:
+    """One patient as the API returns it (with scan stats and who registered it)."""
+    return (await _with_stats(session, [patient]))[0]

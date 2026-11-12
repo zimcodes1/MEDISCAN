@@ -47,8 +47,8 @@ async def test_plain_upload_has_workflow_defaults(client, team):
 
 
 async def test_upload_with_clinical_fields(client, team):
-    r = await post_predict(
-        client, team.doc, team.patient, priority="urgent", projection="pa",
+    r = await post_predict(  # only an admin picks the assignee
+        client, team.admin, team.patient, priority="urgent", projection="pa",
         exam_date="2026-10-20", clinical_notes="Cough for two weeks", assigned_to_id=team.rad_id,
     )
     assert r.status_code == 200 and r.json()["saved"]
@@ -78,7 +78,7 @@ async def test_invalid_clinical_fields_are_422(client, team, field, value):
 
 
 async def test_clinical_fields_are_ignored_without_a_patient(client, team):
-    r = await post_predict(client, team.doc, priority="urgent", assigned_to_id=team.rad_id)
+    r = await post_predict(client, team.admin, priority="urgent", assigned_to_id=team.rad_id)
     assert r.status_code == 200 and r.json()["saved"] is False
 
 
@@ -90,18 +90,18 @@ async def test_assignee_must_be_approved_active_and_in_the_org(client, db, team)
     pending = await make_user(db, "pending@example.com", approved=False, org=team.org_a)
     gone = await make_user(db, "gone@example.com", active=False, org=team.org_a)
     for bad in (team.other_id, str(pending.id), str(gone.id), str(uuid.uuid4())):
-        r = await post_predict(client, team.doc, team.patient, assigned_to_id=bad)
+        r = await post_predict(client, team.admin, team.patient, assigned_to_id=bad)
         assert r.status_code == 422, bad
 
 
 # --------------------------------------------------------------------- activity
 async def test_upload_writes_feed_entries(client, team):
-    await post_predict(client, team.doc, team.patient, assigned_to_id=team.rad_id,
+    await post_predict(client, team.admin, team.patient, assigned_to_id=team.rad_id,
                        clinical_notes="SECRET NOTE TEXT")
     feed = (await client.get("/activity", headers=team.rad)).json()
-    assert [a["type"] for a in feed] == ["scan_assigned", "scan_uploaded"] or \
-           {a["type"] for a in feed} == {"scan_assigned", "scan_uploaded"}
-    assert all(a["actor"]["id"] == team.doc_id for a in feed)
+    scan_entries = [a for a in feed if a["type"] != "patient_registered"]  # the fixture's patient
+    assert {a["type"] for a in scan_entries} == {"scan_assigned", "scan_uploaded"}
+    assert all(a["actor"]["full_name"] == "Ada Admin" for a in scan_entries)
     assert all("SECRET NOTE TEXT" not in a["message"] for a in feed)  # no clinical content
 
 
@@ -121,7 +121,7 @@ async def test_patch_validation(client, team):
     for body in ({}, {"priority": None}, {"review_status": None}, {"priority": "high"},
                  {"review_status": "done"}, {"assigned_to_id": "nope"}):
         assert (await client.patch(f"/scans/{sid}", headers=team.doc, json=body)).status_code == 422, body
-    assert (await client.patch(f"/scans/{sid}", headers=team.doc,
+    assert (await client.patch(f"/scans/{sid}", headers=team.admin,
                                json={"assigned_to_id": team.other_id})).status_code == 422
 
 
@@ -154,7 +154,7 @@ async def test_back_to_pending_clears_review(client, team):
 async def test_reassigning_to_same_person_adds_no_second_feed_entry(client, team):
     sid = (await predict_saved(client, team.doc, team.patient))["scan_id"]
     for _ in range(2):
-        await client.patch(f"/scans/{sid}", headers=team.doc, json={"assigned_to_id": team.rad_id})
+        await client.patch(f"/scans/{sid}", headers=team.admin, json={"assigned_to_id": team.rad_id})
     feed = (await client.get("/activity", headers=team.doc)).json()
     assert sum(a["type"] == "scan_assigned" for a in feed) == 1
 

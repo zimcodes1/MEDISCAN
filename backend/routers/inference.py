@@ -16,7 +16,7 @@ from backend.core.deps import get_current_user, get_inference, get_storage
 from backend.core.errors import AppError
 from backend.core.net import client_ip
 from backend.core.rate_limit import PREDICT_INFLIGHT, PREDICT_PER_USER, WARMUP_PER_USER
-from backend.models import Organisation, User
+from backend.models import Organisation, User, UserRole
 from backend.schemas.inference import FindingOut, PredictResponse
 from backend.services import scan_service
 from backend.services.inference_service import InferenceService
@@ -58,6 +58,10 @@ async def predict(
 ):
     settings = get_settings()
     PREDICT_PER_USER.check(str(user.id))
+    # Choosing who examines a scan is an admin decision. Everyone else gets the
+    # organisation's auto-assign setting (applied below), never a choice of their own.
+    if assigned_to_id is not None and UserRole(user.role) != UserRole.admin:
+        raise AppError(403, "Only admins can assign scans")
 
     declared = request.headers.get("content-length")
     if declared and declared.isdigit() and int(declared) > settings.max_upload_bytes + 1024 * 1024:

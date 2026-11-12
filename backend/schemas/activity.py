@@ -7,7 +7,8 @@ from pydantic import BaseModel
 from backend.schemas.scan import UserRef
 
 ActivityType = Literal[
-    "scan_uploaded", "scan_assigned", "scan_reviewed", "report_finalised", "user_joined"
+    "scan_uploaded", "scan_assigned", "scan_reviewed", "report_finalised", "user_joined",
+    "patient_registered",
 ]
 
 
