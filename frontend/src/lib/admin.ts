@@ -46,3 +46,14 @@ export async function createPasswordReset(
   );
   return data;
 }
+
+/** Admin only: set (or clear, with an empty string) a colleague's job title. */
+export async function updateStaffTitle(
+  userId: string,
+  jobTitle: string,
+): Promise<UserPublic> {
+  const { data } = await api.patch<UserPublic>(`/admin/users/${userId}`, {
+    job_title: jobTitle.trim() === "" ? null : jobTitle.trim(),
+  });
+  return data;
+}

@@ -6,6 +6,7 @@ import {
   createPasswordReset,
   deactivateUser,
   listUsers,
+  updateStaffTitle,
   type PasswordResetLink,
 } from "../../lib/admin";
 import { formatDate, formatDateTime } from "../../lib/format";
@@ -38,6 +39,85 @@ const STATUS_LABEL: Record<StaffStatus, string> = {
 const TH =
   "text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-6 py-4 font-display";
 
+/** Shows a colleague's job title; admins can change it (staff cannot change their own). */
+function JobTitleCell({
+  user,
+  onSaved,
+}: {
+  user: UserPublic;
+  onSaved: (u: UserPublic) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(user.job_title ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    setSaving(true);
+    setError(null);
+    try {
+      onSaved(await updateStaffTitle(user.id, draft));
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-brand-text-muted text-xs font-medium">
+          {user.job_title ?? "—"}
+        </span>
+        <button
+          onClick={() => {
+            setDraft(user.job_title ?? "");
+            setEditing(true);
+          }}
+          className="text-brand-primary text-[11px] font-bold hover:underline cursor-pointer"
+          aria-label={`Edit job title for ${user.full_name}`}
+        >
+          Edit
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-1.5">
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+            if (e.key === "Escape") setEditing(false);
+          }}
+          maxLength={100}
+          placeholder="Job title"
+          className="w-36 bg-brand-card/60 text-brand-text text-xs px-2 py-1.5 rounded-lg border border-brand-border outline-none focus:border-brand-primary/50"
+        />
+        <button
+          onClick={save}
+          disabled={saving}
+          className="text-emerald-400 text-[11px] font-bold hover:underline cursor-pointer disabled:opacity-50"
+        >
+          {saving ? "…" : "Save"}
+        </button>
+        <button
+          onClick={() => setEditing(false)}
+          className="text-brand-text-muted text-[11px] font-bold hover:underline cursor-pointer"
+        >
+          Cancel
+        </button>
+      </div>
+      {error && <p className="text-rose-400 text-[10px]">{error}</p>}
+    </div>
+  );
+}
+
 interface StaffTableProps {
   users: UserPublic[];
   currentUserId?: string;
@@ -46,6 +126,7 @@ interface StaffTableProps {
   onDeactivate: (u: UserPublic) => void;
   onActivate: (u: UserPublic) => void;
   onResetPassword: (u: UserPublic) => void;
+  onUserUpdated: (u: UserPublic) => void;
 }
 
 export function StaffTable({
@@ -56,14 +137,16 @@ export function StaffTable({
   onDeactivate,
   onActivate,
   onResetPassword,
+  onUserUpdated,
 }: StaffTableProps) {
   return (
     <div className="w-full max-sm:hide-scrollbar overflow-x-auto glass-panel rounded-2xl border border-brand-border/40 relative">
-      <table className="w-full min-w-[800px]">
+      <table className="w-full min-w-[960px]">
         <thead className="bg-brand-card/65 border-b border-brand-border/40">
           <tr>
             <th className={`text-left ${TH}`}>Name</th>
             <th className={`text-left ${TH}`}>Role</th>
+            <th className={`text-left ${TH}`}>Job title</th>
             <th className={`text-left ${TH}`}>Email</th>
             <th className={`text-left ${TH}`}>Registered</th>
             <th className={`text-left ${TH}`}>Status</th>
@@ -102,6 +185,9 @@ export function StaffTable({
                 </td>
                 <td className="px-6 py-4 text-brand-text-muted text-xs font-medium capitalize">
                   {u.role}
+                </td>
+                <td className="px-6 py-4">
+                  <JobTitleCell user={u} onSaved={onUserUpdated} />
                 </td>
                 <td className="px-6 py-4 text-brand-text-muted text-xs font-medium">
                   {u.email}
@@ -347,6 +433,11 @@ export default function StaffManagementSection() {
               }}
               onActivate={(u) => act(u, activateUser)}
               onResetPassword={handleResetPassword}
+              onUserUpdated={(updated) =>
+                setUsers((prev) =>
+                  prev ? prev.map((x) => (x.id === updated.id ? updated : x)) : prev,
+                )
+              }
             />
           )}
         </>

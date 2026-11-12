@@ -23,6 +23,7 @@ export default function InvitationsPanel() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<InviteRole>("radiologist");
+  const [jobTitle, setJobTitle] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedInvite | null>(null);
@@ -51,9 +52,14 @@ export default function InvitationsPanel() {
     }
     setCreating(true);
     try {
-      const inv = await createInvite({ email: addr, role });
+      const inv = await createInvite({
+        email: addr,
+        role,
+        job_title: jobTitle.trim() || undefined,
+      });
       setCreated(inv);
       setEmail("");
+      setJobTitle("");
       await load();
     } catch (err) {
       setError(msg(err, "Could not create the invitation"));
@@ -92,7 +98,7 @@ export default function InvitationsPanel() {
 
       <form
         onSubmit={handleCreate}
-        className="grid gap-3 sm:grid-cols-[1fr_180px_auto] items-end"
+        className="grid gap-3 sm:grid-cols-[1fr_1fr_160px_auto] items-end"
       >
         <div>
           <label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
@@ -103,6 +109,19 @@ export default function InvitationsPanel() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="colleague@hospital.com"
+            className={INPUT}
+          />
+        </div>
+        <div>
+          <label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
+            Job title (optional)
+          </label>
+          <input
+            type="text"
+            value={jobTitle}
+            onChange={(e) => setJobTitle(e.target.value)}
+            maxLength={100}
+            placeholder="e.g. Radiographer"
             className={INPUT}
           />
         </div>
@@ -139,7 +158,8 @@ export default function InvitationsPanel() {
       {created && (
         <div className="bg-brand-primary/5 border border-brand-primary/25 rounded-xl p-4 space-y-2">
           <p className="text-brand-text text-sm font-semibold">
-            Invitation for {created.email} ({created.role})
+            Invitation for {created.email} ({created.role}
+            {created.job_title ? `, ${created.job_title}` : ""})
           </p>
           <div className="flex gap-2 items-center">
             <input
@@ -165,10 +185,10 @@ export default function InvitationsPanel() {
         <p className="text-brand-text-muted text-xs">No open invitations.</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-brand-border/40">
-          <table className="w-full min-w-[560px]">
+          <table className="w-full min-w-[640px]">
             <thead className="bg-brand-card/65 border-b border-brand-border/40">
               <tr>
-                {["Email", "Role", "Expires", "Status", ""].map((h) => (
+                {["Email", "Role", "Job title", "Expires", "Status", ""].map((h) => (
                   <th
                     key={h}
                     className="text-left text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-4 py-3 font-display"
@@ -186,6 +206,9 @@ export default function InvitationsPanel() {
                   </td>
                   <td className="px-4 py-3 text-brand-text-muted text-xs capitalize">
                     {inv.role}
+                  </td>
+                  <td className="px-4 py-3 text-brand-text-muted text-xs">
+                    {inv.job_title ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-brand-text-muted text-xs">
                     {formatDate(inv.expires_at)}

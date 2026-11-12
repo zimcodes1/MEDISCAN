@@ -15,13 +15,13 @@ async function boot() {
 
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
-      <NotificationsProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <NotificationsProvider>
           <OrgProvider>
             <App />
           </OrgProvider>
-        </AuthProvider>
-      </NotificationsProvider>
+        </NotificationsProvider>
+      </AuthProvider>
     </StrictMode>,
   );
 }

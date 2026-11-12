@@ -9,22 +9,28 @@ const smoothstep = (x: number) => {
 /**
  * The X-ray with its heatmap on top, lined up exactly.
  *
- * The model's heatmap is a small square image with its own transparency (strong
- * regions opaque, weak ones see-through), while the X-ray keeps its own
- * proportions. Drawn as-is the two don't match. Here the heatmap is stretched to
- * the X-ray's exact shape on a canvas, and `threshold` hides weak activations so
- * the hotspots stay readable instead of tinting the whole chest.
+ * The model never sees the whole X-ray: it takes the centre square (side = the
+ * shorter edge) and resizes that to 224px, so its heatmap is a 224px square that
+ * belongs on that centre square only. On a wide or tall X-ray, the strips outside
+ * it were not analysed. The heatmap is drawn onto exactly that square (the same
+ * rule as the model's centre crop). A heatmap that already has the X-ray's own
+ * proportions is treated as full-frame instead.
+ *
+ * `threshold` hides weak activations so hotspots stay readable instead of tinting
+ * the whole chest. `showRegion` outlines what the model analysed.
  */
 function OverlayStack({
   originalUrl,
   heatmapUrl,
   opacity,
   threshold,
+  showRegion,
 }: {
   originalUrl: string;
   heatmapUrl: string;
   opacity: number;
   threshold: number;
+  showRegion: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const key = `${originalUrl}|${heatmapUrl}`;
@@ -82,12 +88,43 @@ function OverlayStack({
       sctx.putImageData(img, 0, 0);
     }
 
-    // 2) stretch it over the X-ray's exact proportions
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // 2) place it where the model looked
+    const cw = canvas.width;
+    const ch = canvas.height;
+    const fullFrame =
+      Math.abs(heat.naturalWidth / heat.naturalHeight - W / H) < 0.02;
+    let rx = 0;
+    let ry = 0;
+    let rw = cw;
+    let rh = ch;
+    if (!fullFrame) {
+      // centre crop: side = shorter edge, offset = half the difference
+      const side = Math.min(cw, ch);
+      rw = side;
+      rh = side;
+      rx = Math.floor(cw / 2) - Math.floor(side / 2);
+      ry = Math.floor(ch / 2) - Math.floor(side / 2);
+    }
+    ctx.clearRect(0, 0, cw, ch);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(small, 0, 0, canvas.width, canvas.height);
-  }, [loaded, key, threshold]);
+    ctx.drawImage(small, rx, ry, rw, rh);
+
+    // 3) outline the analysed area and dim what the model did not see
+    if (showRegion && (rw < cw - 1 || rh < ch - 1)) {
+      ctx.save();
+      ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+      ctx.beginPath();
+      ctx.rect(0, 0, cw, ch);
+      ctx.rect(rx, ry, rw, rh);
+      ctx.fill("evenodd");
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+      ctx.lineWidth = Math.max(2, Math.round(cw / 400));
+      ctx.setLineDash([cw / 60, cw / 90]);
+      ctx.strokeRect(rx, ry, rw, rh);
+      ctx.restore();
+    }
+  }, [loaded, key, threshold, showRegion]);
 
   return (
     <div className="absolute inset-0">
@@ -141,6 +178,8 @@ export default function ImageViewer({
   const [overlayOpacity, setOverlayOpacity] = useState(100);
   // hides weak activations; 30% keeps hotspots clear without tinting the whole chest
   const [threshold, setThreshold] = useState(30);
+  // outline the centre square the model analysed (only drawn when the X-ray isn't square)
+  const [showRegion, setShowRegion] = useState(true);
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 25, 50));
@@ -256,6 +295,7 @@ export default function ImageViewer({
                   heatmapUrl={heatmapImageUrl}
                   opacity={overlayOpacity}
                   threshold={threshold / 100}
+                  showRegion={showRegion}
                 />
               </div>
             )}
@@ -289,6 +329,7 @@ export default function ImageViewer({
                       heatmapUrl={heatmapImageUrl}
                       opacity={overlayOpacity}
                       threshold={threshold / 100}
+                      showRegion={showRegion}
                     />
                   </div>
                 </div>
@@ -347,6 +388,18 @@ export default function ImageViewer({
             <span className="text-brand-text text-xs font-bold w-10 text-right">
               {threshold}%
             </span>
+          </label>
+          <label
+            className="flex items-center gap-2 sm:col-span-2 text-brand-text-muted text-[11px]"
+            title="The model analyses only the centre square of the X-ray"
+          >
+            <input
+              type="checkbox"
+              checked={showRegion}
+              onChange={(e) => setShowRegion(e.target.checked)}
+              className="accent-brand-primary"
+            />
+            Outline the area the model analysed (the centre square; edges outside it were not examined)
           </label>
         </div>
       )}

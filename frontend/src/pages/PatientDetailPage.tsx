@@ -83,6 +83,7 @@ export default function PatientDetailPage() {
             </h1>
             <p className="text-brand-text-muted text-sm mt-1">
               Registered {formatDate(patient.created_at)}
+              {patient.created_by ? ` by ${patient.created_by.full_name}` : ""}
             </p>
           </div>
 

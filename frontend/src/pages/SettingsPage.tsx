@@ -8,7 +8,7 @@ import NotificationsSection from "../components/settings/NotificationsSection";
 import ScanReportDefaultsSection from "../components/settings/ScanReportDefaultsSection";
 import BillingPlanSection from "../components/settings/BillingPlanSection";
 import DangerZoneSection from "../components/settings/DangerZoneSection";
-import { billingData, notificationSettings } from "../utils/DummyData";
+import { billingData } from "../utils/DummyData";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function SettingsPage() {
@@ -29,10 +29,6 @@ export default function SettingsPage() {
 
 	const [activeSection, setActiveSection] = useState("profile");
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-	const handleSaveNotifications = (data: any) => {
-		console.log("Saving notifications:", data);
-	};
 
 	const handleSaveBilling = (email: string) => {
 		console.log("Saving billing email:", email);
@@ -60,8 +56,8 @@ export default function SettingsPage() {
 				<TopBar onMenuClick={() => setIsSidebarOpen(true)} />
 
 				<main className="pt-16 p-4 sm:p-8 mt-5">
-					{/* Profile, organisation, staff and defaults are live; these three are still sample data */}
-					{["notifications", "billing", "danger"].includes(activeSection) && (
+					{/* Profile, organisation, staff and defaults are live; these two are still sample data */}
+					{["billing", "danger"].includes(activeSection) && (
 						<div className="mb-6 bg-amber-500/5 border border-amber-500/20 text-amber-500 text-xs rounded-xl px-4 py-3 leading-snug">
 							<span className="font-bold uppercase tracking-wider mr-1">
 								Preview:
@@ -86,11 +82,7 @@ export default function SettingsPage() {
 							)}
 
 							{activeSection === "notifications" && (
-								<NotificationsSection
-									userRole={userRole}
-									initialSettings={notificationSettings}
-									onSave={handleSaveNotifications}
-								/>
+								<NotificationsSection userRole={userRole} />
 							)}
 
 							{activeSection === "defaults" && userRole === "org-admin" && (
