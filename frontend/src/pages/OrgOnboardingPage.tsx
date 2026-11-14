@@ -14,7 +14,7 @@ import {
 import CopyButton from "../components/CopyButton";
 import { useAuth } from "../contexts/AuthContext";
 import { useOrg } from "../contexts/OrgContext";
-import { updateMe } from "../lib/auth";
+import { completeOnboarding, updateMe } from "../lib/auth";
 import { invalidateImages } from "../lib/images";
 import {
   createInvite,
@@ -23,7 +23,7 @@ import {
   uploadLogo,
   type CreatedInvite,
 } from "../lib/org";
-import { markOnboardingDone } from "../lib/onboarding";
+import { needsOnboarding } from "../lib/onboarding";
 import type { OnboardingStep } from "../utils/types";
 
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
@@ -73,9 +73,12 @@ export default function OrgOnboardingPage() {
     role: "radiologist" as "radiologist" | "clinician",
   });
   const [adding, setAdding] = useState(false);
+  const [finishing, setFinishing] = useState(false);
 
-  // Only admins have an organisation to set up
-  if (user && user.role !== "admin") return <Navigate to="/dashboard" replace />;
+  // Only the admin who registered the organisation sees this, and only until it is done.
+  // (While finishing, `finishing` keeps the page up as the flag clears.)
+  if (user && !finishing && !needsOnboarding(user))
+    return <Navigate to="/dashboard" replace />;
 
   const handleProfileChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -175,8 +178,15 @@ export default function OrgOnboardingPage() {
     }
   };
 
-  const finish = () => {
-    if (user) markOnboardingDone(user.id);
+  /** Done or skipped: tell the backend so it is not offered again, then go to the dashboard. */
+  const finish = async () => {
+    setFinishing(true);
+    try {
+      await completeOnboarding();
+      await refetch();
+    } catch {
+      // not fatal: the setup may be offered once more at the next sign-in
+    }
     navigate("/dashboard", { replace: true });
   };
 

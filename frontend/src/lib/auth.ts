@@ -83,6 +83,11 @@ export async function changePassword(payload: {
   await api.post("/auth/me/password", payload);
 }
 
+/** The first-sign-in setup is finished or skipped (204). Safe to call twice. */
+export async function completeOnboarding(): Promise<void> {
+  await api.post("/auth/me/onboarding/complete");
+}
+
 export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> {
   const fd = new FormData();
   fd.append("file", file);

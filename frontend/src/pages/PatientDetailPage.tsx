@@ -77,14 +77,22 @@ export default function PatientDetailPage() {
         <ErrorState message={error ?? "Patient not found"} onRetry={retry} />
       ) : (
         <>
-          <div>
-            <h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display">
-              {patient.patient_code}
-            </h1>
-            <p className="text-brand-text-muted text-sm mt-1">
-              Registered {formatDate(patient.created_at)}
-              {patient.created_by ? ` by ${patient.created_by.full_name}` : ""}
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-extrabold text-brand-text tracking-tight font-display">
+                {patient.patient_code}
+              </h1>
+              <p className="text-brand-text-muted text-sm mt-1">
+                Registered {formatDate(patient.created_at)}
+                {patient.created_by ? ` by ${patient.created_by.full_name}` : ""}
+              </p>
+            </div>
+            <Link
+              to={`/case-upload?patient=${patient.id}`}
+              className="flex items-center gap-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-brand-bg px-4 py-2.5 rounded-xl font-extrabold text-sm hover:opacity-95 active:scale-95 transition-all duration-300"
+            >
+              Upload scan
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -118,13 +126,13 @@ export default function PatientDetailPage() {
             {scans.length === 0 ? (
               <EmptyState
                 title="No scans for this patient yet"
-                hint="Upload a chest X-ray from Case Upload and it will appear here."
+                hint="Upload a chest X-ray and it will appear here."
                 action={
                   <Link
-                    to="/case-upload"
+                    to={`/case-upload?patient=${patient.id}`}
                     className="text-brand-primary text-sm font-bold hover:text-brand-primary-hover"
                   >
-                    Go to Case Upload
+                    Upload a scan for {patient.patient_code}
                   </Link>
                 }
               />

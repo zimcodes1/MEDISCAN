@@ -4,8 +4,8 @@ import ScanDetailsForm from "../components/ScanDetailsForm";
 import AssignmentPriorityForm from "../components/AssignmentPriorityForm";
 import UploadSuccessState from "../components/UploadSuccessState";
 import { Upload } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import type { PatientRecord } from "../lib/patients";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { getPatient, type PatientRecord } from "../lib/patients";
 import { useAuth } from "../contexts/AuthContext";
 import { predict } from "../lib/inference";
 import { listStaff, type StaffMember } from "../lib/staff";
@@ -30,6 +30,23 @@ export default function CaseUploadPage() {
   const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(
     null,
   );
+
+  // Arriving from a patient's page (?patient=<id>): the patient is already chosen, so
+  // their code is in the Patient box and the person only has to add the image.
+  const [searchParams] = useSearchParams();
+  const presetPatientId = searchParams.get("patient");
+  useEffect(() => {
+    if (!presetPatientId) return;
+    let active = true;
+    getPatient(presetPatientId)
+      .then((p) => active && setSelectedPatient((prev) => prev ?? p))
+      .catch(() => {
+        // unknown or not theirs to see: leave the search box for them to use
+      });
+    return () => {
+      active = false;
+    };
+  }, [presetPatientId]);
   const [scanType, setScanType] = useState("chest-xray");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [viewProjection, setViewProjection] = useState("");
