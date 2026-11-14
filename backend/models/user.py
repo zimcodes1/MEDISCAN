@@ -35,6 +35,9 @@ class User(SQLModel, table=True):
     # The platform operator who approves new organisations. Separate from the
     # organisation `admin` role; grants no access to other organisations' data.
     is_platform_admin: bool = Field(default=False, nullable=False)
+    # True only for the admin who registered a new organisation, until they finish (or
+    # skip) the first-sign-in setup. Invited admins and everyone else never see it.
+    onboarding_pending: bool = Field(default=False, nullable=False)
     # Self-registered accounts start unapproved; an admin must approve them.
     is_approved: bool = Field(default=False, nullable=False)
     # Admin kill-switch (deactivate/reactivate), separate from approval.

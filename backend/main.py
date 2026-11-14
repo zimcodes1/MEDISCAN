@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -7,12 +8,13 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from backend.core.config import get_settings
-from backend.core.database import dispose_engine, engine
+from backend.core.database import async_session_factory, dispose_engine, engine
 from backend.core.errors import AppError
 from backend.routers import (
     activity, admin, auth, dashboard, inference, notifications, org, patients, platform,
     reports, scans, staff, users,
 )
+from backend.services import maintenance
 from backend.services.inference_service import build_inference_service
 from backend.services.storage_service import build_storage_service, describe_storage_error
 
@@ -36,7 +38,11 @@ async def lifespan(app: FastAPI):
         logger.info("Storage OK (%s)", settings.storage_backend)
     except Exception as exc:
         logger.error("STORAGE CHECK FAILED: %s", describe_storage_error(exc))
+    # Housekeeping (old notifications) runs in the background; MAINTENANCE_INTERVAL_HOURS=0 turns it off.
+    cleanup = asyncio.create_task(maintenance.loop(async_session_factory, settings))
     yield
+    cleanup.cancel()
+    await asyncio.gather(cleanup, return_exceptions=True)
     await app.state.inference.shutdown()
     await dispose_engine()
 

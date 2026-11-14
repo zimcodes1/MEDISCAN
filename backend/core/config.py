@@ -80,6 +80,11 @@ class Settings(BaseSettings):
             raise ValueError("EMAIL_BACKEND=smtp needs SMTP_HOST and EMAIL_FROM")
         return self
 
+    # --- Housekeeping: old notifications. 0 hours turns the background job off. ---
+    maintenance_interval_hours: float = Field(default=24.0, ge=0, le=24 * 30)
+    notification_read_retention_days: int = Field(default=30, ge=1, le=3650)   # read ones
+    notification_max_age_days: int = Field(default=90, ge=1, le=3650)          # read or not
+
     profile_image_max_mb: int = 2          # avatars and organisation logos
     profile_image_max_side_px: int = 512   # stored size; larger uploads are scaled down
 

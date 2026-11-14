@@ -63,6 +63,8 @@ class OrgRef(BaseModel):
 
 class MeOut(UserPublic):
     organisation: OrgRef
+    # Show the first-sign-in setup. Only the person who registered the organisation.
+    onboarding_pending: bool = False
 
 
 _USER_PHONE = re.compile(r"^\+?[0-9][0-9 ()\-]{6,19}$")

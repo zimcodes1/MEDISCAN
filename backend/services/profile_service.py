@@ -120,3 +120,10 @@ async def _delete_quietly(storage: StorageService, key: str) -> None:
         await storage.delete(key)
     except Exception:  # the row is already updated; a leftover object is harmless
         logger.warning("Could not delete old profile image %s", key)
+
+
+async def complete_onboarding(session: AsyncSession, user: User) -> None:
+    if user.onboarding_pending:
+        user.onboarding_pending = False
+        session.add(user)
+        await session.commit()

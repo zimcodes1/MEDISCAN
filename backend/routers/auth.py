@@ -115,7 +115,10 @@ async def reset_password(
 async def _me(session: AsyncSession, user: User) -> MeOut:
     org = await session.get(Organisation, user.organisation_id)
     base = UserPublic.model_validate(user)
-    return MeOut(**base.model_dump(), organisation=OrgRef(id=org.id, name=org.name))
+    return MeOut(
+        **base.model_dump(), organisation=OrgRef(id=org.id, name=org.name),
+        onboarding_pending=user.onboarding_pending,
+    )
 
 
 @router.get("/me", response_model=MeOut)
@@ -124,6 +127,16 @@ async def me(
     session: AsyncSession = Depends(get_session),
 ):
     return await _me(session, user)
+
+
+@router.post("/me/onboarding/complete", status_code=204)
+async def complete_onboarding(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """The first-sign-in setup is finished or skipped. Safe to call again."""
+    await profile_service.complete_onboarding(session, user)
+    return Response(status_code=204)
 
 
 @router.patch("/me", response_model=MeOut)

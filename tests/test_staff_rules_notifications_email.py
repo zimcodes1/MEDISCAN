@@ -421,3 +421,54 @@ def test_smtp_needs_a_host_and_a_sender():
                   email_from="no-reply@example.com")
     assert ok.email_backend == "smtp"
     assert Settings(**base).email_backend == "disabled"  # off unless asked for
+
+
+# =============================================================== first-sign-in setup
+ORG = {
+    "organisation_name": "Sunrise Clinic", "organisation_type": "clinic", "state": "Lagos",
+    "phone_number": "08012345678", "full_name": "Ada Obi", "email": "ada@sunrise.example.com",
+    "password": PW,
+}
+
+
+async def bearer_for(client, email):
+    return {"Authorization": f"Bearer {(await login(client, email)).json()['access_token']}"}
+
+
+async def test_only_the_admin_who_registered_the_organisation_gets_the_setup(client, db):
+    op = await token_for(client, db, "operator@example.com", UserRole.admin, platform_admin=True)
+    await client.post("/auth/register-organisation", json=ORG)
+    oid = (await client.get("/platform/organisations?status=pending", headers=op)).json()[0]["id"]
+    await client.post(f"/platform/organisations/{oid}/approve", headers=op)
+    first = await bearer_for(client, ORG["email"])
+    assert (await client.get("/auth/me", headers=first)).json()["onboarding_pending"] is True
+
+    # a second admin joins that organisation by invitation: no setup for them
+    inv = await client.post("/org/invites", headers=first,
+                            json={"email": "second@sunrise.example.com", "role": "admin"})
+    await client.post("/auth/accept-invite", json={
+        "token": inv.json()["token"], "full_name": "Second Admin", "password": PW})
+    second = await bearer_for(client, "second@sunrise.example.com")
+    me = (await client.get("/auth/me", headers=second)).json()
+    assert me["role"] == "admin" and me["onboarding_pending"] is False
+
+    # the first admin finishes it; it stays finished and calling again is harmless
+    for _ in range(2):
+        assert (await client.post("/auth/me/onboarding/complete", headers=first)).status_code == 204
+    assert (await client.get("/auth/me", headers=first)).json()["onboarding_pending"] is False
+    assert (await client.get("/auth/me", headers=second)).json()["onboarding_pending"] is False
+
+
+async def test_nobody_else_is_flagged_for_the_setup(client, db, world):
+    for who in (world.admin, world.doc, world.rad):  # made directly, not by registration
+        assert (await client.get("/auth/me", headers=who)).json()["onboarding_pending"] is False
+    r = await client.post("/auth/register", json={  # the older self-sign-up route
+        "email": "newbie@example.com", "full_name": "New Bie", "password": PW})
+    assert r.status_code in (200, 201, 202)
+    async with db() as s:
+        flagged = (await s.exec(select(User.email).where(User.onboarding_pending.is_(True)))).all()
+    assert flagged == []
+
+
+async def test_completing_the_setup_needs_a_signed_in_user(client):
+    assert (await client.post("/auth/me/onboarding/complete")).status_code == 401

@@ -3,7 +3,9 @@ notification exists if and only if the event it describes was saved."""
 import uuid
 from collections.abc import Iterable
 
-from sqlalchemy import func, update
+from datetime import datetime, timedelta
+
+from sqlalchemy import delete, func, or_, update
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -127,3 +129,26 @@ async def update_prefs(
     session.add(pref)
     await session.commit()
     return _prefs_out(pref)
+
+
+async def prune(
+    session: AsyncSession, *, read_days: int, max_age_days: int,
+    now: datetime | None = None, dry_run: bool = False,
+) -> int:
+    """Delete notifications nobody needs any more and return how many.
+
+    Read ones go after `read_days`; anything, read or not, goes after `max_age_days`
+    (an unread one that old will never be read). Safe to run at any time and from
+    several places at once: it only deletes rows that match."""
+    now = now or utcnow()
+    read_cut = now - timedelta(days=read_days)
+    old_cut = now - timedelta(days=max_age_days)
+    doomed = or_(
+        Notification.created_at < old_cut,
+        (Notification.read_at.is_not(None)) & (Notification.read_at < read_cut),
+    )
+    if dry_run:
+        return (await session.exec(select(func.count(Notification.id)).where(doomed))).one()
+    result = await session.exec(delete(Notification).where(doomed))
+    await session.commit()
+    return result.rowcount or 0

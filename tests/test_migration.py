@@ -55,6 +55,8 @@ def test_upgrade_backfills_and_downgrade_restores():
     assert c.execute("select 1 from sqlite_master where name='notifications'").fetchone()
     assert c.execute("select 1 from sqlite_master where name='notification_preferences'").fetchone()
     assert "job_title" in [r[1] for r in c.execute("pragma table_info(invites)")]
+    # 0009: only the registrant of an organisation is flagged for the first-sign-in setup
+    assert "onboarding_pending" in [r[1] for r in c.execute("pragma table_info(users)")]
     c.close()
 
     _alembic(db, "downgrade", "0002")
@@ -68,3 +70,27 @@ def test_upgrade_backfills_and_downgrade_restores():
     assert not c.execute("select 1 from sqlite_master where name='invites'").fetchone()
     assert not c.execute("select 1 from sqlite_master where name='password_resets'").fetchone()
     assert "avatar_key" not in cols and "job_title" not in cols
+
+
+def test_0009_keeps_the_setup_only_for_admins_of_organisations_still_awaiting_approval():
+    db = Path(tempfile.mkdtemp()) / "m9.db"
+    _alembic(db, "upgrade", "0008")
+    c = sqlite3.connect(db)
+    pending, active = ("a" * 32, "b" * 32)
+    for oid, status in ((pending, "pending"), (active, "active")):
+        c.execute("insert into organisations(id,name,type,status,created_at,default_priority,report_disclaimer)"
+                  f" values('{oid}','Org {status}','clinic','{status}','2026-01-01','routine','')")
+    rows = [("1" * 32, "p-admin@x.com", "admin", pending), ("2" * 32, "p-doc@x.com", "clinician", pending),
+            ("3" * 32, "a-admin@x.com", "admin", active)]
+    for uid, email, role, oid in rows:
+        c.execute("insert into users(id,email,hashed_password,full_name,role,organisation_id,is_active,is_approved,"
+                  "is_platform_admin,created_at,updated_at)"
+                  f" values('{uid}','{email}','h','N','{role}','{oid}',1,0,0,'2026-01-01','2026-01-01')")
+    c.commit(); c.close()
+
+    _alembic(db, "upgrade", "0009")
+    c = sqlite3.connect(db)
+    flags = dict(c.execute("select email, onboarding_pending from users").fetchall())
+    assert flags == {"p-admin@x.com": 1, "p-doc@x.com": 0, "a-admin@x.com": 0}
+    c.close()
+    _alembic(db, "downgrade", "0008")  # and it goes back cleanly

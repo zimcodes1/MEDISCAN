@@ -55,6 +55,7 @@ async def register_organisation(
     admin = User(
         email=email, full_name=body.full_name.strip(), hashed_password=pw_hash,
         role=UserRole.admin, is_approved=False, is_active=True, organisation_id=org.id,
+        onboarding_pending=True,  # the first admin sets the organisation up; invited ones never do
     )
     session.add(admin)
     try:
