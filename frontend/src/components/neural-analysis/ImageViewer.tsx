@@ -1,5 +1,6 @@
-import { ZoomIn, ZoomOut, Download, Maximize2 } from "lucide-react";
+import { ZoomIn, ZoomOut, Download, Maximize2, Minimize2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const smoothstep = (x: number) => {
   const c = Math.min(1, Math.max(0, x));
@@ -314,8 +315,51 @@ export default function ImageViewer({
   };
   const scale = { transform: `scale(${zoom / 100})` };
 
-  return (
-    <div className="glass-panel rounded-2xl p-4 sm:p-6 h-[520px] flex flex-col relative overflow-hidden group">
+  // Maximize: the viewer fills the window, drawn straight onto the page body so it sits
+  // above the top bar and sidebar. The browser's full screen is requested too where it is
+  // allowed (not on iPhones). Escape or the same button closes it.
+  const [maximized, setMaximized] = useState(false);
+  const toggleMaximize = () => {
+    if (maximized) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      setMaximized(false);
+      return;
+    }
+    setMaximized(true);
+    document.documentElement.requestFullscreen?.().catch(() => {
+      // refused: the full-window view alone is fine
+    });
+  };
+  useEffect(() => {
+    if (!maximized) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMaximized(false);
+    };
+    // the browser's own Esc/back leaves full screen: follow it
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement) setMaximized(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; // the page behind must not scroll
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+    };
+  }, [maximized]);
+
+  const viewer = (
+    <div
+      // Two modes, never mixed: when two utilities set the same property (relative vs
+      // fixed, rounded-2xl vs rounded-none), whichever the stylesheet lists last wins.
+      className={
+        maximized
+          ? "fixed inset-0 z-[100] h-screen w-screen bg-brand-bg p-4 sm:p-6 flex flex-col overflow-hidden group"
+          : "glass-panel rounded-2xl p-4 sm:p-6 h-[520px] flex flex-col relative overflow-hidden group"
+      }
+    >
       {/* Controls Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         {/* View Mode Toggle */}
@@ -383,10 +427,13 @@ export default function ImageViewer({
               <Download size={16} />
             </button>
             <button
-              className="p-2 text-brand-text-muted hover:text-brand-primary hover:bg-brand-card/60 rounded-lg transition-all duration-200"
-              title="Maximize"
+              onClick={toggleMaximize}
+              className="p-2 text-brand-text-muted hover:text-brand-primary hover:bg-brand-card/60 rounded-lg transition-all duration-200 cursor-pointer"
+              title={maximized ? "Exit full screen (Esc)" : "Maximize"}
+              aria-label={maximized ? "Exit full screen" : "Maximize"}
+              aria-pressed={maximized}
             >
-              <Maximize2 size={16} />
+              {maximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
             </button>
           </div>
         </div>
@@ -532,5 +579,14 @@ export default function ImageViewer({
         <p className="text-rose-400 text-xs mt-2 break-words">{downloadError}</p>
       )}
     </div>
+  );
+
+  if (!maximized) return viewer;
+  return (
+    <>
+      {/* keeps the page layout from jumping while the viewer is lifted out */}
+      <div className="h-[520px]" aria-hidden />
+      {createPortal(viewer, document.body)}
+    </>
   );
 }
