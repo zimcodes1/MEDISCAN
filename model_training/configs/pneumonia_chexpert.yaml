@@ -1,0 +1,70 @@
+condition: pneumonia_chexpert
+label: "Pneumonia (CheXpert)"
+experimental: true # unproven until trained & Grad-CAM checked
+
+dataset:
+  source: "CheXpert-v1.0-small (Kaggle mirror: ashery/chexpert)"
+  drive_path: "MediScan_AI/training/datasets/pneumonia_chexpert/"
+  original_population: "adult, Stanford Hospital, 2002-2017, inpatient+outpatient"
+  labeling_method: "NLP-extracted from radiology reports, not per-image human review"
+  positive_definition: "Pneumonia == 1.0 (explicit positive)"
+  negative_definition: "No Finding == 1.0 (explicit no-findings, NOT the same as Pneumonia == 0.0)"
+  excluded: "Pneumonia == -1.0 (uncertain), Pneumonia == 0.0 explicit negatives (kept negative class singular), lateral views, images with no positive/negative signal"
+  view_filter: "frontal only"
+  num_images_total: 18396
+  num_patients_unique: 15131
+  class_distribution:
+    negative: 13721
+    positive: 4675
+    ratio_neg_to_pos: 2.937 # image-level, pre-split
+  split_method: "patient-level GroupShuffleSplit (NOT stratified image-level) — prevents patient leakage across train/val/test since CheXpert has multiple images per patient"
+  split_seed: 42
+  split_ratios: [0.8, 0.1, 0.1]
+  split_counts:
+    train: { images: 14740, patients: 12104, negative: 10944, positive: 3796 }
+    val: { images: 1840, patients: 1513, negative: 1384, positive: 456 }
+    test: { images: 1816, patients: 1514, negative: 1393, positive: 423 }
+  patient_overlap_confirmed: "zero overlap across train/val/test"
+
+model:
+  architecture: "efficientnet_b0"
+  pretrained: true
+  num_output_neurons: 1
+  note: "Trained from scratch on ImageNet weights (NOT fine-tuned from the Kaggle-trained checkpoint) — deliberate choice to cleanly test whether the original model's Grad-CAM bias was a Kaggle-dataset-provenance issue"
+
+training:
+  stage1:
+    freeze_backbone: true
+    optimizer: "adam"
+    learning_rate: 0.001
+    epochs: 5
+  stage2:
+    unfreeze_last_n_blocks: 2
+    optimizer: "adam"
+    learning_rate: 0.0001
+    epochs: 5
+    lr_scheduler: "reduce_on_plateau"
+  loss: "bce_with_logits"
+  pos_weight: 2.8830
+  early_stopping_patience: 3
+
+targets:
+  accuracy: 0.88
+  sensitivity: 0.90
+  auc_roc: 0.92
+
+export:
+  onnx_filename: "mediscan_pneumonia_chexpert.onnx"
+  pth_filename: "mediscan_pneumonia_chexpert.pth"
+  opset_version: 17
+  parity_tolerance: 0.001
+  onnx_export_note: "use dynamo=False — default dynamo exporter fails with missing onnxscript dependency"
+
+hf_hub:
+  repo: "Rhishamah/mediscan-pneumonia-chexpert" # separate repo — original Kaggle-trained model stays untouched
+  commit_hash: null
+
+related:
+  original_model_config: "configs/pneumonia.yaml"
+  original_model_hf_repo: "Rhishamah/mediscan-pneumonia"
+  purpose: "Test hypothesis that Grad-CAM neck/hardware bias in the original Kaggle-trained model was a dataset-provenance issue rather than an architecture/training-recipe issue. See PROJECT_LOG.md section on CheXpert follow-up."

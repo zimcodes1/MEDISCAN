@@ -5,4 +5,5 @@ frontend/Mediscan/package-lock.json
 .codex
 design/
 IMGS/
+**/__pycache__/
 frontend/.env
