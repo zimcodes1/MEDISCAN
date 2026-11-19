@@ -3,6 +3,7 @@ import { CheckCircle2 } from "lucide-react";
 import { updateScan, type Priority, type ScanRecord } from "../../lib/scans";
 import type { StaffMember } from "../../lib/staff";
 import { formatDate, formatDateTime } from "../../lib/format";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface ReviewPanelProps {
   scan: ScanRecord;
@@ -31,6 +32,8 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 /** Priority, assignment and review actions (api-contract.md sections 1 and 3). */
 export default function ReviewPanel({ scan, staff, onUpdated }: ReviewPanelProps) {
+  const { user } = useAuth();
+  const canAssign = user?.role === "admin"; // only admins choose who examines a scan
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,6 +97,14 @@ export default function ReviewPanel({ scan, staff, onUpdated }: ReviewPanelProps
             >
               Assigned to
             </label>
+            {!canAssign ? (
+              <p className="text-brand-text text-sm font-medium bg-brand-card/45 border border-brand-border/40 px-3 py-2.5 rounded-xl">
+                {scan.assigned_to?.full_name ?? "Unassigned"}
+                <span className="block text-brand-text-muted text-[10px] font-normal mt-0.5">
+                  Only admins can change the assignment
+                </span>
+              </p>
+            ) : (
             <select
               id="assign-to"
               disabled={busy}
@@ -108,6 +119,7 @@ export default function ReviewPanel({ scan, staff, onUpdated }: ReviewPanelProps
                 </option>
               ))}
             </select>
+            )}
           </div>
 
           {reviewed ? (

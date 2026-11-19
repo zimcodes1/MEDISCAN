@@ -6,6 +6,8 @@ export interface PatientRecord {
   sex: string | null;
   year_of_birth: number | null;
   created_at: string;
+  /** Who registered the patient. */
+  created_by?: { id: string; full_name: string } | null;
 }
 
 /** Age in years from year of birth, or null if unknown. */

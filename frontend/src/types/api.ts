@@ -46,4 +46,6 @@ export interface OrgRef {
 /** GET /auth/me */
 export interface CurrentUser extends UserPublic {
   organisation: OrgRef;
+  /** True only for the admin who registered the organisation, until they finish the setup. */
+  onboarding_pending?: boolean;
 }

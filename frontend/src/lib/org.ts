@@ -32,6 +32,7 @@ export interface Invite {
   id: string;
   email: string;
   role: string;
+  job_title: string | null;
   created_at: string;
   expires_at: string;
   status: "pending" | "expired";
@@ -42,6 +43,7 @@ export interface CreatedInvite {
   id: string;
   email: string;
   role: string;
+  job_title: string | null;
   token: string;
   invite_url: string;
   expires_at: string;
@@ -96,6 +98,8 @@ export async function listInvites(): Promise<Invite[]> {
 export async function createInvite(payload: {
   email: string;
   role: InviteRole;
+  /** Optional. Becomes the new account's job title, which they cannot change. */
+  job_title?: string;
 }): Promise<CreatedInvite> {
   const { data } = await api.post<CreatedInvite>("/org/invites", payload);
   return data;

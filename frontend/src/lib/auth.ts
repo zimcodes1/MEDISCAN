@@ -57,6 +57,14 @@ export async function getCurrentUser(): Promise<CurrentUser> {
   return data;
 }
 
+/** Sets a new password from an admin-issued link (204). Every session is ended; sign in again. */
+export async function resetPassword(payload: {
+  token: string;
+  new_password: string;
+}): Promise<void> {
+  await api.post("/auth/reset-password", payload);
+}
+
 /** Only the fields you send change. */
 export async function updateMe(patch: {
   full_name?: string;
@@ -73,6 +81,11 @@ export async function changePassword(payload: {
   new_password: string;
 }): Promise<void> {
   await api.post("/auth/me/password", payload);
+}
+
+/** The first-sign-in setup is finished or skipped (204). Safe to call twice. */
+export async function completeOnboarding(): Promise<void> {
+  await api.post("/auth/me/onboarding/complete");
 }
 
 export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> {

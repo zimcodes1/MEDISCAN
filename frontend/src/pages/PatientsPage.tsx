@@ -157,6 +157,7 @@ export default function PatientsPage() {
                 </p>
                 <p className="text-brand-text-muted/50 text-[10px] uppercase font-bold tracking-wider mt-1.5">
                   Registered {formatDate(p.created_at)}
+                  {p.created_by ? ` · by ${p.created_by.full_name}` : ""}
                 </p>
               </div>
               <ChevronRight

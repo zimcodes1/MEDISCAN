@@ -3,10 +3,14 @@ import { useAuth } from "../../contexts/AuthContext";
 import {
   activateUser,
   approveUser,
+  createPasswordReset,
   deactivateUser,
   listUsers,
+  updateStaffTitle,
+  type PasswordResetLink,
 } from "../../lib/admin";
-import { formatDate } from "../../lib/format";
+import { formatDate, formatDateTime } from "../../lib/format";
+import CopyButton from "../CopyButton";
 import type { UserPublic } from "../../types/api";
 import { EmptyState, ErrorState, LoadingState } from "../PageStatus";
 import Avatar from "../Avatar";
@@ -35,6 +39,85 @@ const STATUS_LABEL: Record<StaffStatus, string> = {
 const TH =
   "text-brand-text-muted text-[10px] font-bold uppercase tracking-wider px-6 py-4 font-display";
 
+/** Shows a colleague's job title; admins can change it (staff cannot change their own). */
+function JobTitleCell({
+  user,
+  onSaved,
+}: {
+  user: UserPublic;
+  onSaved: (u: UserPublic) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(user.job_title ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    setSaving(true);
+    setError(null);
+    try {
+      onSaved(await updateStaffTitle(user.id, draft));
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-brand-text-muted text-xs font-medium">
+          {user.job_title ?? "—"}
+        </span>
+        <button
+          onClick={() => {
+            setDraft(user.job_title ?? "");
+            setEditing(true);
+          }}
+          className="text-brand-primary text-[11px] font-bold hover:underline cursor-pointer"
+          aria-label={`Edit job title for ${user.full_name}`}
+        >
+          Edit
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-1.5">
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+            if (e.key === "Escape") setEditing(false);
+          }}
+          maxLength={100}
+          placeholder="Job title"
+          className="w-36 bg-brand-card/60 text-brand-text text-xs px-2 py-1.5 rounded-lg border border-brand-border outline-none focus:border-brand-primary/50"
+        />
+        <button
+          onClick={save}
+          disabled={saving}
+          className="text-emerald-400 text-[11px] font-bold hover:underline cursor-pointer disabled:opacity-50"
+        >
+          {saving ? "…" : "Save"}
+        </button>
+        <button
+          onClick={() => setEditing(false)}
+          className="text-brand-text-muted text-[11px] font-bold hover:underline cursor-pointer"
+        >
+          Cancel
+        </button>
+      </div>
+      {error && <p className="text-rose-400 text-[10px]">{error}</p>}
+    </div>
+  );
+}
+
 interface StaffTableProps {
   users: UserPublic[];
   currentUserId?: string;
@@ -42,6 +125,8 @@ interface StaffTableProps {
   onApprove: (u: UserPublic) => void;
   onDeactivate: (u: UserPublic) => void;
   onActivate: (u: UserPublic) => void;
+  onResetPassword: (u: UserPublic) => void;
+  onUserUpdated: (u: UserPublic) => void;
 }
 
 export function StaffTable({
@@ -51,14 +136,17 @@ export function StaffTable({
   onApprove,
   onDeactivate,
   onActivate,
+  onResetPassword,
+  onUserUpdated,
 }: StaffTableProps) {
   return (
     <div className="w-full max-sm:hide-scrollbar overflow-x-auto glass-panel rounded-2xl border border-brand-border/40 relative">
-      <table className="w-full min-w-[800px]">
+      <table className="w-full min-w-[960px]">
         <thead className="bg-brand-card/65 border-b border-brand-border/40">
           <tr>
             <th className={`text-left ${TH}`}>Name</th>
             <th className={`text-left ${TH}`}>Role</th>
+            <th className={`text-left ${TH}`}>Job title</th>
             <th className={`text-left ${TH}`}>Email</th>
             <th className={`text-left ${TH}`}>Registered</th>
             <th className={`text-left ${TH}`}>Status</th>
@@ -98,6 +186,9 @@ export function StaffTable({
                 <td className="px-6 py-4 text-brand-text-muted text-xs font-medium capitalize">
                   {u.role}
                 </td>
+                <td className="px-6 py-4">
+                  <JobTitleCell user={u} onSaved={onUserUpdated} />
+                </td>
                 <td className="px-6 py-4 text-brand-text-muted text-xs font-medium">
                   {u.email}
                 </td>
@@ -120,6 +211,16 @@ export function StaffTable({
                         className={`${btn} border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10`}
                       >
                         {busy ? "Approving…" : "Approve"}
+                      </button>
+                    )}
+                    {status === "active" && !isSelf && (
+                      <button
+                        onClick={() => onResetPassword(u)}
+                        disabled={busy}
+                        title="Create a one-time link so this person can set a new password"
+                        className={`${btn} border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10`}
+                      >
+                        Reset password
                       </button>
                     )}
                     {status === "active" && !isSelf && (
@@ -158,6 +259,7 @@ export default function StaffManagementSection() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<"pending" | "all">("all");
+  const [resetLink, setResetLink] = useState<PasswordResetLink | null>(null);
   const firstLoad = useRef(true);
 
   const load = useCallback(async () => {
@@ -202,6 +304,26 @@ export default function StaffManagementSection() {
     }
   }
 
+  async function handleResetPassword(u: UserPublic) {
+    if (
+      !window.confirm(
+        `Create a password reset link for ${u.full_name}? Any earlier unused link for them stops working.`,
+      )
+    )
+      return;
+    setBusyId(u.id);
+    setActionError(null);
+    try {
+      setResetLink(await createPasswordReset(u.id));
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Could not create the reset link",
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   const pendingCount = users?.filter((u) => !u.is_approved).length ?? 0;
   const visible =
     users?.filter((u) => (tab === "pending" ? !u.is_approved : true)) ?? [];
@@ -230,6 +352,38 @@ export default function StaffManagementSection() {
         <p className="text-rose-400 text-sm bg-rose-500/5 border border-rose-500/20 rounded-xl px-4 py-3 break-words">
           {actionError}
         </p>
+      )}
+
+      {resetLink && (
+        <div className="bg-brand-primary/5 border border-brand-primary/25 rounded-2xl p-4 sm:p-5 space-y-2">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-brand-text text-sm font-semibold">
+              Password reset link for {resetLink.user.full_name} (
+              {resetLink.user.email})
+            </p>
+            <button
+              onClick={() => setResetLink(null)}
+              aria-label="Dismiss"
+              className="text-brand-text-muted hover:text-brand-text text-lg leading-none cursor-pointer"
+            >
+              ×
+            </button>
+          </div>
+          <div className="flex gap-2 items-center">
+            <input
+              readOnly
+              value={resetLink.reset_url}
+              onFocus={(e) => e.currentTarget.select()}
+              className="flex-1 min-w-0 bg-brand-card/60 text-brand-text text-xs px-3 py-2 rounded-lg border border-brand-border font-mono"
+            />
+            <CopyButton text={resetLink.reset_url} />
+          </div>
+          <p className="text-brand-text-muted text-[11px] leading-snug">
+            Send it to them yourself: no email is sent. It works once, expires
+            at {formatDateTime(resetLink.expires_at)}, and can't be shown again.
+            When they use it, they are signed out of every device.
+          </p>
+        </div>
       )}
 
       {error ? (
@@ -278,6 +432,12 @@ export default function StaffManagementSection() {
                   act(u, deactivateUser);
               }}
               onActivate={(u) => act(u, activateUser)}
+              onResetPassword={handleResetPassword}
+              onUserUpdated={(updated) =>
+                setUsers((prev) =>
+                  prev ? prev.map((x) => (x.id === updated.id ? updated : x)) : prev,
+                )
+              }
             />
           )}
         </>

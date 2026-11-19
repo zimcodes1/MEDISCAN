@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import NotificationsPanel from "./NotificationsPanel";
 import { useAuth } from "../contexts/AuthContext";
 import { useOrg } from "../contexts/OrgContext";
+import { useNotifications } from "../contexts/NotificationsContext";
 import Avatar from "./Avatar";
 import OrgLogo from "./OrgLogo";
 
@@ -19,6 +20,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
     navigate("/login", { replace: true });
   };
   const { org } = useOrg();
+  const { unreadCount } = useNotifications();
   const orgName = org?.name ?? user?.organisation.name ?? "";
   const [showNotifications, setShowNotifications] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -65,7 +67,9 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
             className="relative p-2 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-brand-primary text-brand-text-muted transition-all duration-300 active:scale-95"
           >
             <Bell size={16} />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-brand-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(0,210,255,0.5)]" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-brand-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(0,210,255,0.5)]" />
+            )}
           </button>
           {showNotifications && (
             <div className="absolute right-0 mt-2">
@@ -73,7 +77,12 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
             </div>
           )}
         </div>
-        <button className="max-sm:hidden p-2 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-brand-primary text-brand-text-muted transition-all duration-300 active:scale-95">
+        <button
+          onClick={() => navigate("/support")}
+          title="Support"
+          aria-label="Support"
+          className="max-sm:hidden p-2 rounded-xl border border-brand-border/60 bg-brand-card/45 hover:bg-brand-card hover:text-brand-primary text-brand-text-muted transition-all duration-300 active:scale-95 cursor-pointer"
+        >
           <HelpCircle size={16} />
         </button>
 
