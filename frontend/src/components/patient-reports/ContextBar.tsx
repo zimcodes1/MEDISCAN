@@ -9,7 +9,7 @@ interface AIFinding {
 
 interface ContextBarProps {
 	patientName: string;
-	age: number;
+	age: number | null;
 	sex: string;
 	scanDate: string;
 	projection: string;
@@ -39,7 +39,7 @@ export default function ContextBar({
 					<div>
 						<p className="text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Demographics</p>
 						<p className="text-brand-text font-semibold">
-							{age}y · {sex}
+							{`${age !== null ? `${age}y` : "—"} · ${sex}`}
 						</p>
 					</div>
 					<div className="hidden sm:block w-px h-8 bg-brand-border/40" />

@@ -6,6 +6,12 @@ interface AssignmentPriorityFormProps {
 	onPriorityChange: (value: "routine" | "urgent") => void;
 	assignedRadiologist: string;
 	onAssignedRadiologistChange: (value: string) => void;
+	/** Assignment and priority are not stored by the backend yet. */
+	disabled?: boolean;
+	/** Assignable staff (GET /staff). */
+	staff?: { id: string; full_name: string; role?: string }[];
+	/** Only admins choose who examines a scan; everyone else sees a note instead of the picker. */
+	canAssign?: boolean;
 }
 
 export default function AssignmentPriorityForm({
@@ -14,6 +20,9 @@ export default function AssignmentPriorityForm({
 	onPriorityChange,
 	assignedRadiologist,
 	onAssignedRadiologistChange,
+	disabled = false,
+	staff = [],
+	canAssign = true,
 }: AssignmentPriorityFormProps) {
 	return (
 		<div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden group">
@@ -29,8 +38,23 @@ export default function AssignmentPriorityForm({
 				</div>
 			</div>
 
-			{/* Assign Radiologist */}
-			<div>
+			{disabled && (
+				<p className="text-amber-500 text-xs bg-amber-500/5 border border-amber-500/10 rounded-xl px-4 py-2.5 leading-snug">
+					Assignment and priority are not saved yet.
+				</p>
+			)}
+
+			<fieldset
+				disabled={disabled}
+				className="space-y-6 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed"
+			>
+			{/* Assign Radiologist (admins only) */}
+			{!canAssign && (
+				<p className="text-brand-text-muted text-xs bg-brand-card/40 border border-brand-border/40 rounded-xl px-4 py-2.5 leading-snug">
+					An admin assigns scans to radiologists after upload.
+				</p>
+			)}
+			{canAssign && <div>
 				<label className="block text-brand-text-muted text-[10px] font-bold uppercase tracking-wider mb-2">
 					Assign Radiologist
 				</label>
@@ -39,11 +63,15 @@ export default function AssignmentPriorityForm({
 					onChange={(e) => onAssignedRadiologistChange(e.target.value)}
 					className="w-full bg-brand-card/60 text-brand-text text-sm px-4 py-3 rounded-xl border border-brand-border/60 outline-none focus:border-brand-primary/50 focus:bg-brand-card transition-all duration-300"
 				>
-					<option value="">Select radiologist...</option>
-					<option value="Dr. S. Chen">Dr. S. Chen</option>
-					<option value="Dr. A. Patel">Dr. A. Patel</option>
+					<option value="">Unassigned</option>
+					{staff.map((s) => (
+						<option key={s.id} value={s.id}>
+							{s.full_name}
+							{s.role ? ` (${s.role})` : ""}
+						</option>
+					))}
 				</select>
-			</div>
+			</div>}
 
 			{/* Priority */}
 			<div>
@@ -76,6 +104,7 @@ export default function AssignmentPriorityForm({
 					</button>
 				</div>
 			</div>
+			</fieldset>
 		</div>
 	);
 }

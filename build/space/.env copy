@@ -1,0 +1,47 @@
+# Local development environment variables for MediScan
+# WARNING: these are for local development only. Do NOT use in production.
+
+# Use a local sqlite async URL for quick dev runs
+database_url=sqlite+aiosqlite:///./dev.db
+
+# Minimum 32-character secret for JWT (replace with secure value if needed)
+jwt_secret_key=dev_jwt_secret_key_please_change_123456
+
+# Run in development mode
+environment=development
+
+# Keep storage on local disk for development
+storage_backend=local
+
+# Allow frontend dev server
+cors_origins=http://localhost:5173,http://localhost:3000
+ENVIRONMENT=development
+DEBUG=false
+
+DATABASE_URL=postgresql://neondb_owner:npg_GrOHTSBg2ov7@ep-curly-unit-zashfqmz-pooler.c-2.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+# Generate: python -c "import secrets; print(secrets.token_urlsafe(64))"
+JWT_SECRET_KEY="jRsFp-HeajpkPpkDDfLMoASDBWR8cs1DbeArmUV4jOL1wWgWe9mbw5hECyoRG6TL5Ad8onZLQZuDNOTCSQ4A1Q"
+# postgresql://neondb_owner:npg_GrOHTSBg2ov7@ep-curly-unit-zashfqmz-pooler.c-2.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+INFERENCE_BACKEND=remote
+INFERENCE_URL=https://vsam09786--mediscan-inference-inference-web.modal.run
+INFERENCE_TOKEN=1FRn5DuTYQea1zpKTl5HIsQld6Ecg9w8Iihu34j6EppRgY5_ZoZ3n2KKfkWhX-nZ
+INFERENCE_TIMEOUT_SECONDS=300
+TB_POSITIVE_LABEL=TURBERCULOSIS
+MAX_UPLOAD_MB=10
+
+# JSON list
+# CORS_ORIGINS=["http://localhost:5173","http://localhost:3000","https://mediscan-ng.vercel.app"]
+CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173","http://localhost:3000","https://mediscan-ng.vercel.app"]
+
+
+# s3 bucket
+STORAGE_BACKEND=s3
+S3_ENDPOINT_URL=https://s3.eu-central-003.backblazeb2.com
+S3_BUCKET=MEDISCAN
+S3_ACCESS_KEY_ID=0035685a3b9d1510000000001
+S3_SECRET_ACCESS_KEY=K003oP8Na7q9Fvf0m4vxaDa//GoGgOM
+S3_REGION=EU-central
